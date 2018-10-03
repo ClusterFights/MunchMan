@@ -17,10 +17,10 @@ Model B+, Raspberry Pi Zero etc).
 ## Notes
 
 The following command copies all the Project Gutenberg txt files
-(and only the text files) to your local computer. *Warning, 
-there are almost 100,000 files that take up almost 42GB!*
+(and only the text files) to your local computer. **Warning, 
+there are almost 100,000 files that take up almost 42GB!**
 
-'''
+```
 rsync -av --include='*.txt' --include='*/' --exclude='*' aleph.gutenberg.org::gutenberg .
-'''
+```
 
