@@ -25,7 +25,8 @@ rsync -av --include='*.txt' --include='*/' --exclude='*' aleph.gutenberg.org::gu
 ```
 The text files are encoded as utf-8.  This means a character can
 have variable width character encoding.  **The question is how do
-we handle characters with multiple bytes?**  For now I will avoid
-picking strings that have multi-byte characters.
+we handle characters with multiple bytes?**  If we are reporting
+offset, should those be byte offsets or character offsets? For
+now I will avoid picking strings that have multi-byte characters.
 
 
