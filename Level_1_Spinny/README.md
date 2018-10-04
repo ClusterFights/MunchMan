@@ -23,4 +23,9 @@ there are almost 100,000 files that take up almost 42GB!**
 ```
 rsync -av --include='*.txt' --include='*/' --exclude='*' aleph.gutenberg.org::gutenberg .
 ```
+The text files are encoded as utf-8.  This means a character can
+have variable width character encoding.  **The question is how do
+we handle characters with multiple bytes?**  For now I will avoid
+picking strings that have multi-byte characters.
+
 

@@ -5,7 +5,7 @@
 import sys
 import os
 
-usage =  \
+USAGE =  \
 """
 Usage: manifest.py <dataset_dir>
 
@@ -18,14 +18,14 @@ Usage: manifest.py <dataset_dir>
  as "manifest.txt"
 """
 
-# Print usage if any command line options specified
+# Print USAGE if not one argument
 if len(sys.argv) == 2:
     dataset_dir = sys.argv[1]
     if not os.path.isdir(dataset_dir):
         print("ERROR: Not a directory: ",dataset_dir)
         sys.exit()
 else:
-    print(usage)
+    print(USAGE)
     sys.exit()
 
 
