@@ -6,12 +6,12 @@ import sys
 import os
 import random
 import hashlib
+import argparse
 
 STR_LEN = 19
 
-USAGE =  \
+DESC =  \
 """
-Usage: pick.py <manifest.txt>
 
  This script reads in a manifest.txt file
  that was created with manifest.py.  It
@@ -24,14 +24,24 @@ Usage: pick.py <manifest.txt>
  MD5 hash.
 """
 
-# Print USAGE if not one argument
-if len(sys.argv) == 2:
-    manifest = sys.argv[1]
-    if not os.path.isfile(manifest):
-        print("ERROR: Not a file: ",manifest)
-        sys.exit()
-else:
-    print(USAGE)
+# NOTE : Interesting test cases
+# ./pick.py -i 439 -o 90560
+
+# parse the command line arguments
+parser = argparse.ArgumentParser(description=DESC)
+parser.add_argument("manifest", nargs="?", help="The manifiest.txt file. "
+                   "Default is manifest.txt", default="manifest.txt")
+parser.add_argument("-i", "--index", type=int, help="Use this book index. "
+                    "Instead of random.")
+parser.add_argument("-o", "--offset", type=int, help="Use this file offset. "
+                    "Instead of random.")
+parser.parse_args()
+args = parser.parse_args()
+
+# Check the manifest file
+manifest = args.manifest
+if not os.path.isfile(manifest):
+    print("ERROR: Not a file: ",manifest)
     sys.exit()
 
 # Parse the manifest.
@@ -42,40 +52,34 @@ with open(manifest, 'r') as fp:
             size_str, file_path = line.split()
             file_list.append((int(size_str),file_path))
 
-# Select a random file
+# Select file from dataset
 num_files = len(file_list)
-index = random.randrange(num_files)
-#index = 10 # test file with multibye encodings.
+if args.index is None:
+    index = random.randrange(num_files)
+else:
+    index = args.index
+
+# Get info about the file
 size = file_list[index][0]
 file_path = file_list[index][1]
 
 # Select random substring
 max_offset = size - STR_LEN
-str_offset = random.randint(0,max_offset)
-#str_offset = 169076 # known error spot
-
-# NOTE : Multi-byte characters in file 10, 
-# around line 3000 - 4036.
+if args.offset is None:
+    str_offset = random.randint(0,max_offset)
+else:
+    str_offset = args.offset
 
 # Extract the string
-done = False
 # NOTE : Use latin-1 encoding to map byte values directly
 # to first 256 Unicode code points.  Generates
 # no exceptions, unlike utf-8.
 with open(file_path, mode="r", encoding="latin-1") as fp:
-    while not done:
-        fp.seek(str_offset)
-        # May have to try a couple times if
-        # utf-8 multi-byte characters get split.
-        try:
-            utf8_str = fp.read(STR_LEN)
-            done = True
-        except UnicodeDecodeError as e:
-            #print("READ ERROR: {}, str_offset={}".format(e,str_offset))
-            str_offset = random.randint(0,max_offset)
+    fp.seek(str_offset)
+    latin_str = fp.read(STR_LEN)
 
 # Compute the hash of byte_str
-byte_str = utf8_str.encode()
+byte_str = latin_str.encode()
 md5 = hashlib.md5()
 md5.update(byte_str)
 
@@ -83,14 +87,14 @@ md5.update(byte_str)
 print("file_index: {} out of {}".format(index,num_files))
 print("file_path: ",file_path)
 print("str_offset: ",str_offset)
-#print('utf8_str: "{}"'.format(utf8_str))
+#print('latin_str: "{}"'.format(latin_str))
 print('byte_str: {}'.format(byte_str))
 print('hash: {}'.format(md5.hexdigest()))
 
-if len(utf8_str) != len(byte_str):
-    print("WARNING: utf8_str and byte_str not the same length")
-    print("   utf8_str: ",len(utf8_str))
-    print("   byte_str: ",len(byte_str))
-
+if len(latin_str) != len(byte_str):
+    print("WARNING: latin_str and byte_str not the same length")
+    print("   len(latin_str): ",len(latin_str))
+    print("   len(byte_str): ",len(byte_str))
+    print("   latin_str: ",latin_str)
 
 
