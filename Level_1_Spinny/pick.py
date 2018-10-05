@@ -59,7 +59,10 @@ str_offset = random.randint(0,max_offset)
 
 # Extract the string
 done = False
-with open(file_path, mode="r", encoding="utf-8") as fp:
+# NOTE : Use latin-1 encoding to map byte values directly
+# to first 256 Unicode code points.  Generates
+# no exceptions, unlike utf-8.
+with open(file_path, mode="r", encoding="latin-1") as fp:
     while not done:
         fp.seek(str_offset)
         # May have to try a couple times if
