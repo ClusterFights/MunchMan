@@ -6,6 +6,9 @@ import sys
 import os
 import argparse
 import hashlib
+import time
+
+# TODO : Make sure works on last string of the file.
 
 
 DESC = \
@@ -66,7 +69,8 @@ class Find_Hash:
         """
         Move characters one at a time from chunk
         into self.buffer_hash. Once buffer_hash has size of STR_LEN
-        start md5_hash of buffer_hash. 
+        start md5_hash of buffer_hash.  Returns True if match
+        found and should end
         """
         while len(chunk) > 0:
             # Pop char from chunk
@@ -79,24 +83,31 @@ class Find_Hash:
                 self.buffer_hash = self.buffer_hash + c
             else:
                 # buffer_hash is full, so calc MD5 hash
+                self.num_hashes = self.num_hashes + 1
                 byte_str = self.buffer_hash.encode()
                 md5 = hashlib.md5()
                 md5.update(byte_str)
                 if md5.hexdigest() == self.md5_hash:
                     print("MATCH: ",byte_str)
                     if not self.all:
-                        sys.exit()
+                        return True
 
                 # buffer is full, so drop oldest char
                 # TODO : On last buffer of file need to
                 # process this last hash.
                 self.buffer_hash = self.buffer_hash[1:] + c
 
+        return False
+
     def run(self):
         """
         Search the dataset for md5_hash
         """
+        self.num_hashes = 0
+        done = False
         for index, file_info in enumerate(self.file_list):
+            if done:
+                break
             file_size, file_path = file_info
             self.buffer_hash = ""
             # NOTE : Use latin-1 encoding to map byte values directly
@@ -108,7 +119,9 @@ class Find_Hash:
                     chunk = fp.read(self.BUF_LEN)
                     if  chunk == "":
                         break
-                    self.process(chunk)
+                    done = self.process(chunk)
+                    if done:
+                        break
 
 # Start running here at main
 if __name__ == "__main__":
@@ -139,7 +152,17 @@ if __name__ == "__main__":
         sys.exit()
 
     fhash = Find_Hash(args.manifest, args.md5_hash, args.all)
+
+    start = time.time()
     fhash.run()
+    end = time.time()
+    run_time = end - start
+
+    hashes_per_sec = int(fhash.num_hashes / run_time)
+
+    print("num_hashes: ",fhash.num_hashes)
+    print("run time in seconds: ",run_time)
+    print("hashes_per_sec: ",hashes_per_sec)
 
     print("DONE")
 

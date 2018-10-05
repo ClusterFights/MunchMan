@@ -38,17 +38,21 @@ Here are the commands for steps 2 through 4:
 $ ./manifest.py ../../dataset/iso_extracted/ > manifest.txt
 
 $ ./pick.py
-file_index: 38 out of 595
-file_path:  ../../dataset/iso_extracted/etext05/8ghst10.txt
-str_offset:  47657
-byte_str: b'me home! Do not thi'
-hash: 9bc0beab71591cc92dadfbf07be749c6
+file_index: 36 out of 595
+file_path:  ../../dataset/iso_extracted/etext05/panic10.txt
+str_offset:  77641
+byte_str: b'chants betook thems'
+hash: 859143f74d9d245c097c03023899f35a
 
-$./find.py 9bc0beab71591cc92dadfbf07be749c6
+$./find.py 859143f74d9d245c097c03023899f35a
 ...
-37 ../../dataset/iso_extracted/etext05/8aggr10.txt
-38 ../../dataset/iso_extracted/etext05/8ghst10.txt
-MATCH:  b'me home! Do not thi'
+35 ../../dataset/iso_extracted/etext05/8hsrs10.txt
+36 ../../dataset/iso_extracted/etext05/panic10.txt
+MATCH:  b'chants betook thems'
+num_hashes:  21941741
+run time in seconds:  29.06871509552002
+hashes_per_sec:  754823
+DONE
 ```
 
 ## Notes

@@ -26,6 +26,7 @@ DESC =  \
 
 # NOTE : Interesting test cases
 # ./pick.py -i 439 -o 90560
+# ./pick.py -i 198 -o 55481
 
 # parse the command line arguments
 parser = argparse.ArgumentParser(description=DESC)
