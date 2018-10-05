@@ -17,7 +17,7 @@ DESC =  \
  that was created with manifest.py.  It
  then selects a file at random, then
  selects a 19 character string starting
- from a random offset.  It then calculates
+ from a random byte offset.  It then calculates
  the MD5 hash of the string. It outputs
  the file index into the manifest, the file name,
  the file offset, the selected string, and the
@@ -34,7 +34,7 @@ parser.add_argument("manifest", nargs="?", help="The manifiest.txt file. "
                    "Default is manifest.txt", default="manifest.txt")
 parser.add_argument("-i", "--index", type=int, help="Use this book index. "
                     "Instead of random.")
-parser.add_argument("-o", "--offset", type=int, help="Use this file offset. "
+parser.add_argument("-o", "--offset", type=int, help="Use this file byte offset. "
                     "Instead of random.")
 parser.parse_args()
 args = parser.parse_args()
@@ -67,16 +67,16 @@ file_path = file_list[index][1]
 # Select random substring
 max_offset = size - STR_LEN
 if args.offset is None:
-    str_offset = random.randint(0,max_offset)
+    byte_offset = random.randint(0,max_offset)
 else:
-    str_offset = args.offset
+    byte_offset = args.offset
 
 # Extract the string
 # NOTE : Use latin-1 encoding to map byte values directly
 # to first 256 Unicode code points.  Generates
 # no exceptions, unlike utf-8.
 with open(file_path, mode="r", encoding="latin-1") as fp:
-    fp.seek(str_offset)
+    fp.seek(byte_offset)
     latin_str = fp.read(STR_LEN)
 
 # Compute the hash of byte_str
@@ -87,7 +87,7 @@ md5.update(byte_str)
 # Print selection
 print("file_index: {} out of {}".format(index,num_files))
 print("file_path: ",file_path)
-print("str_offset: ",str_offset)
+print("byte_offset: ",byte_offset)
 #print('latin_str: "{}"'.format(latin_str))
 print('byte_str: {}'.format(byte_str))
 print('hash: {}'.format(md5.hexdigest()))
