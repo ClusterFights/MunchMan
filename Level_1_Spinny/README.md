@@ -16,30 +16,35 @@ Model B+, Raspberry Pi Zero etc).
 
 ## Usage
 
-There are three steps.
+There are four steps.
 
-1. Generate a manifest.txt file of the Project Gutenberg dataset.
+1. Follow the instructions on the 
+[Project Gutenberg MD5
+Search](http://clusterfights.com/wiki/index.php?title=Project_Gutenberg_MD5_Search)
+to get a copy of the Project Gutenberg dataset.  I recommend the ISO which
+has 595 text file and is ~500MB.
+2. Generate a manifest.txt file of the Project Gutenberg dataset.
    This basically generates a list of all the text files and their
    paths. Once this file is generated you don't have to regenerate it
    unless the dataset is updated.
-2. Randomly pick a 19-character string out of the dataset and compute
+3. Randomly pick a 19-character string out of the dataset and compute
    the hash.
-3. Search the dataset and try to find the string that matches the
+4. Search the dataset and try to find the string that matches the
    hash from step 2.
 
-Here are the commands:
+Here are the commands for steps 2 through 4:
 
 ```
 $ ./manifest.py ../../dataset/iso_extracted/ > manifest.txt
 
-$ ./pick.py manifest.txt
+$ ./pick.py
 file_index: 38 out of 595
 file_path:  ../../dataset/iso_extracted/etext05/8ghst10.txt
 str_offset:  47657
 byte_str: b'me home! Do not thi'
 hash: 9bc0beab71591cc92dadfbf07be749c6
 
-$./find.py manifest.txt 9bc0beab71591cc92dadfbf07be749c6
+$./find.py 9bc0beab71591cc92dadfbf07be749c6
 ...
 37 ../../dataset/iso_extracted/etext05/8aggr10.txt
 38 ../../dataset/iso_extracted/etext05/8ghst10.txt
