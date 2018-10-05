@@ -17,14 +17,15 @@ Model B+, Raspberry Pi Zero etc).
 ## Usage
 
 There are three steps.
-    1. Generate a manifest.txt file of the Project Gutenberg dataset.
-       This basically generates a list of all the text files and their
-       paths. Once this file is generated you don't have to regenerate it
-       unless the dataset is updated.
-    2. Randomly pick a 19-character string out of the dataset and compute
-       the hash.
-    3. Search the dataset and try to find the string that matches the
-       hash from step 2.
+
+1. Generate a manifest.txt file of the Project Gutenberg dataset.
+   This basically generates a list of all the text files and their
+   paths. Once this file is generated you don't have to regenerate it
+   unless the dataset is updated.
+2. Randomly pick a 19-character string out of the dataset and compute
+   the hash.
+3. Search the dataset and try to find the string that matches the
+   hash from step 2.
 
 Here are the commands:
 
@@ -57,7 +58,12 @@ rsync -av --include='*.txt' --include='*/' --exclude='*' aleph.gutenberg.org::gu
 The text files are encoded as utf-8.  This means a character can
 have variable width character encoding.  **The question is how do
 we handle characters with multiple bytes?**  If we are reporting
-offset, should those be byte offsets or character offsets? For
-now I will avoid picking strings that have multi-byte characters.
+offset, should those be byte offsets or character offsets? 
+
+The solution I have found for now is to use 'latin-1' encoding which
+maps all 256 bytes directly to the first 256 Unicode code points.
+So basically the string to hash is 19-bytes (not 19-characters).
+[Ref](http://python-notes.curiousefficiency.org/en/latest/python3/text_file_processing.html#files-in-an-ascii-compatible-encoding-best-effort-is-acceptable) 
+
 
 
