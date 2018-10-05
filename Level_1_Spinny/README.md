@@ -18,11 +18,8 @@ Model B+, Raspberry Pi Zero etc).
 
 There are four steps.
 
-1. Follow the instructions on the 
-[Project Gutenberg MD5
-Search](http://clusterfights.com/wiki/index.php?title=Project_Gutenberg_MD5_Search)
-to get a copy of the Project Gutenberg dataset.  I recommend the ISO which
-has 595 text file and is ~500MB.
+1. Grab a copy of the [MD5 Challenge dataset](http://clusterfights.com/wiki/index.php?title=Datasets)
+This dataset looks like it is from 2003.  It has 595 text files and is ~500MB.
 2. Generate a manifest.txt file of the Project Gutenberg dataset.
    This basically generates a list of all the text files and their
    paths. Once this file is generated you don't have to regenerate it
