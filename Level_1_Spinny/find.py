@@ -25,22 +25,22 @@ class Find_Hash:
     STR_LEN = 19
     BUF_LEN = 500
 
-    def __init__(self, manifest_, md5_hash_, md5_num_):
+    def __init__(self, manifest_, md5_hash_, all_):
         """
         Args:
             manifest_ (str) : Name of the manifest file
             md5_hash_ (str) : The search hash, Hexidecimal string, 32 chars.
-            md5_num_ (int) : The search hash as int
+            all_ (bool) : Process whole dataset, or stop at first match
         """
         # Verify argument types
         assert isinstance(manifest_, str)
         assert isinstance(md5_hash_, str)
-        assert isinstance(md5_num_, int)
+        assert isinstance(all_, bool)
 
         # Store in object
         self.manifest = manifest_
         self.md5_hash = md5_hash_
-        self.md5_num = md5_num_
+        self.all = all_ 
 
         # Load the file_list
         self._parseManifest()
@@ -84,7 +84,8 @@ class Find_Hash:
                 md5.update(byte_str)
                 if md5.hexdigest() == self.md5_hash:
                     print("MATCH: ",byte_str)
-                    sys.exit()
+                    if not self.all:
+                        sys.exit()
 
                 # buffer is full, so drop oldest char
                 # TODO : On last buffer of file need to
@@ -114,8 +115,11 @@ if __name__ == "__main__":
 
     # parse the command line arguments
     parser = argparse.ArgumentParser(description=DESC)
-    parser.add_argument("manifest", help="The manifiest.txt file")
-    parser.add_argument("md5_hash", help="The MD5 hash to search for")
+    parser.add_argument("md5_hash", help="The MD5 hash to search.")
+    parser.add_argument("manifest", nargs="?", help="The manifiest.txt file. "
+                       "Default is manifest.txt", default="manifest.txt")
+    parser.add_argument("-a", "--all", help="Process whole dataset. "
+                        "Don't stop at first match.", action="store_true")
     parser.parse_args()
     args = parser.parse_args()
 
@@ -134,7 +138,7 @@ if __name__ == "__main__":
         print("ERROR: md5_hash is not hexidecimal")
         sys.exit()
 
-    fhash = Find_Hash(args.manifest, args.md5_hash, md5_num)
+    fhash = Find_Hash(args.manifest, args.md5_hash, args.all)
     fhash.run()
 
     print("DONE")
