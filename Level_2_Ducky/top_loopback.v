@@ -50,15 +50,6 @@ wire rxd_endofpacket;
 
 wire txd_busy;
 
-
-/*
-*****************************
-* Assignments
-*****************************
-*/
-
-assign led = rxd_data;
-
 /*
 *****************************
 * Instantiations
@@ -92,7 +83,7 @@ async_receiver # (
 async_transmitter # (
     .ClkFrequency(CLK_FREQUENCY),
     .Baud(BAUD)
-) async_receiver_inst (
+) async_transmitter_inst (
     .clk(clk_12mhz),
     .TxD_start(rxd_data_ready),
     .TxD_data(rxd_data),

@@ -23,5 +23,11 @@ Here is the outline of the development plan.
 
 3. Integration and app development.
 
+## Notes
+
+Using [Icarus Verilog](http://iverilog.icarus.com/) for simulation. I am
+compiling from source using the [github repo](https://github.com/steveicarus/iverilog).
+The instruction for compiling iverilog is [here](http://iverilog.wikia.com/wiki/Installation_Guide).
+
 
 
