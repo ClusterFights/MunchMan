@@ -17,9 +17,8 @@ all: $(PROJ).rpt $(PROJ).bin
 %.rpt: %.asc
 	icetime -d $(DEVICE) -mtr $@ $<
 
-# Doing SRAM programming for now
 prog: $(PROJ).bin
-	iceprog -S $<
+	iceprog $<
 
 sudo-prog: $(PROJ).bin
 	@echo 'Executing prog as root!!!'
