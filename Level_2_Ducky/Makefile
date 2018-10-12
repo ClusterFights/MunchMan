@@ -16,11 +16,11 @@ compile:
 	iverilog -tvvp -c $(NAME_TOP).vf -o $(NAME_TOP).vvp -v > $(NAME_TOP).log
 
 # Run simulation
-run:
+run: compile
 	vvp $(NAME_TOP).vvp
 
 # Start viewer
-view:
+view: run
 	gtkwave $(NAME_TOP).vcd $(NAME_TOP).gtkw &
 
 # iverilog help, command line
