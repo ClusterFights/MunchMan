@@ -1,5 +1,5 @@
-set_io clk J3
-set_io reset_n B16
+set_io clk_12mhz J3
+set_io reset_n B16 -pullup yes
 
 set_io rxd B10
 set_io txd B12
