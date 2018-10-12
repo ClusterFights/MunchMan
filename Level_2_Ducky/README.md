@@ -13,11 +13,11 @@ communication between the boards will use USB2.0.  I plan to use the Open Source
 Here is the outline of the development plan.
 
 1.  **Loopback Test**:
--- Instantiate a uart in Verilog and verify in simulation.  The uart I am using is from [fpga4fun.com](https://www.fpga4fun.com/SerialInterface4.html).
--Instantiate transmit and receive in the FPGA as a loopback test.
--Write code on the PC to send data over the USB to the FPGA.
--Verify can send and receive data. 
--Figure out max datarate data can be sent and received.
+- Instantiate a uart in Verilog and verify in simulation.  The uart I am using is from [fpga4fun.com](https://www.fpga4fun.com/SerialInterface4.html).
+- Instantiate transmit and receive in the FPGA as a loopback test.
+- Write code on the PC to send data over the USB to the FPGA.
+- Verify can send and receive data. 
+- Figure out max datarate data can be sent and received.
 
 2. **MD5 core**: Write or find a MD5Core and testbench...
 
@@ -55,7 +55,7 @@ $ sudo make uninstall
 
 ## FTDI library
 
-I compiled [libftdi](git clone git://developer.intra2net.com/libftdi) from source. I got the source via
+I compiled [libftdi](https://www.intra2net.com/en/developer/libftdi/) from source. I got the source via
 
 ```
 $ git clone git://developer.intra2net.com/libftdi
