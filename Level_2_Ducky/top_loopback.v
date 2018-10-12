@@ -32,7 +32,7 @@ module top_loopback #
     input wire rxd,
 
     output wire txd,
-    output reg [7:0] led
+    output reg [0:7] led
 );
 
 /*
@@ -92,7 +92,7 @@ begin
         led <= 0;
     end else begin
         if (rxd_data_ready) begin
-            led <= rxd_data;
+            led[0:7] <= rxd_data[7:0];
         end
     end
 end
