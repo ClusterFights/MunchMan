@@ -1,12 +1,23 @@
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ftdi.h>
+#include "kbinput.h"
+
+void sleep_ms(int ms)
+{
+    struct timespec ts;
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+}
 
 int main(void)
 {
     int ret;
     struct ftdi_context *ftdi;
     struct ftdi_version_info version;
+
     if ((ftdi = ftdi_new()) == 0)
     {
         printf("ftdi_new failed\n");
@@ -36,13 +47,42 @@ int main(void)
         return EXIT_FAILURE;
     }
 
-    // Write some data.
-    ret = ftdi_write_data(ftdi, "A", 1);
-    if (ret < 0)
+    char write_buf[1];
+    char read_buf[1];
+    write_buf[0] = 1;
+    read_buf[0] = 2;
+    while (1)
     {
-        printf("unable to send data: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
-        ftdi_free(ftdi);
-        return EXIT_FAILURE;
+        // Write some data.
+        ret = ftdi_write_data(ftdi, write_buf, 1);
+        if (ret < 0)
+        {
+            printf("unable to send data: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+            ftdi_free(ftdi);
+            return EXIT_FAILURE;
+        }
+
+        // Sleep for 5ms
+        sleep_ms(5);
+
+        // Read some data
+        ret = ftdi_read_data(ftdi, read_buf, 1);
+        if (ret < 0)
+        {
+            printf("unable to read data: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+            ftdi_free(ftdi);
+            return EXIT_FAILURE;
+        }
+        printf("\nread_buf[0]: %#x \n",read_buf[0]);
+
+        // Get a keyboard press
+        write_buf[0] = kbinput_read_block(10);
+        if (write_buf[0]=='q' || write_buf[0] == -1) {
+            write_buf[0] = 0;
+            ftdi_write_data(ftdi, write_buf, 1);
+            break;
+        }
+        printf("\nwrite_buf[0]: %#x \n",write_buf[0]);
     }
 
     // Close the connection
