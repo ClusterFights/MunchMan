@@ -8,6 +8,9 @@ include ( ${LIBFTDI_USE_FILE} )
 add_executable ( simple simple.c )
 target_link_libraries( simple ${LIBFTDI_LIBRARIES} )
 
-install ( TARGETS simple
+add_executable ( ftdi_test ftdi_test.c )
+target_link_libraries( ftdi_test ${LIBFTDI_LIBRARIES} )
+
+install ( TARGETS simple ftdi_test
           DESTINATION bin )
           
