@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <sys/select.h>
-#include "shadowbox/kbinput.h"
+#include "kbinput.h"
 
 static int kbinput_hit(time_t timeout_sec)
 {
