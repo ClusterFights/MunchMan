@@ -23,7 +23,7 @@ Here is the outline of the development plan.
 
 3. Integration and app development.
 
-## Notes
+## Simulation
 
 Using [Icarus Verilog (a.k.a iverilog)](http://iverilog.icarus.com/) and 
 [GTKWave](http://gtkwave.sourceforge.net/) for simulation. 
@@ -53,3 +53,12 @@ $ cd iverilog
 $ sudo make uninstall
 ```
 
+## FTDI library
+
+I compiled [libftdi](git clone git://developer.intra2net.com/libftdi) from source. I got the source via
+
+```
+$ git clone git://developer.intra2net.com/libftdi
+```
+
+Build instructions in the README and README.build
