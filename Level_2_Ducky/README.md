@@ -25,9 +25,31 @@ Here is the outline of the development plan.
 
 ## Notes
 
-Using [Icarus Verilog](http://iverilog.icarus.com/) for simulation. I am
-compiling from source using the [github repo](https://github.com/steveicarus/iverilog).
+Using [Icarus Verilog (a.k.a iverilog)](http://iverilog.icarus.com/) and 
+[GTKWave](http://gtkwave.sourceforge.net/) for simulation. 
+I used apt-get to install gtkwave.
+I compiled iverilog from source using the [github repo](https://github.com/steveicarus/iverilog).
+I compiled from source because the version in the Ubuntu 16.04 apt-get 
+did not compile the async.v source. It gave a message about unsupported "static functions".
+The latest version in github does not have this problem.
 The instruction for compiling iverilog is [here](http://iverilog.wikia.com/wiki/Installation_Guide).
+Here is a summary of the commands I used to compile iverilog on Ubuntu 16.04.
 
+```
+$ sudo apt-get install gperf libreadline-dev valgrind
+$ git clone git@github.com:steveicarus/iverilog.git
+$ cd iverilog
+$ sh autoconf.sh
+$ ./configure --with-valgrind
+$ make
+$ sudo make install
+```
 
+There are other prerequisites packages you may need to install.  Check the github repo readme.  Also you
+can uninstall if you are in the iverilog directory via
+
+```
+$ cd iverilog
+$ sudo make uninstall
+```
 

@@ -9,7 +9,6 @@
 
 #----- Useful variables
 NAME_TOP	:= top_loopback
-VPI_DIR		:= ${HOME}/usr/lib/ivl
 
 #----- Targets, iverilog
 # Use this to compile without running simulation
@@ -18,10 +17,10 @@ compile:
 
 # Run simulation
 run:
-	vvp -M $(VPI_DIR) $(NAME_TOP).vvp
+	vvp $(NAME_TOP).vvp
 
 # Start viewer
-viewer:
+view:
 	gtkwave $(NAME_TOP).vcd &
 
 # iverilog help, command line
