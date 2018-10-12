@@ -9,4 +9,6 @@
 *.vcd
 *.vvp
 
+# Ignore cmake build directories
+build
 
