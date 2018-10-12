@@ -21,7 +21,7 @@ run:
 
 # Start viewer
 view:
-	gtkwave $(NAME_TOP).vcd &
+	gtkwave $(NAME_TOP).vcd $(NAME_TOP).gtkw &
 
 # iverilog help, command line
 help:

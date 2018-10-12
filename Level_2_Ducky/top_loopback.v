@@ -56,18 +56,6 @@ wire txd_busy;
 *****************************
 */
 
-// NOTE : Don't need BaudTickGen here, just
-// for debug/simulation for now.
-BaudTickGen # (
-    .ClkFrequency(CLK_FREQUENCY),
-    .Baud(BAUD),
-    .Oversampling(1)
-) BaudTickGen_inst (
-    .clk(clk_12mhz),
-    .enable(1'b1),
-    .tick(tick)
-);
-
 async_receiver # (
     .ClkFrequency(CLK_FREQUENCY),
     .Baud(BAUD)
@@ -87,6 +75,7 @@ async_transmitter # (
     .clk(clk_12mhz),
     .TxD_start(rxd_data_ready),
     .TxD_data(rxd_data),
+    .TxD(txd),
     .TxD_busy(txd_busy)
 );
 
