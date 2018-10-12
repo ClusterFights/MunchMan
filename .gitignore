@@ -4,3 +4,9 @@
 # Ignore python compiled files
 *.pyc
 
+# Ignore iverilog generated files
+*.log
+*.vcd
+*.vvp
+
+
