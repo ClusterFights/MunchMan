@@ -1,6 +1,6 @@
 PROJ = top_loopback
 DEVICE = hx8k
-SOURCES = $(PROJ).v async.v
+SOURCES = $(PROJ).v ../async.v
 PIN_DEF = $(PROJ).pcf
 
 all: $(PROJ).rpt $(PROJ).bin
