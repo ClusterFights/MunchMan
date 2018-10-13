@@ -40,7 +40,8 @@ int main(void)
     }
 
     // Set the BAUD rate
-    if ((ret = ftdi_set_baudrate(ftdi, 115200)) < 0)
+    // was 115200
+    if ((ret = ftdi_set_baudrate(ftdi, 12000000)) < 0)
     {
         printf("unable to set baudrate: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
         ftdi_free(ftdi);

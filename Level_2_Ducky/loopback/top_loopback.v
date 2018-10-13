@@ -21,8 +21,8 @@
 
 module top_loopback #
 (
-    parameter integer CLK_FREQUENCY = 12_000_000,
-    parameter integer BAUD = 115_200
+    parameter integer CLK_FREQUENCY = 96_000_000,
+    parameter integer BAUD = 12_000_000
 )
 (
     input wire clk_12mhz,
@@ -41,6 +41,9 @@ module top_loopback #
 *****************************
 */
 
+wire clk_96mhz;
+wire locked;
+
 wire tick;
 
 wire rxd_data_ready;
@@ -56,11 +59,17 @@ wire txd_busy;
 *****************************
 */
 
+pll_96mhz pll_96mhz_inst (
+    .clock_in(clk_12mhz),
+    .clock_out(clk_96mhz),
+    .locked(locked)
+);
+
 async_receiver # (
     .ClkFrequency(CLK_FREQUENCY),
     .Baud(BAUD)
 ) async_receiver_inst (
-    .clk(clk_12mhz),
+    .clk(clk_96mhz),
     .RxD(rxd),
     .RxD_data_ready(rxd_data_ready),
     .RxD_data(rxd_data),
@@ -72,7 +81,7 @@ async_transmitter # (
     .ClkFrequency(CLK_FREQUENCY),
     .Baud(BAUD)
 ) async_transmitter_inst (
-    .clk(clk_12mhz),
+    .clk(clk_96mhz),
     .TxD_start(rxd_data_ready),
     .TxD_data(rxd_data),
     .TxD(txd),
@@ -86,7 +95,7 @@ async_transmitter # (
 */
 
 // Show received data on leds.
-always @ (posedge clk_12mhz)
+always @ (posedge clk_96mhz)
 begin
     if (~reset_n) begin
         led <= 0;
