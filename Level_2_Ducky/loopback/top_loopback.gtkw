@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Fri Oct 12 03:30:41 2018
+[*] Sat Oct 13 04:58:25 2018
 [*]
-[dumpfile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/top_loopback.vcd"
-[dumpfile_mtime] "Fri Oct 12 03:29:20 2018"
-[dumpfile_size] 318134
-[savefile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/top_loopback.gtkw"
+[dumpfile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/loopback/top_loopback.vcd"
+[dumpfile_mtime] "Sat Oct 13 04:57:16 2018"
+[dumpfile_size] 23092
+[savefile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/loopback/top_loopback.gtkw"
 [timestart] 0
 [size] 1855 1028
 [pos] 65 24
-*-25.368244 104755000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-19.368244 104755000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_loopback_tb.
 [treeopen] top_loopback_tb.baud_tick_gen_inst.
 [treeopen] top_loopback_tb.top_loopback_inst.
@@ -19,6 +19,10 @@
 [sst_vpaned_height] 322
 @28
 top_loopback_tb.clk_12mhz
+top_loopback_tb.top_loopback_inst.clk_96mhz
+@29
+top_loopback_tb.top_loopback_inst.locked
+@28
 top_loopback_tb.reset_n
 @24
 top_loopback_tb.clk_count[9:0]
@@ -31,11 +35,7 @@ top_loopback_tb.top_loopback_inst.rxd_data[7:0]
 @28
 top_loopback_tb.top_loopback_inst.rxd_idle
 top_loopback_tb.top_loopback_inst.rxd_endofpacket
-@22
-top_loopback_tb.top_loopback_inst.led[7:0]
-@28
 top_loopback_tb.top_loopback_inst.txd_busy
-@29
 top_loopback_tb.txd
 [pattern_trace] 1
 [pattern_trace] 0

@@ -15,11 +15,13 @@
 
 `timescale 1 ns / 1 ps
 
+`define TESTBENCH
+
 module top_loopback_tb;
 
 // Parameters
-parameter CLK_FREQUENCY     = 12_000_000;
-parameter BAUD              = 115_200;
+parameter integer CLK_FREQUENCY = 96_000_000;
+parameter integer BAUD = 12_000_000;
 parameter TEST_VECTOR_WIDTH = 23;
 
 // Inputs (registers)
@@ -34,6 +36,9 @@ wire txd;
 wire [7:0] led;
 
 wire tick;
+
+wire locked;
+wire clk_96mhz;
 
 // Internal wires
 
@@ -51,7 +56,7 @@ BaudTickGen # (
     .Baud(BAUD),
     .Oversampling(1)
 ) baud_tick_gen_inst (
-    .clk(clk_12mhz),
+    .clk(clk_96mhz),
     .enable(en_tick),
     .tick(tick)
 );
@@ -69,6 +74,8 @@ top_loopback_inst (
     .rxd(rxd),
     // outputs
     .txd(txd),
+    .locked(locked),
+    .clk_96mhz(clk_96mhz),
     .led(led)
 );
 
@@ -107,7 +114,7 @@ end
 
 // Count clock between ticks
 reg [9:0] clk_count;
-always @ (posedge clk_12mhz)
+always @ (posedge clk_96mhz)
 begin
     if (~reset_n) begin
         clk_count <= 0;

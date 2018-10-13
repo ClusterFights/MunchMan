@@ -32,6 +32,10 @@ module top_loopback #
     input wire rxd,
 
     output wire txd,
+`ifdef TESTBENCH
+    output wire locked,
+    output wire clk_96mhz,
+`endif
     output reg [0:7] led
 );
 
@@ -41,8 +45,10 @@ module top_loopback #
 *****************************
 */
 
+`ifndef TESTBENCH
 wire clk_96mhz;
 wire locked;
+`endif
 
 wire tick;
 

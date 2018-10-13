@@ -11,10 +11,28 @@
  */
 
 module pll_96mhz(
-	input  clock_in,
-	output clock_out,
-	output locked
+	input  wire clock_in,
+`ifdef TESTBENCH
+	output reg clock_out,
+	output reg locked
+`else
+	output wire clock_out,
+	output wire locked
+`endif
 	);
+
+`ifdef TESTBENCH
+initial begin
+    clock_out = 0;
+    locked = 1;
+end
+
+// Generate a 96mhz clock
+always begin
+    #5.2 clock_out <= ~clock_out;
+end
+
+`else
 
 wire clock_internal;
 
@@ -34,5 +52,7 @@ SB_PLL40_CORE #(
 
 SB_GB clk_gb ( .USER_SIGNAL_TO_GLOBAL_BUFFER(clock_internal)		
                   , .GLOBAL_BUFFER_OUTPUT(clock_out) );
+
+`endif
 
 endmodule
