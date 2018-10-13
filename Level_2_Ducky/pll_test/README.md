@@ -4,7 +4,8 @@
 
 A test to use a pll to increase the clock rate from
 the base 12mhz on the iCE40HX-8K demo board.
-The Lattice iCEcube2 tools install
+The [IceStorm](http://www.clifford.at/icestorm/)
+tools install
 a command line program called "icepll" that will
 generate a verilog module for the pll.
 
