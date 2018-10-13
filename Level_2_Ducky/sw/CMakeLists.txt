@@ -5,9 +5,13 @@ project ( ftdi_test )
 find_package ( LibFTDI1 NO_MODULE REQUIRED )
 include ( ${LIBFTDI_USE_FILE} )
 
+add_executable ( ice_cat ice_cat.c )
+target_link_libraries( ice_cat ${LIBFTDI_LIBRARIES} )
+
 add_executable ( ftdi_test ftdi_test.c kbinput.c )
 target_link_libraries( ftdi_test ${LIBFTDI_LIBRARIES} )
 
-install ( TARGETS ftdi_test
+
+install ( TARGETS ftdi_test ice_cat
           DESTINATION bin )
           
