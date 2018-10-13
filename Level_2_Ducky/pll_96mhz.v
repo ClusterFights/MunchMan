@@ -16,6 +16,8 @@ module pll_96mhz(
 	output locked
 	);
 
+wire clock_internal;
+
 SB_PLL40_CORE #(
 		.FEEDBACK_PATH("SIMPLE"),
 		.DIVR(4'b0000),		// DIVR =  0
@@ -27,7 +29,10 @@ SB_PLL40_CORE #(
 		.RESETB(1'b1),
 		.BYPASS(1'b0),
 		.REFERENCECLK(clock_in),
-		.PLLOUTCORE(clock_out)
+		.PLLOUTCORE(clock_internal)
 		);
+
+SB_GB clk_gb ( .USER_SIGNAL_TO_GLOBAL_BUFFER(clock_internal)		
+                  , .GLOBAL_BUFFER_OUTPUT(clock_out) );
 
 endmodule
