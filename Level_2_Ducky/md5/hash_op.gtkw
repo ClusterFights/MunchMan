@@ -1,0 +1,32 @@
+[*]
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Tue Oct 16 03:44:41 2018
+[*]
+[dumpfile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/md5/hash_op.vcd"
+[dumpfile_mtime] "Tue Oct 16 03:44:09 2018"
+[dumpfile_size] 4171
+[savefile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/md5/hash_op.gtkw"
+[timestart] 0
+[size] 1324 807
+[pos] 135 48
+*-18.000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] hash_op_tb.
+[treeopen] hash_op_tb.hash_op_inst.
+[sst_width] 225
+[signals_width] 118
+[sst_expanded] 1
+[sst_vpaned_height] 233
+@28
+hash_op_tb.clk_12mhz
+hash_op_tb.reset
+hash_op_tb.en
+@22
+hash_op_tb.a_out[31:0]
+hash_op_tb.b_out[31:0]
+hash_op_tb.c_out[31:0]
+hash_op_tb.d_out[31:0]
+hash_op_tb.hash_op_inst.a1[31:0]
+@23
+hash_op_tb.hash_op_inst.f_out[31:0]
+[pattern_trace] 1
+[pattern_trace] 0
