@@ -90,7 +90,13 @@ endfunction
 
 // Break the message (m_in) into sixteen
 // 32-bit words m[j] 0 <= j <= 15
-wire [15:0] m [31:0];
+wire [31:0] m [15:0];
+
+
+// FIXME : for debug
+// m_le is m in little endian format
+wire [31:0] m_le;
+wire [31:0] m0, m1, m2;
 
 /*
 *****************************
@@ -102,10 +108,16 @@ wire [15:0] m [31:0];
 // message (mesg) into sixteen 32-bit words.
 genvar gi;
 generate
-    for (gi=0; gi<16; gi=gi+1) begin: mesg_i
-        assign m[gi] = mesg[32*gi +: 32];
+    for (gi=0; gi<16; gi=gi+1) begin: sig_i
+        assign m[gi] = mesg[32*(15-gi) +: 32];
     end
 endgenerate
+
+// FIXME : for debug
+assign m0 = m[0];
+assign m1 = m[1];
+assign m2 = m[2];
+assign m_le = swap_endian_32b(m0);
 
 /*
 *****************************
@@ -117,8 +129,8 @@ endgenerate
 hash_op #
 (
     .index(0),
-    .s(s[0]),
-    .k(k[0])
+    .s(s[5*(63-0) +: 5]),
+    .k(k[32*(63-0) +: 32])
 ) hash_op_inst
 (
     .clk(clk),
@@ -131,18 +143,13 @@ hash_op #
     .c(c0),
     .d(d0),
     // m is a 16th of the full message
-    // higher level code pass in the
-    // correct part for this "index"
-    // For now assume in little endian format.
-    .m(swap_endian_32b(m[0])),
+    .m(m_le),
 
     .a_out(a_out),
     .b_out(b_out),
     .c_out(c_out),
     .d_out(d_out)
 );
-
-
 
 endmodule
 

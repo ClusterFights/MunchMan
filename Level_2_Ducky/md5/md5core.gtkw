@@ -1,0 +1,37 @@
+[*]
+[*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
+[*] Tue Oct 16 20:42:12 2018
+[*]
+[dumpfile] "/home/brandonb/Projects/ClusterFights/MunchMan/Level_2_Ducky/md5/md5core.vcd"
+[dumpfile_mtime] "Tue Oct 16 20:41:00 2018"
+[dumpfile_size] 12334
+[savefile] "/home/brandonb/Projects/ClusterFights/MunchMan/Level_2_Ducky/md5/md5core.gtkw"
+[timestart] 0
+[size] 1333 734
+[pos] -98 -65
+*-17.970804 17000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] md5core_tb.
+[treeopen] md5core_tb.md5core_inst.
+[sst_width] 225
+[signals_width] 219
+[sst_expanded] 1
+[sst_vpaned_height] 208
+@28
+md5core_tb.clk_12mhz
+md5core_tb.reset
+md5core_tb.en
+@22
+md5core_tb.a_out[31:0]
+md5core_tb.b_out[31:0]
+md5core_tb.c_out[31:0]
+md5core_tb.d_out[31:0]
+md5core_tb.md5core_inst.m0[31:0]
+md5core_tb.md5core_inst.m_le[31:0]
+md5core_tb.md5core_inst.m1[31:0]
+md5core_tb.md5core_inst.m2[31:0]
+md5core_tb.md5core_inst.mesg[511:0]
+@28
+md5core_tb.md5core_inst.s0
+md5core_tb.md5core_inst.k0
+[pattern_trace] 1
+[pattern_trace] 0
