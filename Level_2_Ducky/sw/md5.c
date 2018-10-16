@@ -93,16 +93,35 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
     int bits_len = 8*initial_len;
     memcpy(&msg[56], &bits_len, 4);
 
+    // Print out the msg.
+    printf("msg=");
+    for (int i=0; i<64; i++)
+    {
+        printf("%.2x",msg[i]);
+        if ((i+1)%4==0)
+            printf(" ");
+    }
+    printf("\n");
+
     // Break into sixteen 32-bit words m[j] 0<= j <= 15
     uint32_t *m;
     m = (uint32_t *)(msg);
+    printf("int=");
+    for (int i=0; i<16; i++)
+    {
+        printf("%.8x ",m[i]);
+    }
+    printf("\n");
+
+
 
     // Initialize hash values
     uint32_t a = 0x67452301;
     uint32_t b = 0xefcdab89;
     uint32_t c = 0x98badcfe;
     uint32_t d = 0x10325476;
-    uint32_t f, g;
+    uint32_t f, g, temp;
+
 
     // Main loop
     for (int i=0; i<64; i++)
@@ -110,6 +129,11 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
         if (i<16)
         {
             f = (b & c) | ((~b) & d);
+            if (i==0)
+            {
+                printf("f=%x \n",f);
+            }
+
             g = i;
         }
         else if (i<32)
@@ -129,11 +153,12 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
         }
 
         // Update for next loop.
-        f = f + a + k[i] + m[g];
+        temp = f + a + k[i] + m[g];
         a = d;
         d = c;
         c = b;
-        b = b + LEFTROTATE(f, s[i]);
+        b = b + LEFTROTATE(temp, s[i]);
+        printf("%d) a=%x b=%x c=%x d=%x f=%x k[i]=%x s[i]=%x m[g]=%x\n",i,a,b,c,d,f,k[i],s[i],m[g]);
     }
 
     a += 0x67452301;
