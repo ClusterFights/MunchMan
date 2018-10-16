@@ -1,11 +1,11 @@
 /*
 *****************************
-* MODULE : hash_op_tb
+* MODULE : md5core_tb
 *
-* Testbench for the hash_op module.
+* Testbench for the md5core module.
 *
 * Author : Brandon Bloodget
-* Create Date : 10/11/2018
+* Create Date : 10/16/2018
 *
 *****************************
 */
@@ -17,7 +17,7 @@
 
 `define TESTBENCH
 
-module hash_op_tb;
+module md5core_tb;
 
 // Inputs (registers)
 reg clk_12mhz;
@@ -31,34 +31,23 @@ wire [31:0] b_out;
 wire [31:0] c_out;
 wire [31:0] d_out;
 
+// Define the message
+// mesg="The quick brown fox jumps over the lazy dog" plus required padding.
+wire [511:0] mesg = 512'h54686520_71756963_6b206272_6f776e20_666f7820_6a756d70_73206f76_65722074_6865206c_617a7920_646f6780_00000000_00000000_00000000_58010000_00000000;
+
 /*
 *****************************
 * Instantiation (DUT)
 *****************************
 */
 
-// Simulation of stage/index 0.
-hash_op #
-(
-    .index(0),
-    .s(7),
-    .k(32'hd76aa478)
-) hash_op_inst
+md5core md5core_inst
 (
     .clk(clk_12mhz),
     .reset(reset),
     .en(en),
 
-    // Initial values of a,b,c,d
-    .a(32'h67452301),
-    .b(32'hefcdab89),
-    .c(32'h98badcfe),
-    .d(32'h10325476),
-    // m is a 16th of the full message
-    // higher level code pass in the
-    // correct part for this "index"
-    // For now assume in little endian format.
-    .m(32'h20656854),
+    .mesg(mesg),
 
     .a_out(a_out),
     .b_out(b_out),
@@ -72,7 +61,7 @@ hash_op #
 *****************************
 */
 initial begin
-    $dumpfile("hash_op.vcd");
+    $dumpfile("md5core.vcd");
     $dumpvars;
     clk_12mhz = 0;
     reset = 0;
@@ -104,6 +93,7 @@ end
 always begin
     #41 clk_12mhz <= ~clk_12mhz;
 end
+
 
 endmodule
 

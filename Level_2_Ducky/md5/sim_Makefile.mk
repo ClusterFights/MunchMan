@@ -8,7 +8,8 @@
 
 
 #----- Useful variables
-NAME_TOP	:= hash_op
+# XXX NAME_TOP	:= hash_op
+NAME_TOP	:= md5core
 
 #----- Targets, iverilog
 # Use this to compile without running simulation
