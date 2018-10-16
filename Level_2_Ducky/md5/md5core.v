@@ -93,11 +93,6 @@ endfunction
 wire [31:0] m [15:0];
 
 
-// FIXME : for debug
-// m_le is m in little endian format
-wire [31:0] m_le;
-wire [31:0] m0, m1, m2;
-
 /*
 *****************************
 * Assignments
@@ -113,11 +108,6 @@ generate
     end
 endgenerate
 
-// FIXME : for debug
-assign m0 = m[0];
-assign m1 = m[1];
-assign m2 = m[2];
-assign m_le = swap_endian_32b(m0);
 
 /*
 *****************************
@@ -143,7 +133,7 @@ hash_op #
     .c(c0),
     .d(d0),
     // m is a 16th of the full message
-    .m(m_le),
+    .m(swap_endian_32b(m[0])),
 
     .a_out(a_out),
     .b_out(b_out),
