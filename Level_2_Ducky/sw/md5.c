@@ -106,14 +106,14 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
     // Break into sixteen 32-bit words m[j] 0<= j <= 15
     uint32_t *m;
     m = (uint32_t *)(msg);
+    /*
     printf("int=");
     for (int i=0; i<16; i++)
     {
         printf("%.8x ",m[i]);
     }
     printf("\n");
-
-
+    */
 
     // Initialize hash values
     uint32_t a = 0x67452301;
@@ -158,7 +158,7 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
         d = c;
         c = b;
         b = b + LEFTROTATE(temp, s[i]);
-        printf("%d) a=%x b=%x c=%x d=%x f=%x k[i]=%x s[i]=%x m[g]=%x\n",i,a,b,c,d,f,k[i],s[i],m[g]);
+        // XXX printf("%d) a=%x b=%x c=%x d=%x f=%x k[i]=%x s[i]=%x m[g]=%x\n",i,a,b,c,d,f,k[i],s[i],m[g]);
     }
 
     a += 0x67452301;
@@ -170,7 +170,7 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
     uint8_t *pb = (uint8_t *)&b;
     uint8_t *pc = (uint8_t *)&c;
     uint8_t *pd = (uint8_t *)&d;
-    snprintf(hash_str, 33, "%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x%.2x",
+    snprintf(hash_str, 37, "%.2x%.2x%.2x%.2x_%.2x%.2x%.2x%.2x_%.2x%.2x%.2x%.2x_%.2x%.2x%.2x%.2x",
             pa[0],pa[1],pa[2],pa[3],
             pb[0],pb[1],pb[2],pb[3],
             pc[0],pc[1],pc[2],pc[3],
