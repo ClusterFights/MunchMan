@@ -23,10 +23,11 @@ module md5core
     input wire reset,
     input wire en,
 
-    input wire [511:0] mesg,
+    input wire [511:0] m_in,
     input wire valid_in,
 
     output reg [31:0] a_out, b_out, c_out, d_out,
+    output reg [511:0] m_out,
     output reg valid_out
 );
 
@@ -84,51 +85,20 @@ begin
 end
 endfunction
 
-function[31:0] g;
-input [31:0] i;
-begin
-    if (i<16)
-        g = i;
-    else if (i<32)
-        g = (5*i + 1) % 16;
-    else if (i<48)
-        g = (3*i + 5) % 16;
-    else
-        g = (7*i) % 16;
-end
-endfunction
-
 /*
 *****************************
 * Signals
 *****************************
 */
 
-// Break the message (m_in) into sixteen
-// 32-bit words m[j] 0 <= j <= 15
-wire [31:0] m [15:0];
 
 // Wires between the 64 hash_op modules
 wire[31:0] hop_a [0:64];
 wire[31:0] hop_b [0:64];
 wire[31:0] hop_c [0:64];
 wire[31:0] hop_d [0:64];
+wire[511:0] hop_m [0:64];
 wire [0:64] hop_valid;
-
-/*
-*****************************
-* Assignments
-*****************************
-*/
-
-// Generate the assignments to break
-// message (mesg) into sixteen 32-bit words.
-genvar gi;
-generate
-    for (gi=0; gi<16; gi=gi+1) begin: sig_gi
-        assign m[gi] = mesg[32*(15-gi) +: 32];
-    end
-endgenerate
 
 
 /*
@@ -155,17 +125,19 @@ hash_op #
     .c(c0),
     .d(d0),
     // m is a 16th of the full message
-    .m(swap_endian_32b(m[0])),
+    .m_in(m_in),
     .valid_in(valid_in),
 
     .a_out(hop_a[1]),
     .b_out(hop_b[1]),
     .c_out(hop_c[1]),
     .d_out(hop_d[1]),
+    .m_out(hop_m[1]),
     .valid_out(hop_valid[1])
 );
 
 // Stage/index 1..63.
+genvar gi;
 generate
     for(gi=1; gi<64; gi=gi+1) begin: hash_op_gi
         hash_op #
@@ -184,14 +156,14 @@ generate
             .b(hop_b[gi]),
             .c(hop_c[gi]),
             .d(hop_d[gi]),
-            // m is a 16th of the full message
-            .m(swap_endian_32b(m[g(gi)])),
+            .m_in(hop_m[gi]),
             .valid_in(hop_valid[gi]),
 
             .a_out(hop_a[gi+1]),
             .b_out(hop_b[gi+1]),
             .c_out(hop_c[gi+1]),
             .d_out(hop_d[gi+1]),
+            .m_out(hop_m[gi+1]),
             .valid_out(hop_valid[gi+1])
         );
     end
@@ -210,6 +182,7 @@ begin
         b_out <= 0;
         c_out <= 0;
         d_out <= 0;
+        m_out <= 0;
         valid_out <= 0;
     end else begin
         if (en) begin
@@ -217,6 +190,7 @@ begin
             b_out <= swap_endian_32b(b0 + hop_b[64]);
             c_out <= swap_endian_32b(c0 + hop_c[64]);
             d_out <= swap_endian_32b(d0 + hop_d[64]);
+            m_out <= hop_m[64];
             valid_out <= hop_valid[64];
         end
     end

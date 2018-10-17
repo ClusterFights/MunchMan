@@ -32,6 +32,7 @@ wire [31:0] a_out;
 wire [31:0] b_out;
 wire [31:0] c_out;
 wire [31:0] d_out;
+wire [511:0] m_out;
 wire valid_out;
 
 // Define the message
@@ -52,13 +53,14 @@ md5core md5core_inst
     .reset(reset),
     .en(en),
 
-    .mesg(mesg),
+    .m_in(mesg),
     .valid_in(valid_in),
 
     .a_out(a_out),
     .b_out(b_out),
     .c_out(c_out),
     .d_out(d_out),
+    .m_out(m_out),
     .valid_out(valid_out)
 );
 
@@ -108,25 +110,25 @@ begin
     if (reset) begin
         sim_count <= 0;
         valid_in <= 0;
-        mesg <= mesg2;
+        mesg <= 0;
     end else begin
         if (en) begin
             sim_count <= sim_count + 1;
-            if (sim_count == 390) begin
+            if (sim_count == 420) begin
                 $finish;
             end
 
             case (sim_count)
-                1 : begin
-                    mesg <= mesg2;
+                5 : begin
+                    mesg <= mesg1;
                     valid_in <= 1;
                 end
-                2 : begin
+                6 : begin
                     mesg <= mesg2;
                     valid_in <= 1;
                 end
                 default : begin
-                    mesg <= mesg2;
+                    mesg <= 0;
                     valid_in <= 0;
                 end
             endcase
