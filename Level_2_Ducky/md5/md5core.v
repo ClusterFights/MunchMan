@@ -25,7 +25,7 @@ module md5core
 
     input wire [511:0] mesg,
 
-    output wire [31:0] a_out, b_out, c_out, d_out
+    output reg [31:0] a_out, b_out, c_out, d_out
 );
 
 /*
@@ -82,6 +82,20 @@ begin
 end
 endfunction
 
+function[31:0] g;
+input [31:0] i;
+begin
+    if (i<16)
+        g = i;
+    else if (i<32)
+        g = (5*i + 1) % 16;
+    else if (i<48)
+        g = (3*i + 5) % 16;
+    else
+        g = (7*i) % 16;
+end
+endfunction
+
 /*
 *****************************
 * Signals
@@ -92,6 +106,11 @@ endfunction
 // 32-bit words m[j] 0 <= j <= 15
 wire [31:0] m [15:0];
 
+// Wires between the 64 hash_op modules
+wire[31:0] hop_a [0:64];
+wire[31:0] hop_b [0:64];
+wire[31:0] hop_c [0:64];
+wire[31:0] hop_d [0:64];
 
 /*
 *****************************
@@ -103,7 +122,7 @@ wire [31:0] m [15:0];
 // message (mesg) into sixteen 32-bit words.
 genvar gi;
 generate
-    for (gi=0; gi<16; gi=gi+1) begin: sig_i
+    for (gi=0; gi<16; gi=gi+1) begin: sig_gi
         assign m[gi] = mesg[32*(15-gi) +: 32];
     end
 endgenerate
@@ -135,11 +154,64 @@ hash_op #
     // m is a 16th of the full message
     .m(swap_endian_32b(m[0])),
 
-    .a_out(a_out),
-    .b_out(b_out),
-    .c_out(c_out),
-    .d_out(d_out)
+    .a_out(hop_a[1]),
+    .b_out(hop_b[1]),
+    .c_out(hop_c[1]),
+    .d_out(hop_d[1])
 );
+
+// Stage/index 1..63.
+generate
+    for(gi=1; gi<64; gi=gi+1) begin: hash_op_gi
+        hash_op #
+        (
+            .index(gi),
+            .s(s[5*(63-gi) +: 5]),
+            .k(k[32*(63-gi) +: 32])
+        ) hash_op_inst
+        (
+            .clk(clk),
+            .reset(reset),
+            .en(en),
+
+            // Initial values of a,b,c,d
+            .a(hop_a[gi]),
+            .b(hop_b[gi]),
+            .c(hop_c[gi]),
+            .d(hop_d[gi]),
+            // m is a 16th of the full message
+            .m(swap_endian_32b(m[g(gi)])),
+
+            .a_out(hop_a[gi+1]),
+            .b_out(hop_b[gi+1]),
+            .c_out(hop_c[gi+1]),
+            .d_out(hop_d[gi+1])
+        );
+    end
+endgenerate
+
+/*
+*****************************
+* 
+*****************************
+*/
+
+always @ (posedge clk)
+begin
+    if (reset) begin
+        a_out <= 0;
+        b_out <= 0;
+        c_out <= 0;
+        d_out <= 0;
+    end else begin
+        if (en) begin
+            a_out <= a0 + hop_a[64];
+            b_out <= b0 + hop_b[64];
+            c_out <= c0 + hop_c[64];
+            d_out <= d0 + hop_d[64];
+        end
+    end
+end
 
 endmodule
 

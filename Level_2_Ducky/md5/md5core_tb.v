@@ -85,13 +85,29 @@ initial begin
     @(posedge clk_12mhz);
     @(posedge clk_12mhz);
     @(posedge clk_12mhz);
-    $finish;
 end
 
 
 // Generate a ~12mhz clk
 always begin
     #41 clk_12mhz <= ~clk_12mhz;
+end
+
+
+// Run simulation for some number of cycles then finish
+reg [9:0] sim_count;
+always @ (posedge clk_12mhz)
+begin
+    if (reset) begin
+        sim_count <= 0;
+    end else begin
+        if (en) begin
+            sim_count <= sim_count + 1;
+            if (sim_count == 390) begin
+                $finish;
+            end
+        end
+    end
 end
 
 
