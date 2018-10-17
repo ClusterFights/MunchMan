@@ -24,6 +24,7 @@ reg clk_12mhz;
 reg reset;
 reg en;
 reg valid_in;
+reg [511:0] mesg;
 
 
 // Outputs (wires)
@@ -34,8 +35,10 @@ wire [31:0] d_out;
 wire valid_out;
 
 // Define the message
-// mesg="The quick brown fox jumps over the lazy dog" plus required padding.
-wire [511:0] mesg = 512'h54686520_71756963_6b206272_6f776e20_666f7820_6a756d70_73206f76_65722074_6865206c_617a7920_646f6780_00000000_00000000_00000000_58010000_00000000;
+// mesg1="The quick brown fox jumps over the lazy dog" plus required padding.
+wire [511:0] mesg1 = 512'h54686520_71756963_6b206272_6f776e20_666f7820_6a756d70_73206f76_65722074_6865206c_617a7920_646f6780_00000000_00000000_00000000_58010000_00000000;
+// mesg2="Hello World" plus required padding.
+wire [511:0] mesg2 = 512'h48656c6c_6f20576f_726c6480_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_58000000_00000000;
 
 /*
 *****************************
@@ -105,17 +108,29 @@ begin
     if (reset) begin
         sim_count <= 0;
         valid_in <= 0;
+        mesg <= mesg2;
     end else begin
         if (en) begin
             sim_count <= sim_count + 1;
-            if (sim_count == 1) begin
-                valid_in <= 1;
-            end else begin
-                valid_in <= 0;
-            end
             if (sim_count == 390) begin
                 $finish;
             end
+
+            case (sim_count)
+                1 : begin
+                    mesg <= mesg2;
+                    valid_in <= 1;
+                end
+                2 : begin
+                    mesg <= mesg2;
+                    valid_in <= 1;
+                end
+                default : begin
+                    mesg <= mesg2;
+                    valid_in <= 0;
+                end
+            endcase
+
         end
     end
 end
