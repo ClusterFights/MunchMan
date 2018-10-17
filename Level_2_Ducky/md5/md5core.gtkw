@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Wed Oct 17 02:20:44 2018
+[*] Wed Oct 17 02:59:00 2018
 [*]
 [dumpfile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/md5/md5core.vcd"
-[dumpfile_mtime] "Wed Oct 17 02:19:09 2018"
-[dumpfile_size] 5052350
+[dumpfile_mtime] "Wed Oct 17 02:57:20 2018"
+[dumpfile_size] 5096336
 [savefile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/md5/md5core.gtkw"
-[timestart] 28363000
-[size] 1656 854
+[timestart] 0
+[size] 1656 870
 [pos] 125 60
-*-19.397511 31940000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-19.397511 355000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] md5core_tb.
 [treeopen] md5core_tb.md5core_inst.
 [treeopen] md5core_tb.md5core_inst.hash_op_gi[1].
@@ -17,30 +17,21 @@
 [sst_width] 225
 [signals_width] 219
 [sst_expanded] 1
-[sst_vpaned_height] 247
+[sst_vpaned_height] 254
 @28
 md5core_tb.clk_12mhz
 md5core_tb.reset
 md5core_tb.en
 @22
+md5core_tb.md5core_inst.mesg[511:0]
+@28
+md5core_tb.valid_in
+@29
+md5core_tb.valid_out
+@22
 md5core_tb.a_out[31:0]
 md5core_tb.b_out[31:0]
 md5core_tb.c_out[31:0]
 md5core_tb.d_out[31:0]
-md5core_tb.md5core_inst.mesg[511:0]
-md5core_tb.md5core_inst.hash_op_inst.a_out[31:0]
-md5core_tb.md5core_inst.hash_op_inst.b_out[31:0]
-md5core_tb.md5core_inst.hash_op_inst.c_out[31:0]
-md5core_tb.md5core_inst.hash_op_inst.d_out[31:0]
-md5core_tb.md5core_inst.hash_op_gi[1].hash_op_inst.a_out[31:0]
-md5core_tb.md5core_inst.hash_op_gi[1].hash_op_inst.b_out[31:0]
-md5core_tb.md5core_inst.hash_op_gi[1].hash_op_inst.c_out[31:0]
-md5core_tb.md5core_inst.hash_op_gi[1].hash_op_inst.d_out[31:0]
-@23
-md5core_tb.md5core_inst.hash_op_gi[63].hash_op_inst.a_out[31:0]
-@22
-md5core_tb.md5core_inst.hash_op_gi[63].hash_op_inst.b_out[31:0]
-md5core_tb.md5core_inst.hash_op_gi[63].hash_op_inst.c_out[31:0]
-md5core_tb.md5core_inst.hash_op_gi[63].hash_op_inst.d_out[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

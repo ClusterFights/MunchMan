@@ -23,6 +23,7 @@ module md5core_tb;
 reg clk_12mhz;
 reg reset;
 reg en;
+reg valid_in;
 
 
 // Outputs (wires)
@@ -30,6 +31,7 @@ wire [31:0] a_out;
 wire [31:0] b_out;
 wire [31:0] c_out;
 wire [31:0] d_out;
+wire valid_out;
 
 // Define the message
 // mesg="The quick brown fox jumps over the lazy dog" plus required padding.
@@ -48,11 +50,13 @@ md5core md5core_inst
     .en(en),
 
     .mesg(mesg),
+    .valid_in(valid_in),
 
     .a_out(a_out),
     .b_out(b_out),
     .c_out(c_out),
-    .d_out(d_out)
+    .d_out(d_out),
+    .valid_out(valid_out)
 );
 
 /*
@@ -100,9 +104,15 @@ always @ (posedge clk_12mhz)
 begin
     if (reset) begin
         sim_count <= 0;
+        valid_in <= 0;
     end else begin
         if (en) begin
             sim_count <= sim_count + 1;
+            if (sim_count == 1) begin
+                valid_in <= 1;
+            end else begin
+                valid_in <= 0;
+            end
             if (sim_count == 390) begin
                 $finish;
             end

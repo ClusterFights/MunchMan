@@ -36,8 +36,10 @@ module hash_op #
     // higher level code pass in the
     // correct part for this "index"
     input wire [31:0] m,
+    input wire valid_in,
 
-    output wire [31:0] a_out, b_out, c_out, d_out
+    output wire [31:0] a_out, b_out, c_out, d_out,
+    output wire valid_out
 );
 
 /*
@@ -61,6 +63,7 @@ assign a_out = a6;
 assign b_out = b6;
 assign c_out = c6;
 assign d_out = d6;
+assign valid_out = valid6;
 
 /*
 *****************************
@@ -97,6 +100,7 @@ endfunction
 
 // Stage 1
 reg [31:0] a1, b1, c1, d1;
+reg  valid1;
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -104,18 +108,21 @@ begin
         b1 <=- 0;
         c1 <=- 0;
         d1 <=- 0;
+        valid1 <=- 0;
     end else begin
         if (en) begin
             a1 <= a + f_out;
             b1 <= b;
             c1 <= c;
             d1 <= d;
+            valid1 <= valid_in;
         end
     end
 end
 
 // Stage 2
 reg [31:0] a2, b2, c2, d2;
+reg valid2;
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -123,19 +130,21 @@ begin
         b2 <=- 0;
         c2 <=- 0;
         d2 <=- 0;
+        valid2 <= 0;
     end else begin
         if (en) begin
             a2 <= a1 + m;
             b2 <= b1;
             c2 <= c1;
             d2 <= d1;
-
+            valid2 <= valid1;
         end
     end
 end
 
 // Stage 3
 reg [31:0] a3, b3, c3, d3;
+reg valid3;
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -143,19 +152,21 @@ begin
         b3 <=- 0;
         c3 <=- 0;
         d3 <=- 0;
+        valid3 <= 0;
     end else begin
         if (en) begin
             a3 <= a2 + k;
             b3 <= b2;
             c3 <= c2;
             d3 <= d2;
-
+            valid3 <= valid2;
         end
     end
 end
 
 // Stage 4
 reg [31:0] a4, b4, c4, d4;
+reg valid4;
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -163,19 +174,21 @@ begin
         b4 <=- 0;
         c4 <=- 0;
         d4 <=- 0;
+        valid4 <= 0;
     end else begin
         if (en) begin
             a4 <= leftrotate(a3,s);
             b4 <= b3;
             c4 <= c3;
             d4 <= d3;
-
+            valid4 <= valid3;
         end
     end
 end
 
 // Stage 5
 reg [31:0] a5, b5, c5, d5;
+reg valid5;
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -183,19 +196,21 @@ begin
         b5 <=- 0;
         c5 <=- 0;
         d5 <=- 0;
+        valid5 <= 0;
     end else begin
         if (en) begin
             a5 <= a4 + b4;
             b5 <= b4;
             c5 <= c4;
             d5 <= d4;
-
+            valid5 <= valid4;
         end
     end
 end
 
 // Stage 6
 reg [31:0] a6, b6, c6, d6;
+reg valid6;
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -203,13 +218,14 @@ begin
         b6 <=- 0;
         c6 <=- 0;
         d6 <=- 0;
+        valid6 <= 0;
     end else begin
         if (en) begin
             a6 <= d5;
             b6 <= a5;
             c6 <= b5;
             d6 <= c5;
-
+            valid6 <= valid5;
         end
     end
 end
