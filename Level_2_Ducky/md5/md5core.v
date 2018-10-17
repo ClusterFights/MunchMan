@@ -205,10 +205,10 @@ begin
         d_out <= 0;
     end else begin
         if (en) begin
-            a_out <= a0 + hop_a[64];
-            b_out <= b0 + hop_b[64];
-            c_out <= c0 + hop_c[64];
-            d_out <= d0 + hop_d[64];
+            a_out <= swap_endian_32b(a0 + hop_a[64]);
+            b_out <= swap_endian_32b(b0 + hop_b[64]);
+            c_out <= swap_endian_32b(c0 + hop_c[64]);
+            d_out <= swap_endian_32b(d0 + hop_d[64]);
         end
     end
 end
