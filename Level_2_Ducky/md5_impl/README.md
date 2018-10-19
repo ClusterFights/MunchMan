@@ -9,6 +9,5 @@ FPGA implementation.
 
 Here is a block diagram of the FPGA architecture.
 
-
-![block_diagram](Duck_FPGA_Architecture.png)
+![FPGA_Architecture](images/Ducky_FPGA_Architecture.png)
 
