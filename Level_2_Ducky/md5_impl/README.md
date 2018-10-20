@@ -14,15 +14,14 @@ Here is a block diagram of the FPGA architecture.
 ## Commands
 
 The cmd_parser module receives 1 byte commands from the
-usb to serial interface.  Parameters (multi-byte values) are sent LSB first (little endian).
+usb to serial interface.  Parameters (multi-byte values) are sent MSB first 
+(big endian/network order).
 Here is a summary of the commands:
 
-* 0x01 target_hash[127:0] : Set the target hash.  Bytes are sent LSB first.
-* 0x02 num[15:0] [byte0, byte1 .. byte[num-1]] : Receive 'num' characters/bytes. Returns 0x01 if
+* 0x01 target_hash[127:0] : Set the target hash.  Bytes are sent MSB first.
+* 0x02 num[15:0] [byte0, byte1 .. byte[num-1]] : Process 'num' characters/bytes. Returns 0x01 if
   hash found else 0x00.
-* 0x03 num[15:0] [byte0, byte1 .. byte[num-1]] : Process 'num' characters/bytes. Use this command
-  for the last chuck of data to make sure all characters are processed. Return 0x01 if hash found
-  else 0x00.
+* 0x03 : Returns byte_pos[15:0] that matched hash followed by the 19 character matched string.
 
 
 
