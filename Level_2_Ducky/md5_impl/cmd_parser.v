@@ -50,6 +50,7 @@ module cmd_parser
     output reg [7:0] proc_data,
     output reg proc_data_valid,
     output reg proc_match_char_next,
+    output wire [127:0] proc_target_hash,
 
     // feedback/debug
     output wire [7:0] leds
@@ -62,6 +63,7 @@ module cmd_parser
 */
 
 assign leds[7:0] = cmd_state[7:0];
+assign proc_target_hash[127:0] = target_hash[127:0];
 
 /*
 *****************************
