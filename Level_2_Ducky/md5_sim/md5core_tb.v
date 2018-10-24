@@ -24,7 +24,7 @@ reg clk_12mhz;
 reg reset;
 reg en;
 reg valid_in;
-reg [511:0] mesg;
+reg [151:0] mesg;
 
 
 // Outputs (wires)
@@ -32,16 +32,21 @@ wire [31:0] a_out;
 wire [31:0] b_out;
 wire [31:0] c_out;
 wire [31:0] d_out;
-wire [511:0] m_out;
+wire [151:0] m_out;
 wire valid_out;
 
 // Define the message
-// mesg1="The quick brown fox jumps over the lazy dog" plus required padding.
-wire [511:0] mesg1 = 512'h54686520_71756963_6b206272_6f776e20_666f7820_6a756d70_73206f76_65722074_6865206c_617a7920_646f6780_00000000_00000000_00000000_58010000_00000000;
-// mesg2="Hello World" plus required padding.
-wire [511:0] mesg2 = 512'h48656c6c_6f20576f_726c6480_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_58000000_00000000;
+// mesg1="The quick brown fox" plus required padding.
+wire [151:0] mesg1 = 152'h54686520_71756963_6b206272_6f776e20_666f78;
+wire [127:0] hash1 = 128'ha2004f37_730b9445_670a738f_a0fc9ee5;
 
-wire [511:0] mesg3 = 512'h48656c6c_6f800000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_28000000_00000000;
+// mesg2="Hello World 1234567" plus required padding.
+wire [151:0] mesg2 = 152'h48656c6c_6f20576f_726c6420_31323334_353637;
+wire [127:0] hash2 = 128'hac98cf84_ae657376_cea165e6_729ddb39;
+
+// mesg3="This is a test. 123" plus required padding.
+wire [151:0] mesg3 = 152'h54686973_20697320_61207465_73742e20_313233;
+wire [127:0] hash3 = 128'hcaea4868_5020e1b5_11a454f6_60943eaa;
 /*
 *****************************
 * Instantiation (DUT)
@@ -138,6 +143,48 @@ begin
                 end
             endcase
 
+        end
+    end
+end
+
+// Check the results
+reg [9:0] result_count;
+reg pass;
+always @ (posedge clk_12mhz)
+begin
+    if (reset) begin
+        result_count <= 0;
+        pass <= 0;
+    end else begin
+        pass <= 0; // default
+        if (en && valid_out) begin
+            result_count <= result_count + 1;
+            case (result_count)
+                0 : begin
+                    if (  (a_out[31:0] == hash1[127:96]) &&
+                          (b_out[31:0] == hash1[95:64]) &&
+                          (c_out[31:0] == hash1[63:32]) &&
+                          (d_out[31:0] == hash1[31:0]) ) begin
+                        pass <= 1;
+                    end
+                end
+                1 : begin
+                    if (  (a_out[31:0] == hash2[127:96]) &&
+                          (b_out[31:0] == hash2[95:64]) &&
+                          (c_out[31:0] == hash2[63:32]) &&
+                          (d_out[31:0] == hash2[31:0]) ) begin
+                        pass <= 1;
+                    end
+                end
+                2 : begin
+                    if (  (a_out[31:0] == hash3[127:96]) &&
+                          (b_out[31:0] == hash3[95:64]) &&
+                          (c_out[31:0] == hash3[63:32]) &&
+                          (d_out[31:0] == hash3[31:0]) ) begin
+                        pass <= 1;
+                    end
+                end
+            endcase
         end
     end
 end

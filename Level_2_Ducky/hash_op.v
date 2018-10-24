@@ -24,7 +24,8 @@ module hash_op #
 (
     parameter integer index = 0,
     parameter integer s = 0,
-    parameter integer k = 0
+    parameter integer k = 0,
+    parameter [359:0] msg_pad = 0
 )
 (
     input wire clk,
@@ -35,11 +36,11 @@ module hash_op #
     // m is a 16th of the full message
     // higher level code pass in the
     // correct part for this "index"
-    input wire [511:0] m_in,
+    input wire [151:0] m_in,
     input wire valid_in,
 
     output wire [31:0] a_out, b_out, c_out, d_out,
-    output wire [511:0] m_out,
+    output wire [151:0] m_out,
     output wire valid_out
 );
 
@@ -53,6 +54,9 @@ module hash_op #
 // 32-bit words m[j] 0 <= j <= 15
 wire [31:0] m [15:0];
 
+// Used to hold the full message, m1 plus msg_pad.
+wire [511:0] msg_full;
+
 
 /*
 *****************************
@@ -65,10 +69,11 @@ wire [31:0] m [15:0];
 // Will be indexed by the g funciton.
 // The only place we use the message is in stage2.
 // So we use the stage 1 (m1) message
+assign msg_full[511:0] = {m1[151:0], msg_pad[359:0]};
 genvar gi;
 generate
     for (gi=0; gi<16; gi=gi+1) begin: sig_gi
-        assign m[gi] = m1[32*(15-gi) +: 32];
+        assign m[gi] = msg_full[32*(15-gi) +: 32];
     end
 endgenerate
 
@@ -142,7 +147,7 @@ endfunction
 
 // Stage 1
 reg [31:0] a1, b1, c1, d1;
-reg [511:0] m1;
+reg [151:0] m1;
 reg  valid1;
 always @ (posedge clk)
 begin
@@ -167,7 +172,7 @@ end
 
 // Stage 2
 reg [31:0] a2, b2, c2, d2;
-reg [511:0] m2;
+reg [151:0] m2;
 reg valid2;
 always @ (posedge clk)
 begin
@@ -192,7 +197,7 @@ end
 
 // Stage 3
 reg [31:0] a3, b3, c3, d3;
-reg [511:0] m3;
+reg [151:0] m3;
 reg valid3;
 always @ (posedge clk)
 begin
@@ -217,7 +222,7 @@ end
 
 // Stage 4
 reg [31:0] a4, b4, c4, d4;
-reg [511:0] m4;
+reg [151:0] m4;
 reg valid4;
 always @ (posedge clk)
 begin
@@ -242,7 +247,7 @@ end
 
 // Stage 5
 reg [31:0] a5, b5, c5, d5;
-reg [511:0] m5;
+reg [151:0] m5;
 reg valid5;
 always @ (posedge clk)
 begin
@@ -267,7 +272,7 @@ end
 
 // Stage 6
 reg [31:0] a6, b6, c6, d6;
-reg [511:0] m6;
+reg [151:0] m6;
 reg valid6;
 always @ (posedge clk)
 begin
