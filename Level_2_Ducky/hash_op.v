@@ -5,6 +5,10 @@
 * This module implements one MD5 operation.
 * MD5 consists of 64 of these operations,
 * grouped in four rounds of 16 operations.
+*
+* It has been optimized for the ClustFight 
+* competition which has fixed length strings
+* of 19 characters.
 * 
 * For more info about the algorithm see:
 * https://en.wikipedia.org/wiki/MD5
@@ -33,9 +37,8 @@ module hash_op #
     input wire en,
 
     input wire [31:0] a, b, c, d,
-    // m is a 16th of the full message
-    // higher level code pass in the
-    // correct part for this "index"
+    // m_in is only the 19 character (152 bits)
+    // of the msg.  msg_pad holds the rest.
     input wire [151:0] m_in,
     input wire valid_in,
 

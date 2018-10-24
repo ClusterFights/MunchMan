@@ -6,6 +6,10 @@
 * modules to implement the core of the
 * md5 hash algorithm.
 *
+* It has been optimized for the ClustFight 
+* competition which has fixed length strings
+* of 19 characters.
+*
 * Target Board: iCE40HX-8K Breakout Board.
 *
 * Author : Brandon Bloodget
@@ -23,6 +27,8 @@ module md5core
     input wire reset,
     input wire en,
 
+    // m_in is only the 19 character (152 bits)
+    // of the msg.  msg_pad holds the rest.
     input wire [151:0] m_in,
     input wire valid_in,
 
