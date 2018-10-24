@@ -129,11 +129,6 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
         if (i<16)
         {
             f = (b & c) | ((~b) & d);
-            if (i==0)
-            {
-                printf("f=%x \n",f);
-            }
-
             g = i;
         }
         else if (i<32)
