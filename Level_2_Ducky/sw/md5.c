@@ -98,8 +98,8 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
     for (int i=0; i<64; i++)
     {
         printf("%.2x",msg[i]);
-        if ((i+1)%4==0)
-            printf(" ");
+        if ((i+1)%4==0 & i!=63)
+            printf("_");
     }
     printf("\n");
 
