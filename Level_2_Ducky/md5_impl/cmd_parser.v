@@ -28,7 +28,7 @@
 
 module cmd_parser 
 (
-    input wire clk_96mhz,
+    input wire clk,
     input wire reset,
 
     // uart_rx (receive)
@@ -101,7 +101,7 @@ reg [7:0] cmd_state;
 reg [15:0] char_count;
 reg [127:0] target_hash;
 reg [15:0] num_bytes;
-always @ (posedge clk_96mhz)
+always @ (posedge clk)
 begin
     if (reset) begin
         cmd_state   <= IDLE;
