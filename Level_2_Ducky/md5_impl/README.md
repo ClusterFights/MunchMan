@@ -5,6 +5,12 @@
 This directory holds the top level design for the Level 2 Ducky
 FPGA implementation.
 
+## Status
+
+Implementation fails because the design is too big by a factor
+of two. Currently have ~16000 registers and only ~8000 on the
+fpga.
+
 ## Block Diagram
 
 Here is a block diagram of the FPGA architecture.
