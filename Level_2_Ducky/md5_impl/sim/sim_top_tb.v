@@ -110,10 +110,12 @@ reg [10:0] tb_char_count;
 // States
 localparam IDLE             = 0;
 localparam TEST1            = 1;
-localparam EXTRA_CLOCKS1    = 2;
-localparam TEST2            = 3;
-localparam EXTRA_CLOCKS2    = 4;
-localparam FINISHED         = 5;
+localparam TEST1_RET        = 2;
+localparam EXTRA_CLOCKS1    = 3;
+localparam TEST2            = 4;
+localparam TEST2_RET        = 5;
+localparam EXTRA_CLOCKS2    = 6;
+localparam FINISHED         = 7;
 
 always @ (posedge clk)
 begin
@@ -134,6 +136,12 @@ begin
                 if (tb_char_count == 0) begin
                     rxd_data_ready <= 0;
                     rxd_data <= 0;
+                    tb_state <= TEST1_RET;
+                end
+            end
+            TEST1_RET : begin
+                if (txd_start) begin
+                    $display("TEST1 ACK: %d",txd_data);
                     tb_char_count <= 4;
                     tb_state <= EXTRA_CLOCKS1;
                 end
@@ -153,7 +161,13 @@ begin
                 if (tb_char_count == 0) begin
                     rxd_data_ready <= 0;
                     rxd_data <= 0;
-                    tb_char_count <= 1000;
+                    tb_state <= TEST2_RET;
+                end
+            end
+            TEST2_RET : begin
+                if (txd_start) begin
+                    $display("TEST2 ACK: %d",txd_data);
+                    tb_char_count <= 4;
                     tb_state <= EXTRA_CLOCKS2;
                 end
             end

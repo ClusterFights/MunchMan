@@ -1,19 +1,19 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Fri Oct 26 04:44:39 2018
+[*] Fri Oct 26 14:49:48 2018
 [*]
 [dumpfile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/md5_impl/sim/sim_top.vcd"
-[dumpfile_mtime] "Fri Oct 26 04:43:54 2018"
-[dumpfile_size] 12665269
+[dumpfile_mtime] "Fri Oct 26 14:47:44 2018"
+[dumpfile_size] 12615112
 [savefile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/md5_impl/sim/sim_top.gtkw"
-[timestart] 35929000
+[timestart] 37766000
 [size] 1855 1056
 [pos] -1 -1
-*-18.000000 36378000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-18.000000 38909000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] sim_top_tb.
 [treeopen] sim_top_tb.sim_top_inst.
 [sst_width] 225
-[signals_width] 489
+[signals_width] 349
 [sst_expanded] 1
 [sst_vpaned_height] 320
 @28
@@ -40,10 +40,9 @@ sim_top_tb.sim_top_inst.cmd_parser_inst.cmd_state[7:0]
 -group_end
 @24
 sim_top_tb.sim_top_inst.cmd_parser_inst.char_count[15:0]
+sim_top_tb.sim_top_inst.cmd_parser_inst.num_bytes[15:0]
 @22
 sim_top_tb.sim_top_inst.cmd_parser_inst.target_hash[127:0]
-@24
-sim_top_tb.sim_top_inst.cmd_parser_inst.num_bytes[15:0]
 @28
 sim_top_tb.sim_top_inst.cmd_parser_inst.proc_data_valid
 @22
@@ -56,7 +55,7 @@ sim_top_tb.sim_top_inst.string_process_match_inst.proc_data_valid
 sim_top_tb.sim_top_inst.string_process_match_inst.md5_msg[151:0]
 @28
 sim_top_tb.sim_top_inst.string_process_match_inst.md5_msg_valid
-@25
+@24
 sim_top_tb.sim_top_inst.string_process_match_inst.byte_count[15:0]
 @28
 sim_top_tb.sim_top_inst.string_process_match_inst.md5_msg_ret_valid
@@ -77,5 +76,9 @@ sim_top_tb.sim_top_inst.md5core_inst.m_in[151:0]
 sim_top_tb.sim_top_inst.md5core_inst.valid_in
 sim_top_tb.sim_top_inst.md5core_inst.valid_out
 sim_top_tb.sim_top_inst.string_process_match_inst.match
+@29
+sim_top_tb.txd_start
+@22
+sim_top_tb.txd_data[7:0]
 [pattern_trace] 1
 [pattern_trace] 0

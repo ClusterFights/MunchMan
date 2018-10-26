@@ -167,12 +167,12 @@ begin
                     proc_data <= rxd_data;
                     proc_data_valid <= 1;
                     char_count <= char_count + 1;
-                    if (char_count == num_bytes) begin
-                        proc_data_valid <= 0;
-                        cmd_state <= PROC_CHARS3;
-                    end
                 end else begin
                     proc_data_valid <= 0;
+                end
+                if (char_count == num_bytes) begin
+                    proc_data_valid <= 0;
+                    cmd_state <= PROC_CHARS3;
                 end
             end
             PROC_CHARS3 : begin
@@ -205,8 +205,6 @@ begin
                 if (!txd_busy) begin
                     txd_data <= proc_match_char;
                     proc_match_char_next <= 1;
-                    txd_start <= 1;
-                    txd_data <= ACK_CHAR;
                     txd_start <= 1;
                     char_count <= char_count + 1;
                     if (char_count == 18) begin
