@@ -79,9 +79,9 @@ localparam PROC_CHARS1  = 2;
 localparam PROC_CHARS2  = 3;
 localparam PROC_CHARS3  = 4;
 localparam RET_CHARS1   = 5;
-localparam RET_CHARS2   = 5;
-localparam ACK          = 6;
-localparam NACK         = 7;
+localparam RET_CHARS2   = 6;
+localparam ACK          = 7;
+localparam NACK         = 8;
 
 // Character constants
 localparam SET_CMD      = 8'h01;
@@ -207,7 +207,7 @@ begin
                     proc_match_char_next <= 1;
                     txd_start <= 1;
                     char_count <= char_count + 1;
-                    if (char_count == 18) begin
+                    if (char_count == 19) begin
                         cmd_state <= IDLE;
                     end
                 end else begin

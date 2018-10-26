@@ -35,6 +35,7 @@ wire txd_start;
 wire [7:0] txd_data;
 wire [0:7] leds;
 
+
 // Define the tests.
 
 // test1 : set the target hash.
@@ -105,8 +106,11 @@ initial begin
 end
 
 
+// Internal signals
 reg [7:0] tb_state;
 reg [10:0] tb_char_count;
+reg [15:0] ret_byte_pos;
+
 // States
 localparam IDLE             = 0;
 localparam TEST1            = 1;
@@ -115,13 +119,18 @@ localparam EXTRA_CLOCKS1    = 3;
 localparam TEST2            = 4;
 localparam TEST2_RET        = 5;
 localparam EXTRA_CLOCKS2    = 6;
-localparam FINISHED         = 7;
+localparam TEST3            = 7;
+localparam TEST3_RET1       = 8;
+localparam TEST3_RET2       = 9;
+localparam EXTRA_CLOCKS3    = 10;
+localparam FINISHED         = 11;
 
 always @ (posedge clk)
 begin
     if (reset) begin
-        tb_state = IDLE;
-        tb_char_count = 0;
+        tb_state <= IDLE;
+        tb_char_count <= 0;
+        ret_byte_pos <= 0;
     end else begin
         case (tb_state)
             IDLE : begin
@@ -172,6 +181,41 @@ begin
                 end
             end
             EXTRA_CLOCKS2 : begin
+                tb_char_count <= tb_char_count - 1;
+                if (tb_char_count == 0) begin
+                    tb_state <= TEST3;
+                end
+            end
+            TEST3 : begin
+                // Send cmd 0x03. To read match data
+                rxd_data_ready <= 1;
+                rxd_data <= 8'h03;
+                tb_char_count <= 2;
+                tb_state <= TEST3_RET1;
+            end
+            TEST3_RET1 : begin
+                rxd_data_ready <= 0;
+                if (txd_start) begin
+                    tb_char_count <= tb_char_count - 1;
+                    ret_byte_pos[15:0] <= {ret_byte_pos[7:0],txd_data[7:0]};
+                end
+                if (tb_char_count == 0) begin
+                    $display("byte_pos: %d",ret_byte_pos);
+                    tb_char_count <= 19;
+                    tb_state <= TEST3_RET2;
+                end
+            end
+            TEST3_RET2 : begin
+                if (txd_start) begin
+                    tb_char_count <= tb_char_count - 1;
+                    $display("%x %s",txd_data, txd_data);
+                end
+                if (tb_char_count == 0) begin
+                    tb_char_count <= 4;
+                    tb_state <= EXTRA_CLOCKS3;
+                end
+            end
+            EXTRA_CLOCKS3 : begin
                 tb_char_count <= tb_char_count - 1;
                 if (tb_char_count == 0) begin
                     tb_state <= FINISHED;
