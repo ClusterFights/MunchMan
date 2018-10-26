@@ -121,7 +121,7 @@ begin
         end
         // Check if we have processed the specified
         // number of bytes.
-        if (byte_count == (num_bytes-1)) begin
+        if (byte_count == num_bytes) begin
             match_check_done <= 1;
         end
         // Starting a new batch of strings.

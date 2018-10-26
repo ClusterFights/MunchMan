@@ -46,7 +46,7 @@ module cmd_parser
     input wire [15:0] proc_byte_pos,
     input wire [7:0] proc_match_char,
     output reg proc_start,
-    output reg [15:0] proc_num_bytes,
+    output wire [15:0] proc_num_bytes,
     output reg [7:0] proc_data,
     output reg proc_data_valid,
     output reg proc_match_char_next,
@@ -64,6 +64,7 @@ module cmd_parser
 
 assign leds[7:0] = cmd_state[7:0];
 assign proc_target_hash[127:0] = target_hash[127:0];
+assign proc_num_bytes[15:0] = num_bytes[15:0];
 
 /*
 *****************************
@@ -114,8 +115,8 @@ begin
         proc_data <= 0;
         proc_data_valid <= 0;
         proc_start <= 0;
-        proc_num_bytes <= 0;
         proc_match_char_next <= 0;
+        num_bytes <= 0;
     end else begin
         case (cmd_state)
             IDLE : begin
@@ -125,8 +126,8 @@ begin
                 proc_data <= 0;
                 proc_data_valid <= 0;
                 proc_start <= 0;
-                proc_num_bytes <= 0;
                 proc_match_char_next <= 0;
+                num_bytes <= 0;
                 // Waiting for a command byte
                 if (rxd_data_ready) begin
                     if (rxd_data == SET_CMD) begin
@@ -154,7 +155,6 @@ begin
                     char_count <= char_count + 1;
                     if (char_count == 1) begin
                         char_count <= 0;
-                        proc_num_bytes <= num_bytes;
                         proc_start <= 1;
                         cmd_state <= PROC_CHARS2;
                     end
@@ -167,7 +167,7 @@ begin
                     proc_data <= rxd_data;
                     proc_data_valid <= 1;
                     char_count <= char_count + 1;
-                    if (char_count == (num_bytes-1)) begin
+                    if (char_count == num_bytes) begin
                         proc_data_valid <= 0;
                         cmd_state <= PROC_CHARS3;
                     end
