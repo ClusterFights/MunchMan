@@ -28,7 +28,7 @@ module top_md5 #
     input wire rxd,
 
     output wire txd,
-    output reg [0:7] led
+    output wire [0:7] led
 );
 
 /*
