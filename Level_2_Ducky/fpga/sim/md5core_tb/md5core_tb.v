@@ -36,15 +36,15 @@ wire [151:0] m_out;
 wire valid_out;
 
 // Define the message
-// mesg1="The quick brown fox" plus required padding.
+// mesg1="The quick brown fox"
 wire [151:0] mesg1 = 152'h54686520_71756963_6b206272_6f776e20_666f78;
 wire [127:0] hash1 = 128'ha2004f37_730b9445_670a738f_a0fc9ee5;
 
-// mesg2="Hello World 1234567" plus required padding.
+// mesg2="Hello World 1234567"
 wire [151:0] mesg2 = 152'h48656c6c_6f20576f_726c6420_31323334_353637;
 wire [127:0] hash2 = 128'hac98cf84_ae657376_cea165e6_729ddb39;
 
-// mesg3="This is a test. 123" plus required padding.
+// mesg3="This is a test. 123"
 wire [151:0] mesg3 = 152'h54686973_20697320_61207465_73742e20_313233;
 wire [127:0] hash3 = 128'hcaea4868_5020e1b5_11a454f6_60943eaa;
 /*

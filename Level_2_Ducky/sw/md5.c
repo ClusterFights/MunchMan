@@ -153,7 +153,8 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
         d = c;
         c = b;
         b = b + LEFTROTATE(temp, s[i]);
-        // XXX printf("%d) a=%x b=%x c=%x d=%x f=%x k[i]=%x s[i]=%x m[g]=%x\n",i,a,b,c,d,f,k[i],s[i],m[g]);
+
+        printf("%d) a=%x b=%x c=%x d=%x f=%x k[i]=%x s[i]=%x m[g]=%x\n",i,a,b,c,d,f,k[i],s[i],m[g]);
     }
 
     a += 0x67452301;

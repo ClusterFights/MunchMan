@@ -139,7 +139,8 @@ hash_op #
     .b(b0),
     .c(c0),
     .d(d0),
-    // m is a 16th of the full message
+    // m_in is only the 19 character (152 bits)
+    // of the msg.  msg_pad holds the rest.
     .m_in(m_in),
     .valid_in(valid_in),
 
