@@ -9,8 +9,6 @@
 * will also allow us to test determine
 * the maximum baud rate.
 *
-* Target Board: iCE40HX-8K Breakout Board.
-*
 * Author : Brandon Bloodget
 *
 *****************************
@@ -22,21 +20,21 @@
 module top_loopback #
 (
     parameter integer CLK_FREQUENCY = 96_000_000,
-    parameter integer BAUD = 12_000_000
+    parameter integer BAUD = 12_000_000,
+    parameter integer NUM_LEDS = 8
 )
 (
-    input wire clk_12mhz,
-    // reset on J2, short pin 40(gnd) to pin 38(B16)
-    // TODO : Need to add internal pullup to reset_n
-    input wire reset_n,
+    input wire clk,
+    input wire reset,
     input wire rxd,
 
     output wire txd,
 `ifdef TESTBENCH
-    output wire locked,
-    output wire clk_96mhz,
+    output wire rxd_data_ready,
+    output wire [7:0] rxd_data,
+    output wire txd_busy,
 `endif
-    output reg [0:7] led
+    output reg [NUM_LEDS-1:0] led
 );
 
 /*
@@ -46,18 +44,18 @@ module top_loopback #
 */
 
 `ifndef TESTBENCH
-wire clk_96mhz;
-wire locked;
-`endif
-
-wire tick;
-
 wire rxd_data_ready;
 wire [7:0] rxd_data;
+wire txd_busy;
+`endif
+
+
 wire rxd_idle;
 wire rxd_endofpacket;
 
-wire txd_busy;
+reg txd_start;
+reg [7:0] rxd_data2;
+reg sent2;
 
 /*
 *****************************
@@ -65,17 +63,11 @@ wire txd_busy;
 *****************************
 */
 
-pll_96mhz pll_96mhz_inst (
-    .clock_in(clk_12mhz),
-    .clock_out(clk_96mhz),
-    .locked(locked)
-);
-
 async_receiver # (
     .ClkFrequency(CLK_FREQUENCY),
     .Baud(BAUD)
 ) async_receiver_inst (
-    .clk(clk_96mhz),
+    .clk(clk),
     .RxD(rxd),
     .RxD_data_ready(rxd_data_ready),
     .RxD_data(rxd_data),
@@ -87,9 +79,9 @@ async_transmitter # (
     .ClkFrequency(CLK_FREQUENCY),
     .Baud(BAUD)
 ) async_transmitter_inst (
-    .clk(clk_96mhz),
-    .TxD_start(rxd_data_ready),
-    .TxD_data(rxd_data),
+    .clk(clk),
+    .TxD_start(txd_start),
+    .TxD_data(rxd_data2),
     .TxD(txd),
     .TxD_busy(txd_busy)
 );
@@ -100,14 +92,35 @@ async_transmitter # (
 *****************************
 */
 
-// Show received data on leds.
-always @ (posedge clk_96mhz)
+// Register the received data.  Wait
+// for transmitter to be not busy before sending
+always @ (posedge clk) 
 begin
-    if (~reset_n) begin
+    if (reset) begin
+        txd_start <= 0;
+        rxd_data2 <= 0;
+        sent2 <= 1;
+    end else begin
+        txd_start <= 0;
+        if (rxd_data_ready) begin
+            rxd_data2 <= rxd_data;
+            sent2 <= 0;
+        end
+        if (~sent2 && ~txd_busy) begin
+            sent2 <= 1;
+            txd_start <= 1;
+        end
+    end
+end
+
+// Show received data on leds.
+always @ (posedge clk)
+begin
+    if (reset) begin
         led <= 0;
     end else begin
         if (rxd_data_ready) begin
-            led[0:7] <= rxd_data[7:0];
+            led <= rxd_data;
         end
     end
 end

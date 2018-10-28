@@ -1,6 +1,6 @@
 top_loopback_tb.v
-top_loopback.v
-../async.v
-../pll_96mhz.v
-/usr/local/share/yosys/ice40/cells_sim.v
+../../hdl/top_lib/top_loopback.v
+../../hdl/md5_lib/async.v
+../../hdl/ice40_ip/pll_96mhz.v
+# /usr/local/share/yosys/ice40/cells_sim.v
 
