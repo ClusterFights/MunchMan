@@ -61,10 +61,10 @@ top_loopback #
     .CLK_FREQUENCY(CLK_FREQUENCY),
     .BAUD(BAUD),
     .NUM_LEDS(NUM_LEDS)
-)
+) top_loopback_inst
 (
     .clk(clk_96mhz),
-    .reset(~reset),
+    .reset(~reset_n),
     .rxd(rxd),
     .txd(txd),
     .led(led)

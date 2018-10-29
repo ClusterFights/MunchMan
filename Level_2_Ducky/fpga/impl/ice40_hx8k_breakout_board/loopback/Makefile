@@ -1,6 +1,6 @@
-PROJ = top_loopback
+PROJ = ice40_loopback
 DEVICE = hx8k
-SOURCES = $(PROJ).v ../async.v ../pll_96mhz.v
+SOURCES = $(PROJ).v ../../../hdl/top_lib/top_loopback.v ../../../hdl/md5_lib/async.v ../../../hdl/ice40_ip/pll_96mhz.v
 PIN_DEF = $(PROJ).pcf
 
 all: $(PROJ).rpt $(PROJ).bin
