@@ -1,6 +1,6 @@
 PROJ = top_md5
 DEVICE = hx8k
-SOURCES = $(PROJ).v ../async.v ../pll_96mhz.v cmd_parser.v string_process_match.v ../md5core.v ../hash_op.v
+SOURCES = $(PROJ).v ../../../hdl/md5_lib/async.v ../../../hdl/ice40_ip/pll_96mhz.v ../../../hdl/md5_lib/cmd_parser.v ../../../hdl/md5_lib/string_process_match.v ../../../hdl/md5_lib/md5core.v ../../../hdl/md5_lib/hash_op.v
 PIN_DEF = $(PROJ).pcf
 
 all: $(PROJ).rpt $(PROJ).bin
