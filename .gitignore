@@ -1,3 +1,8 @@
+# Ignore vivado files
+vivado*.*
+.Xil
+project_1
+
 # Ignore vim swap files
 *.sw?
 
