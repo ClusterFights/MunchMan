@@ -1,7 +1,6 @@
 sim_top_tb.v
 sim_top.v
-../cmd_parser.v
-../string_process_match.v
-../../md5core.v
-../../hash_op.v
-
+../../hdl/md5_lib/cmd_parser.v
+../../hdl/md5_lib/string_process_match.v
+../../hdl/md5_lib/md5core.v
+../../hdl/md5_lib/hash_op.v
