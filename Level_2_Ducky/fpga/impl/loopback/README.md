@@ -9,7 +9,8 @@ are operating correctly on real FPGA hardware.
 ## Status
 
 Tested and working on the following boards:
-* ice40_hx8k_breakout_board
+* ice40_hx8k Breakout_Board
+* Arty_S7 Digilent Board
 
 ## Usage
 
