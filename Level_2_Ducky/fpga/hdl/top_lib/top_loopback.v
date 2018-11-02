@@ -17,6 +17,45 @@
 // Force error when implicit net has no type.
 `default_nettype none
 
+
+
+// Buffer the data between the receive and send
+module loop_buff
+(
+    input wire clk,
+    input wire reset,
+    input wire rxd_data_ready,
+    input wire [7:0] rxd_data,
+
+    input wire txd_busy,
+    output reg txd_start,
+    output reg [7:0] txd_data
+);
+
+// Register the received data.  Wait
+// for transmitter to be not busy before sending
+reg sent;
+always @ (posedge clk) 
+begin
+    if (reset) begin
+        txd_start <= 0;
+        txd_data <= 0;
+        sent <= 1;
+    end else begin
+        txd_start <= 0;
+        if (rxd_data_ready) begin
+            txd_data <= rxd_data;
+            sent <= 0;
+        end
+        if (~sent && ~txd_busy) begin
+            sent <= 1;
+            txd_start <= 1;
+        end
+    end
+end
+
+endmodule
+
 module top_loopback #
 (
     parameter integer CLK_FREQUENCY = 96_000_000,
@@ -49,13 +88,10 @@ wire [7:0] rxd_data;
 wire txd_busy;
 `endif
 
-
 wire rxd_idle;
 wire rxd_endofpacket;
-
-reg txd_start;
-reg [7:0] rxd_data2;
-reg sent2;
+wire [7:0] txd_data;
+wire txd_start;
 
 /*
 *****************************
@@ -75,13 +111,25 @@ async_receiver # (
     .RxD_endofpacket(rxd_endofpacket)
 );
 
+loop_buff loop_buff_inst
+(
+    .clk(clk),
+    .reset(reset),
+    .rxd_data_ready(rxd_data_ready),
+    .rxd_data(rxd_data),
+
+    .txd_busy(txd_busy),
+    .txd_start(txd_start),
+    .txd_data(txd_data)
+);
+
 async_transmitter # (
     .ClkFrequency(CLK_FREQUENCY),
     .Baud(BAUD)
 ) async_transmitter_inst (
     .clk(clk),
     .TxD_start(txd_start),
-    .TxD_data(rxd_data2),
+    .TxD_data(txd_data),
     .TxD(txd),
     .TxD_busy(txd_busy)
 );
@@ -92,35 +140,14 @@ async_transmitter # (
 *****************************
 */
 
-// Register the received data.  Wait
-// for transmitter to be not busy before sending
-always @ (posedge clk) 
-begin
-    if (reset) begin
-        txd_start <= 0;
-        rxd_data2 <= 0;
-        sent2 <= 1;
-    end else begin
-        txd_start <= 0;
-        if (rxd_data_ready) begin
-            rxd_data2 <= rxd_data;
-            sent2 <= 0;
-        end
-        if (~sent2 && ~txd_busy) begin
-            sent2 <= 1;
-            txd_start <= 1;
-        end
-    end
-end
-
 // Show received data on leds.
 always @ (posedge clk)
 begin
     if (reset) begin
         led <= 0;
     end else begin
-        if (rxd_data_ready) begin
-            led <= rxd_data;
+        if (txd_start) begin
+            led <= txd_data;
         end
     end
 end
