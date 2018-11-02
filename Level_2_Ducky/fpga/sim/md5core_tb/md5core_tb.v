@@ -166,6 +166,9 @@ begin
                           (c_out[31:0] == hash1[63:32]) &&
                           (d_out[31:0] == hash1[31:0]) ) begin
                         pass <= 1;
+                        $display("msg1 PASS");
+                    end else begin
+                        $display("msg1 FAIL");
                     end
                 end
                 1 : begin
@@ -174,6 +177,9 @@ begin
                           (c_out[31:0] == hash2[63:32]) &&
                           (d_out[31:0] == hash2[31:0]) ) begin
                         pass <= 1;
+                        $display("msg2 PASS");
+                    end else begin
+                        $display("msg2 FAIL");
                     end
                 end
                 2 : begin
@@ -182,6 +188,9 @@ begin
                           (c_out[31:0] == hash3[63:32]) &&
                           (d_out[31:0] == hash3[31:0]) ) begin
                         pass <= 1;
+                        $display("msg3 PASS");
+                    end else begin
+                        $display("msg3 FAIL");
                     end
                 end
             endcase
