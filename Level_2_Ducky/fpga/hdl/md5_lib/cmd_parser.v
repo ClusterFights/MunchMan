@@ -26,7 +26,10 @@
 // Force error when implicit net has no type.
 `default_nettype none
 
-module cmd_parser 
+module cmd_parser #
+(
+    parameter integer NUM_LEDS = 8
+)
 (
     input wire clk,
     input wire reset,
@@ -53,7 +56,7 @@ module cmd_parser
     output wire [127:0] proc_target_hash,
 
     // feedback/debug
-    output wire [7:0] leds
+    output wire [NUM_LEDS-1:0] led
 );
 
 /*
@@ -62,7 +65,7 @@ module cmd_parser
 *****************************
 */
 
-assign leds[7:0] = cmd_state[7:0];
+assign led[NUM_LEDS-1:0] = cmd_state[NUM_LEDS-1:0];
 assign proc_target_hash[127:0] = target_hash[127:0];
 assign proc_num_bytes[15:0] = num_bytes[15:0];
 
