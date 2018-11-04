@@ -27,6 +27,6 @@ Linux system.
 
 ## Report Summary
 
-[Report Summary](images/report_summary.png)
+![Report Summary](images/report_summary.png)
 
 
