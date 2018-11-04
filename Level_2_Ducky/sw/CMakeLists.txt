@@ -5,7 +5,7 @@ project ( ftdi_test )
 find_package ( LibFTDI1 NO_MODULE REQUIRED )
 include ( ${LIBFTDI_USE_FILE} )
 
-add_executable ( ice_cat ice_cat.c )
+add_executable ( ice_cat ice_cat.c munchman.c )
 target_link_libraries( ice_cat ${LIBFTDI_LIBRARIES} )
 
 add_executable ( ftdi_test ftdi_test.c kbinput.c )
