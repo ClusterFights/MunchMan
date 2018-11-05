@@ -33,7 +33,7 @@ reg txd_busy;
 // Outputs (wires)
 wire txd_start;
 wire [7:0] txd_data;
-wire [0:7] leds;
+wire [7:0] led;
 
 
 // Define the tests.
@@ -69,7 +69,7 @@ sim_top sim_top_inst
     .txd_start(txd_start),
     .txd_data(txd_data),   // [7:0] 
 
-    .leds(leds)    // [0:7] 
+    .led(led)    // [7:0] 
 );
 
 /*

@@ -33,7 +33,7 @@ module sim_top
     output wire [7:0] txd_data,
 
 
-    output wire [0:7] leds
+    output wire [7:0] led
 );
 
 /*
@@ -98,7 +98,7 @@ cmd_parser cmd_parser_inst
     .proc_target_hash(proc_target_hash), // [127:0] 
 
     // feedback/debug
-    .leds(leds)    //    [0:7]
+    .led(led)    //    [7:0]
 );
 
 
