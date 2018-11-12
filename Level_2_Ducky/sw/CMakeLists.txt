@@ -16,6 +16,9 @@ add_executable ( md5 md5.c )
 add_executable ( md5_tb md5_tb.c munchman.c )
 target_link_libraries( md5_tb ${LIBFTDI_LIBRARIES} )
 
-install ( TARGETS ftdi_test ice_cat md5
+add_executable ( find find.c munchman.c )
+target_link_libraries( find ${LIBFTDI_LIBRARIES} )
+
+install ( TARGETS ftdi_test ice_cat md5 md5_tb find
           DESTINATION bin )
           
