@@ -7,9 +7,14 @@ FPGA implementation.
 
 ## Status
 
-Implementation fails because the design is too big by a factor
-of two. Currently have ~16000 registers and only ~8000 on the
-fpga.
+The ice40 implementation fails because the design is too big
+by at least a factor of 2.
+
+Currently debugging the arty_s7 implementation.  The
+bitstream gets generated OK.  When sending commands
+the ACK byte gets returned as 0xe5 when it should be
+0x01.
+
 
 ## Block Diagram
 
@@ -24,10 +29,11 @@ usb to serial interface.  Parameters (multi-byte values) are sent MSB first
 (big endian/network order).
 Here is a summary of the commands:
 
-* 0x01 target_hash[127:0] : Set the target hash.  Bytes are sent MSB first.
-* 0x02 num[15:0] [byte0, byte1 .. byte[num-1]] : Process 'num' characters/bytes. Returns 0x01 if
-  hash found else 0x00.
-* 0x03 : Returns byte_pos[15:0] that matched hash followed by the 19 character matched string.
+* 0x01 target_hash[127:0] : Set the target hash.  Bytes are sent MSB first. Returns ACK (0x01).
+* 0x02 num[15:0] [byte0, byte1 .. byte[num-1]] : Process 'num' characters/bytes. Returns ACK (0x01) if
+  hash found else (0x00).
+* 0x03 : Returns byte_pos[15:0] that matched hash followed by the 19 character matched string. So 21 bytes in total. No ACK/NACK
+* 0x04 : Test command.  Returns ten bytes 9, 8, 7, ... 0.
 
 
 
