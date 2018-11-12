@@ -23,9 +23,10 @@ static unsigned char target_hash[] = {
 static unsigned char test_str[] = "Hello. The quick brown fox jumps over the lazy dog.";
 
 // test_str length is 51 = 0x33.
-static unsigned char test_str_len[] = {0x00, 0x33};
+static int test_str_len = 51; // bytes {0x00, 0x33};
 
-static unsigned char ret_buffer[100] = {0};
+// Hold the match result
+static struct match_result match;
 
 int main(int argc, char *argv[])
 {
@@ -41,163 +42,32 @@ int main(int argc, char *argv[])
         printf("ftdi_new failed\n");
         return EXIT_FAILURE;
     }
-    version = ftdi_get_library_version();
-    printf("Initialized libftdi %s (major: %d, minor: %d, micro: %d, snapshot version : %s)\n",
-            version.version_str, version.major, version.minor, version.micro,
-            version.snapshot_str);
-    printf("Created new ftdi\n");
 
+    // Initialize the ftdi.
+    printf("Initialize ftdi\n");
     ftdi_setup(ftdi);
-    printf("ftdi initialized\n");
 
     // Read anything that is hanging around.
     printf("Clear input char queue.\n");
-    ret = ftdi_read_data(ftdi, ret_buffer, 100);
-    if (ret > 0) {
-        printf("WARN, read some data ret=%d\n",ret);
-    } else {
-        printf("OK. No data waiting.\n");
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
+    clear_ftdi(ftdi);
 
     // Send the test command 0x04.
     printf("Sending the test command 0x04.\n");
-    ret = ftdi_write_data(ftdi, "\x04", 1); // cmd
-    if (ret != 1)
-    {
-        printf("Error during ftdi_write_data: %d != %d\n",ret,1);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-
-    // Read the test bytes 10,9,8..1
-    printf("Read the test bytes 10,9,8..1.\n");
-    ret = ftdi_read_data(ftdi, ret_buffer, 100);
-    if (ret > 0) {
-        printf("Num of bytes read=%d\n",ret);
-        for (int i=0; i<ret; i++)
-        {
-            printf("%d: %x\n",i,ret_buffer[i]);
-        }
-    } else {
-        printf("ERROR ret=%d\n",ret);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
+    cmd_test(ftdi);
 
     // Send the set hash command 0x01.
     printf("Sending the set hash command 0x01.\n");
-    ret = ftdi_write_data(ftdi, "\x01", 1); // cmd
-    if (ret != 1)
-    {
-        printf("Error during ftdi_write_data: %d != %d\n",ret,1);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
+    cmd_set_hash(ftdi, target_hash);
 
-    // Send the target hash.
-    printf("Send the target hash.\n");
-    ret = ftdi_write_data(ftdi, target_hash, 16); //data
-    if (ret != 16)
-    {
-        printf("Error during ftdi_write_data: %d != %d\n",ret,16);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-
-    // Read the ACK.
-    printf("Read the ACK.\n");
-    ack = ret_buffer[0];
-    printf("before read. ack=%x\n",ack);
-    ret = ftdi_read_data(ftdi, ret_buffer, 100);
-    if (ret > 0) {
-        ret_buffer[0] = 0;
-        ack = ret_buffer[0];
-        printf("Read ACK. ret=%d, ack=%x\n",ret,ack);
-    } else {
-        printf("ERROR Read ACK. ret=%d, ack=%x\n",ret,ack);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-
-    // Send the send data command 0x02.
-    printf("Sending the send data command 0x02.\n");
-    ret = ftdi_write_data(ftdi, "\x02", 1); // cmd
-    if (ret != 1)
-    {
-        printf("Error during ftdi_write_data: %d != %d\n",ret,1);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-    // Send the number of bytes to be sent.
-    printf("Send the number of bytes to be sent.\n");
-    ret = ftdi_write_data(ftdi, test_str_len, 2);
-    if (ret != 2)
-    {
-        printf("Error during ftdi_write_data: %d != %d\n",ret,16);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-    // Send the string.
-    printf("Sending the test string.\n");
-    ret = ftdi_write_data(ftdi, test_str, 51);
-    if (ret != 51)
-    {
-        printf("Error during ftdi_write_data: %d != %d\n",ret,16);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-    // Read the ACK.
-    printf("Read the ACK.\n");
-    ret_buffer[0] = 0;
-    ack = ret_buffer[0];
-    printf("before read. ack=%x\n",ack);
-    ret = ftdi_read_data(ftdi, ret_buffer, 100);
-    if (ret > 0) {
-        ack = ret_buffer[0];
-        printf("Read ACK. ret=%d, ack=%x\n",ret,ack);
-    } else {
-        printf("ERROR Read ACK. ret=%d, ack=%x\n",ret,ack);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-
-// XXX GOOD TO HERE
+    // Send the send text command 0x02.
+    printf("Sending the send text command 0x02.\n");
+    cmd_send_text(ftdi, test_str, test_str_len);
 
     // Send the command to read match data, 0x03.
     printf("\nSent command to read match data, 0x03.\n");
-    ret = ftdi_write_data(ftdi, "\x03", 1); // cmd
-    if (ret != 1)
-    {
-        printf("Error during ftdi_write_data: %d != %d\n",ret,1);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
-    // Read the match data
-    printf("Read the match data.\n");
-    ret = ftdi_read_data(ftdi, ret_buffer, 100);
-    if (ret > 0) {
-        printf("Num of bytes read=%d\n",ret);
-        for (int i=0; i<ret; i++)
-        {
-            printf("%d: %x %c\n",i,ret_buffer[i],ret_buffer[i]);
-        }
-    } else {
-        printf("ERROR ret=%d\n",ret);
-    }
-    // XXX printf("press Enter\n");
-    // XXX getchar();
-
+    cmd_read_match(ftdi, &match);
+    printf("match.pos = %d \n",match.pos);
+    printf("match.str = %s \n",match.str);
 
     // Close connections
     printf("Close the ftdi_usb.\n");

@@ -21,9 +21,48 @@ extern "C" {
 #include <sys/time.h>
 #include <errno.h>
 
-int ftdi_setup(struct ftdi_context *ftdi);
-int filecopy(FILE *ifp, struct ftdi_context *ftdi);
+/*
+***************************
+* Constants
+***************************
+*/
+#define BUFFER_SIZE 100
 
+/*
+***************************
+* Structures
+***************************
+*/
+
+struct match_result
+{
+    int pos;
+    unsigned char str[19];
+};
+
+
+
+/*
+***************************
+* Functions
+***************************
+*/
+int ftdi_setup(struct ftdi_context *ftdi);
+void clear_ftdi(struct ftdi_context *ftdi);
+int filecopy(FILE *ifp, struct ftdi_context *ftdi);
+void cmd_test(struct ftdi_context *ftdi);
+int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash);
+int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
+        int text_str_len);
+int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result);
+
+
+/*
+***************************
+* Variables
+***************************
+*/
+extern unsigned char ret_buffer[];
 
 #ifdef __cplusplus
 }
