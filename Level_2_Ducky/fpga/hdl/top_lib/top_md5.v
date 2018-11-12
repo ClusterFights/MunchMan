@@ -96,7 +96,7 @@ async_transmitter # (
 ) async_transmitter_inst (
     .clk(clk),
     .TxD_start(txd_start),
-    .TxD_data(rxd_data),
+    .TxD_data(txd_data),
     .TxD(txd),
     .TxD_busy(txd_busy)
 );
