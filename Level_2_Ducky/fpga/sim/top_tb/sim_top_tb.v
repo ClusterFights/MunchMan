@@ -25,6 +25,7 @@ module sim_top_tb;
 // Inputs (registers)
 reg clk;
 reg reset;
+reg rxd;
 reg [7:0] rxd_data;
 reg rxd_data_ready;
 reg txd_busy;
@@ -73,6 +74,24 @@ sim_top sim_top_inst
 );
 
 /*
+top_md5 #
+(
+    .CLK_FREQUENCY(100_000_000),
+    .BAUD(12_000_000),
+    .NUM_LEDS(8)
+) top_md5_inst
+(
+    .clk(clk),
+    .reset(reset),
+    .rxd(rxd),
+
+    .txd,
+    .led
+);
+*/
+
+
+/*
 *****************************
 * Main
 *****************************
@@ -113,17 +132,20 @@ reg [15:0] ret_byte_pos;
 
 // States
 localparam IDLE             = 0;
-localparam TEST1            = 1;
-localparam TEST1_RET        = 2;
-localparam EXTRA_CLOCKS1    = 3;
-localparam TEST2            = 4;
-localparam TEST2_RET        = 5;
-localparam EXTRA_CLOCKS2    = 6;
-localparam TEST3            = 7;
-localparam TEST3_RET1       = 8;
-localparam TEST3_RET2       = 9;
-localparam EXTRA_CLOCKS3    = 10;
-localparam FINISHED         = 11;
+localparam TEST0            = 1;
+localparam TEST0_RET        = 2;
+localparam EXTRA_CLOCKS0    = 3;
+localparam TEST1            = 4;
+localparam TEST1_RET        = 5;
+localparam EXTRA_CLOCKS1    = 6;
+localparam TEST2            = 7;
+localparam TEST2_RET        = 8;
+localparam EXTRA_CLOCKS2    = 9;
+localparam TEST3            = 10;
+localparam TEST3_RET1       = 11;
+localparam TEST3_RET2       = 12;
+localparam EXTRA_CLOCKS3    = 13;
+localparam FINISHED         = 14;
 
 always @ (posedge clk)
 begin
@@ -134,8 +156,37 @@ begin
     end else begin
         case (tb_state)
             IDLE : begin
-                tb_char_count <= 17;
-                tb_state <= TEST1;
+                tb_state <= TEST0;
+            end
+            TEST0 : begin
+                // Test the test command (0x04) which
+                // returns countdown 10..1
+                rxd_data_ready <= 1;
+                rxd_data <= 8'h04;
+                tb_char_count <= 10;
+                tb_state <= TEST0_RET;
+            end
+            TEST0_RET : begin
+                rxd_data_ready <= 0;
+                if (txd_start) begin
+                    tb_char_count <= tb_char_count - 1;
+                    $display("TB: TEST0: %d",txd_data);
+                    if (tb_char_count == 1) begin
+                        tb_char_count <= 5;
+                        tb_state <= EXTRA_CLOCKS0;
+                        $display("TB: next state EXTRA_CLOCKS0");
+                    end
+                end else begin
+                    $display("TB: stuck in TEST0_RET");
+                end
+            end
+            EXTRA_CLOCKS0 : begin
+                tb_char_count <= tb_char_count - 1;
+                if (tb_char_count == 0) begin
+                    tb_char_count <= 17;
+                    // XXX tb_state <= TEST1;
+                    tb_state <= FINISHED;
+                end
             end
             TEST1 : begin
                 rxd_data_ready <= 1;

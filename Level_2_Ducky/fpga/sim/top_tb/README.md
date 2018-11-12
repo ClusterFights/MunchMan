@@ -1,5 +1,14 @@
 # md5_impl/sim
 
+## Status
+
+__Broken__ : Currently this simulation is broken.
+To fix it need to update sim_top_tb to instantiate
+top_md5 instead of sim_top.  cmd_parser has been updated
+to look for transistions on txd_busy which sim_top_tb
+currently does not generate.  So sim_top_tb needs to be updated
+to work with top_md5.
+
 ## Description
 
 This directory holds a simulation for the three modules

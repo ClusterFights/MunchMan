@@ -23,6 +23,10 @@ run: compile
 view: run
 	gtkwave $(NAME_TOP).vcd $(NAME_TOP).gtkw &
 
+# Start viewer. Debug test cmd4.
+view2: run
+	gtkwave $(NAME_TOP).vcd cmd4.gtkw &
+
 # iverilog help, command line
 help:
 	man iverilog
