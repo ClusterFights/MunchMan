@@ -76,20 +76,26 @@ assign proc_num_bytes[15:0] = num_bytes[15:0];
 */
 
 // States
-localparam IDLE         = 0;
-localparam SET_HASH     = 1;
-localparam PROC_CHARS1  = 2;
-localparam PROC_CHARS2  = 3;
-localparam PROC_CHARS3  = 4;
-localparam RET_CHARS1   = 5;
-localparam RET_CHARS2   = 6;
-localparam ACK          = 7;
-localparam NACK         = 8;
+localparam IDLE             = 0;
+localparam SET_HASH         = 1;
+localparam PROC_CHARS1      = 2;
+localparam PROC_CHARS2      = 3;
+localparam PROC_CHARS3      = 4;
+localparam RET_CHARS1       = 5;
+localparam RET_CHARS1_WAIT  = 6;
+localparam RET_CHARS1_WAIT2 = 7;
+localparam RET_CHARS2       = 8;
+localparam RET_CHARS2_WAIT  = 9;
+localparam TEST             = 10;
+localparam TEST2            = 11;
+localparam ACK              = 12;
+localparam NACK             = 13;
 
 // Character constants
 localparam SET_CMD      = 8'h01;
 localparam PROC_CMD     = 8'h02;
 localparam RET_CMD      = 8'h03;
+localparam TEST_CMD     = 8'h04;
 
 // Character constants
 localparam NACK_CHAR    = 8'h00;
@@ -139,6 +145,9 @@ begin
                         cmd_state <= PROC_CHARS1;
                     end else if (rxd_data == RET_CMD) begin
                         cmd_state <= RET_CHARS1;
+                    end else if (rxd_data == TEST_CMD) begin
+                        char_count <= 10;
+                        cmd_state <= TEST;
                     end
                 end
             end
@@ -195,12 +204,27 @@ begin
                         proc_byte_pos[7:0];
                     txd_start <= 1;
                     char_count <= char_count + 1;
+                    cmd_state <= RET_CHARS1_WAIT;
                     if (char_count == 1) begin
                         char_count <= 0;
-                        cmd_state <= RET_CHARS2;
+                        cmd_state <= RET_CHARS1_WAIT2;
                     end
                 end else begin
                     txd_start <= 0;
+                end
+            end
+            RET_CHARS1_WAIT : begin
+                // Wait for the txd_busy to go high
+                txd_start <= 0;
+                if (txd_busy) begin
+                    cmd_state <= RET_CHARS1;
+                end
+            end
+            RET_CHARS1_WAIT2 : begin
+                // Wait for the txd_busy to go high
+                txd_start <= 0;
+                if (txd_busy) begin
+                    cmd_state <= RET_CHARS2;
                 end
             end
             RET_CHARS2 : begin
@@ -210,12 +234,48 @@ begin
                     proc_match_char_next <= 1;
                     txd_start <= 1;
                     char_count <= char_count + 1;
+                    cmd_state <= RET_CHARS2_WAIT;
                     if (char_count == 19) begin
+                        proc_match_char_next <= 0;
+                        txd_start <= 0;
                         cmd_state <= IDLE;
                     end
                 end else begin
                     proc_match_char_next <= 0;
                     txd_start <= 0;
+                end
+            end
+            RET_CHARS2_WAIT : begin
+                // Wait for the txd_busy to go high
+                proc_match_char_next <= 0;
+                txd_start <= 0;
+                if (txd_busy) begin
+                    cmd_state <= RET_CHARS2;
+                end
+            end
+            TEST : begin
+                // Return test countdown 10..1
+                if (!txd_busy) begin
+                    txd_data <= char_count[7:0];
+                    $display("TEST count: %d",txd_data);
+                    txd_start <= 1;
+                    char_count <= char_count - 1;
+                    cmd_state <= TEST2;
+                    if (char_count == 0) begin
+                        $display("TEST done, go IDLE");
+                        txd_start <= 0;
+                        cmd_state <= IDLE;
+                    end
+                end else begin
+                    txd_start <= 0;
+                end
+            end
+            TEST2 : begin
+                // Wait for the txd_busy to go high
+                txd_start <= 0;
+                $display("TEST2: wait for txd_busy.");
+                if (txd_busy) begin
+                    cmd_state <= TEST;
                 end
             end
             ACK : begin
