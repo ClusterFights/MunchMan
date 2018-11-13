@@ -18,9 +18,55 @@
 #include <errno.h>
 #include <stdlib.h>
 
-static char USEAGE[] = "Usage: find md5_hash\n";
+struct manifest_info
+{
+    int size;
+    char file_path[100];
+};
 
+static char USEAGE[] = "Usage: find md5_hash\n";
+static char *manifest_file = "manifest.txt";
 static unsigned char target_hash[16] = {0};
+static struct manifest_info manifest_list[600] = {0};
+
+/*
+ * Parses the manifest file.
+ */
+int parse_manifest(char *mfile)
+{
+    FILE *fp;
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    int line_num = 0;
+    int byte_count=0;
+    char str[100];
+
+    // Open filehandle to manifest file, mfile
+    fp = fopen(mfile, "r");
+    if (fp == NULL) {
+        printf("ERROR parse_manifest: can't open %s\n", mfile);
+        return -1;
+    }
+
+    while ((read = getline (&line, &len, fp)) != -1 ) {
+        if (line_num >1) {
+            // Parse line
+            sscanf(line, "%d %s",&byte_count, str);
+            manifest_list[line_num-2].size = byte_count;
+            strcpy(manifest_list[line_num-2].file_path,str);
+            // XXX printf("%d, line length %d, %s\n",(line_num-2),manifest_list[line_num-2].size,manifest_list[line_num-2].file_path);
+        } 
+        line_num++;
+    }
+
+    // Clean up
+    fclose(fp);
+    free(line);
+
+    return 0;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -53,6 +99,8 @@ int main(int argc, char *argv[])
         printf("target_hash[%d]: %x \n",j,target_hash[j]);
     }
 
+    // Parse the manifest.txt file
+    parse_manifest(manifest_file);
 
 
     return EXIT_SUCCESS;
