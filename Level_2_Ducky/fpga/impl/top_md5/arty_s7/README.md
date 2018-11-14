@@ -9,6 +9,10 @@ on Ubuntu 16.04 OS.
 
 ## Building the Project
 
+You need to have the [Vivado Digilent board files](https://reference.digilentinc.com/reference/software/vivado/board-files?redirect=1)
+installed.  You can get these from this [repo](https://github.com/Digilent/vivado-boards) 
+on github.
+
 Instead of storing the whole Vivado project in github
 we store only a Tcl script which can generate the Vivado
 project.  For more information see
