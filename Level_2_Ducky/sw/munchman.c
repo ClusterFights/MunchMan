@@ -80,6 +80,44 @@ int filecopy(FILE *ifp, struct ftdi_context *ftdi)
     return num_sent;
 }
 
+/*
+ * Sends a file block by block to the FPGA to
+ * search for md5_match.
+ */
+int send_file(char *filename, struct ftdi_context *ftdi)
+{
+    char buffer[4096];
+    size_t nread;
+    int ack=0;
+    FILE *fp;
+
+    // Open filehandle
+    fp = fopen(filename,"r");
+    if (fp == NULL) {
+        printf("ERROR: send_file can't open %s\n", filename);
+        return -1;
+    }
+
+    while (nread = fread(buffer, sizeof(char), sizeof(buffer), fp), nread > 0)
+    {
+        ack = cmd_send_text(ftdi, buffer, nread);
+        if (ack == 1)
+        {
+            printf("FOUND! md5_hash found.\n");
+            fclose(fp);
+            return 1;
+        } else if (ack == -1)
+        {
+            printf("ERROR: during send_file\n");
+            fclose(fp);
+            return -1;
+        }
+    }
+
+    fclose(fp);
+    return 0;
+}
+
 
 /*
  * Sends the test command 0x04 and prints
@@ -192,7 +230,7 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
     ret = ftdi_write_data(ftdi, text_str, text_str_len);
     if (ret != text_str_len)
     {
-        printf("ERROR cmd_sned during send text: %d != %d\n",ret,text_str_len);
+        printf("ERROR cmd_send_text during send text: %d != %d\n",ret,text_str_len);
         return -1;
     }
 

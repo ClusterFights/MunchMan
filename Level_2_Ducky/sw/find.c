@@ -88,10 +88,17 @@ int parse_manifest(char *mfile)
  */
 int run()
 {
+    int ack;
+
     // loop through all the books
     for (int i=0; i<num_of_books; i++)
     {
-        // XXX printf("%i %s\n",i,manifest_list[i].file_path);
+        printf("%i %s\n",i,manifest_list[i].file_path);
+        ack = send_file(manifest_list[i].file_path, ftdi);
+        if (ack != 0)
+        {
+            return ack;
+        }
     }
 
     return 0;
