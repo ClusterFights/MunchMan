@@ -89,14 +89,20 @@ int parse_manifest(char *mfile)
 int run()
 {
     int ack;
+    struct match_result match;
 
     // loop through all the books
     for (int i=0; i<num_of_books; i++)
     {
         printf("%i %s\n",i,manifest_list[i].file_path);
-        ack = send_file(manifest_list[i].file_path, ftdi);
-        if (ack != 0)
+        ack = send_file(manifest_list[i].file_path, ftdi, &match);
+        if (ack == 1)
         {
+            // hash found.
+            return 1;
+        } else if (ack < 0)
+        {
+            // error occured
             return ack;
         }
     }

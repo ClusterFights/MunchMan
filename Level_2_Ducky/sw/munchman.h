@@ -26,7 +26,7 @@ extern "C" {
 * Constants
 ***************************
 */
-#define BUFFER_SIZE 100
+#define BUFFER_SIZE 512
 
 /*
 ***************************
@@ -55,7 +55,8 @@ int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash);
 int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
         int text_str_len);
 int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result);
-int send_file(char *filename, struct ftdi_context *ftdi);
+int send_file(char *filename, struct ftdi_context *ftdi, 
+        struct match_result *result);
 
 
 /*

@@ -81,15 +81,50 @@ int filecopy(FILE *ifp, struct ftdi_context *ftdi)
 }
 
 /*
+ * Helper functions that changes chars
+ * like newline into `\n` so match
+ * string can be printed on one line.
+ */
+void to_byte_str(char *src, char *dst)
+{
+    int i,j;
+
+    dst[0] = 'b';
+    dst[1] = 0x27;  // '
+
+    for (i=0,j=2; i<strlen(src); i++)
+    {
+        if (src[i] == '\n')
+        {
+            dst[j++] = '\\';
+            dst[j++] = 'n';
+        } else if (src[i] == '\r')
+        {
+            dst[j++] = '\\';
+            dst[j++] = 'r';
+        } else
+        {
+            dst[j++] = src[i];
+        }
+    }
+    dst[j++] = 0x27;  // '
+    dst[j++] = '\0';
+}
+
+/*
  * Sends a file block by block to the FPGA to
  * search for md5_match.
  */
-int send_file(char *filename, struct ftdi_context *ftdi)
+int send_file(char *filename, struct ftdi_context *ftdi, 
+        struct match_result *match)
 {
-    char buffer[4096];
+    char buffer[BUFFER_SIZE];
     size_t nread;
     int ack=0;
     FILE *fp;
+    int loops=0;
+    int byte_offset=0;
+    char match_str[50];
 
     // Open filehandle
     fp = fopen(filename,"r");
@@ -104,6 +139,14 @@ int send_file(char *filename, struct ftdi_context *ftdi)
         if (ack == 1)
         {
             printf("FOUND! md5_hash found.\n");
+
+            printf("\nSent command to read match data, 0x03.\n");
+            cmd_read_match(ftdi, match);
+            byte_offset = (loops*BUFFER_SIZE) + match->pos - 18;
+            to_byte_str(match->str,match_str);
+            printf("byte_offset = %d \n",byte_offset);
+            printf("match_str = %s \n",match_str);
+
             fclose(fp);
             return 1;
         } else if (ack == -1)
@@ -112,6 +155,7 @@ int send_file(char *filename, struct ftdi_context *ftdi)
             fclose(fp);
             return -1;
         }
+        loops++;
     }
 
     fclose(fp);
