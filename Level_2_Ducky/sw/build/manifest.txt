@@ -1,0 +1,3 @@
+total_size:  110
+num_files:  1
+110 test.txt
