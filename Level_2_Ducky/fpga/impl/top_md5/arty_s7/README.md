@@ -29,6 +29,18 @@ Linux system.
 > vivado arty_s7_md5/arty_s7_md5.xpr
 ```
 
+__NOTE__ : This builds a project for the arty_s7 with the XC7S50 part.  If you have the arty_s7
+with an XC7S25, you will have to update target board under Settings->General->Project device.
+I have not tried building for the XC7S25 so it might not fit.  You probably have to update IO constraints
+in the xdc file as well.
+
+Once you have generated a bitstream you can open the Hardware Manager.  You should be able
+to download the bitstream or write the bin file to the flash.  To write the bin file you
+need to add "Add Configuration Memory Device" by right clicking on xc7s50 in the hardware window.
+The spi-flash you need to add is "s25fl128sxxxxxx0-spi-x1_x2_x4".  Refer to the 
+[Arty S7 Reference manual](https://reference.digilentinc.com/reference/programmable-logic/arty-s7/reference-manual) 
+for more information.
+
 ## Report Summary
 
 ![Report Summary](images/report_summary.png)
