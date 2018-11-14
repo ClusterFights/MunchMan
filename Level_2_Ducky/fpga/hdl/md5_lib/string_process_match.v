@@ -58,7 +58,7 @@ assign d_target = proc_target_hash[31:0];
 
 assign proc_done = match_check_done;
 assign proc_match = match;
-assign proc_byte_pos = num_bytes;
+assign proc_byte_pos = match_byte_count;
 assign proc_match_char = match_msg[151:144];
 
 
