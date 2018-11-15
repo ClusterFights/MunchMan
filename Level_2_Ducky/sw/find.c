@@ -18,6 +18,8 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <getopt.h>
 
 #define MAX_BOOKS 600
 
@@ -27,7 +29,9 @@ struct manifest_info
     char file_path[100];
 };
 
-static char USEAGE[] = "Usage: find md5_hash\n";
+static char USEAGE[] = 
+    "Usage: find [-l] md5_hash\n"
+    "   -l      local only, no FPGA connection\n";
 static char *manifest_file = "manifest.txt";
 static unsigned char target_hash[16] = {0};
 static struct manifest_info manifest_list[MAX_BOOKS] = {0};
@@ -116,14 +120,37 @@ int main(int argc, char *argv[])
     char md5_hash_arg[32];
     int num;
     int ret;
+    int c;
+    int lflag = 0;
+    opterr = 0;
 
-    if (argc != 2) {    // wrong number of args; print usage
+    // Parse comand line args.
+    while ((c=getopt(argc, argv, "l")) != -1)
+    {
+        switch(c)
+        {
+            case 'l':
+                // l = local, don't use FPGA.
+                lflag = 1;
+                break;
+            default:
+                printf("%s",USEAGE);
+                return EXIT_FAILURE;
+        }
+    }
+    // Get the hash arg
+    if (optind < argc)
+    {
+        strcpy(md5_hash_arg,argv[optind++]);
+        printf("md5_hash: %s\n",md5_hash_arg);
+        printf("lflag: %d\n",lflag);
+    } else {
         printf("%s",USEAGE);
         return EXIT_FAILURE;
     }
 
     // Check that md5_hash is 16 bytes or 32 chars.
-    if (strlen(argv[1]) != 32) {
+    if (strlen(md5_hash_arg) != 32) {
         printf("ERROR: md5_hash must be 16 bytes or 32 hex chars.\n");
         printf("%s",USEAGE);
         return EXIT_FAILURE;
@@ -155,38 +182,41 @@ int main(int argc, char *argv[])
     parse_manifest(manifest_file);
 
     // Setup the FTDI connections
-    printf("Setup ftdi\n");
-    if ((ftdi = ftdi_new()) == 0)
+    if (!lflag)
     {
-        printf("ftdi_new failed\n");
-        return EXIT_FAILURE;
-    }
+        printf("Setup ftdi\n");
+        if ((ftdi = ftdi_new()) == 0)
+        {
+            printf("ftdi_new failed\n");
+            return EXIT_FAILURE;
+        }
 
-    // Initialize the ftdi.
-    printf("Initialize ftdi\n");
-    if (ftdi_setup(ftdi) < 0)
-    {
-        printf("ERROR: ftdi_setup failed.\n");
-        return EXIT_FAILURE;
-    }
+        // Initialize the ftdi.
+        printf("Initialize ftdi\n");
+        if (ftdi_setup(ftdi) < 0)
+        {
+            printf("ERROR: ftdi_setup failed.\n");
+            return EXIT_FAILURE;
+        }
 
-    // Read anything that is hanging around.
-    printf("Clear input char queue.\n");
-    clear_ftdi(ftdi);
+        // Read anything that is hanging around.
+        printf("Clear input char queue.\n");
+        clear_ftdi(ftdi);
 
-    // Send the set hash command 0x01.
-    printf("Sending the set hash command 0x01.\n");
-    cmd_set_hash(ftdi, target_hash);
+        // Send the set hash command 0x01.
+        printf("Sending the set hash command 0x01.\n");
+        cmd_set_hash(ftdi, target_hash);
 
-    // Run the search
-    run();
+        // Run the search
+        run();
 
-    // Close connections
-    printf("Close the ftdi_usb.\n");
-    ret = ftdi_usb_close(ftdi);
-    if (ret < 0)
-    {
-        printf("unable to close ftdi: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+        // Close connections
+        printf("Close the ftdi_usb.\n");
+        ret = ftdi_usb_close(ftdi);
+        if (ret < 0)
+        {
+            printf("unable to close ftdi: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
+        }
     }
 
     return EXIT_SUCCESS;
