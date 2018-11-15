@@ -122,12 +122,12 @@ int send_file(char *filename, struct ftdi_context *ftdi,
     size_t nread;
     int ack=0;
     FILE *fp;
-    int loops=0;
+    int loop=0;
     int byte_offset=0;
     char match_str[50];
 
     // Open filehandle
-    fp = fopen(filename,"r");
+    fp = fopen(filename,"rb");
     if (fp == NULL) {
         printf("ERROR: send_file can't open %s\n", filename);
         return -1;
@@ -135,6 +135,14 @@ int send_file(char *filename, struct ftdi_context *ftdi,
 
     while (nread = fread(buffer, sizeof(char), sizeof(buffer), fp), nread > 0)
     {
+        /*
+        if (loop < 2)
+        {
+            printf("loop: %d\n",loop);
+            printf("buffer: %s\n\n",buffer);
+        }
+        */
+
         ack = cmd_send_text(ftdi, buffer, nread);
         if (ack == 1)
         {
@@ -142,7 +150,7 @@ int send_file(char *filename, struct ftdi_context *ftdi,
 
             printf("\nSent command to read match data, 0x03.\n");
             cmd_read_match(ftdi, match);
-            byte_offset = (loops*BUFFER_SIZE) + match->pos - 18;
+            byte_offset = (loop*BUFFER_SIZE) + match->pos - 18;
             to_byte_str(match->str,match_str);
             printf("byte_offset = %d \n",byte_offset);
             printf("match_str = %s \n",match_str);
@@ -155,7 +163,7 @@ int send_file(char *filename, struct ftdi_context *ftdi,
             fclose(fp);
             return -1;
         }
-        loops++;
+        loop++;
     }
 
     fclose(fp);
