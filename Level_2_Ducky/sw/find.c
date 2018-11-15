@@ -181,9 +181,9 @@ int main(int argc, char *argv[])
     // Parse the manifest.txt file
     parse_manifest(manifest_file);
 
-    // Setup the FTDI connections
     if (!lflag)
     {
+        // Setup the FTDI connections for FPGA com
         printf("Setup ftdi\n");
         if ((ftdi = ftdi_new()) == 0)
         {
@@ -217,6 +217,9 @@ int main(int argc, char *argv[])
         {
             printf("unable to close ftdi: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
         }
+    } else
+    {
+        // Process locally.
     }
 
     return EXIT_SUCCESS;
