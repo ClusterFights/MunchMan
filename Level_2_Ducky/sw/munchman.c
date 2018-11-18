@@ -137,7 +137,7 @@ void string_push(unsigned char *buffer, unsigned char ch)
  */
 int send_file(char *filename, struct ftdi_context *ftdi, 
         struct match_result *match, int lflag,
-        unsigned char *target_hash)
+        unsigned char *target_hash, int *num_hashes)
 {
     char buffer[BUFFER_SIZE];
     size_t nread;
@@ -148,7 +148,6 @@ int send_file(char *filename, struct ftdi_context *ftdi,
     char match_str[50];
     char buffer_hash[STR_LEN] = {0};
     int bhi = 0;    // buffer_hash_index
-    int num_hashes = 0;
     unsigned char hash_str[16];
 
     // Reset the match position to zero.
@@ -175,6 +174,7 @@ int send_file(char *filename, struct ftdi_context *ftdi,
                 printf("\nSent command to read match data, 0x03.\n");
                 cmd_read_match(ftdi, match);
                 byte_offset = (loop*BUFFER_SIZE) + match->pos - 18;
+                *num_hashes = byte_offset + 1;
                 to_byte_str(match->str,match_str);
                 printf("byte_offset = %d \n",byte_offset);
                 printf("match_str = %s \n",match_str);
@@ -201,7 +201,7 @@ int send_file(char *filename, struct ftdi_context *ftdi,
                 else
                 {
                     // buffer_hash is full, so calc MD5 hash
-                    num_hashes++;
+                    (*num_hashes)++;
                     md5(buffer_hash, hash_str);
                     if ( (hash_str[0] == target_hash[0]) && (hash_str[1] == target_hash[1]) &&
                          (hash_str[2] == target_hash[2]) && (hash_str[3] == target_hash[3]) &&
@@ -218,7 +218,7 @@ int send_file(char *filename, struct ftdi_context *ftdi,
                         strcpy(match->str,buffer_hash);
                         byte_offset = (loop*BUFFER_SIZE) + match->pos - 19;
                         to_byte_str(match->str,match_str);
-                        printf("num_hashes = %d \n",num_hashes);
+                        printf("num_hashes = %d \n",*num_hashes);
                         printf("byte_offset = %d \n",byte_offset);
                         printf("match_str = %s \n",match_str);
                         fclose(fp);

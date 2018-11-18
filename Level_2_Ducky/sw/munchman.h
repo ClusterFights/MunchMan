@@ -57,7 +57,7 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
 int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result);
 int send_file(char *filename, struct ftdi_context *ftdi, 
         struct match_result *match, int lflag,
-        unsigned char *target_hash);
+        unsigned char *target_hash, int *num_hashes);
 
 
 /*
