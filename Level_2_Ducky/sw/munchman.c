@@ -116,7 +116,8 @@ void to_byte_str(char *src, char *dst)
  * search for md5_match.
  */
 int send_file(char *filename, struct ftdi_context *ftdi, 
-        struct match_result *match)
+        struct match_result *match, int lflag,
+        unsigned char *target_hash)
 {
     char buffer[BUFFER_SIZE];
     size_t nread;
@@ -143,25 +144,35 @@ int send_file(char *filename, struct ftdi_context *ftdi,
         }
         */
 
-        ack = cmd_send_text(ftdi, buffer, nread);
-        if (ack == 1)
+        if (lflag == 0)
         {
-            printf("FOUND! md5_hash found.\n");
+            // Process on FPGA board
+            printf("NOTE: Process on FPGA.\n");
+            ack = cmd_send_text(ftdi, buffer, nread);
+            if (ack == 1)
+            {
+                printf("FOUND! md5_hash found.\n");
 
-            printf("\nSent command to read match data, 0x03.\n");
-            cmd_read_match(ftdi, match);
-            byte_offset = (loop*BUFFER_SIZE) + match->pos - 18;
-            to_byte_str(match->str,match_str);
-            printf("byte_offset = %d \n",byte_offset);
-            printf("match_str = %s \n",match_str);
+                printf("\nSent command to read match data, 0x03.\n");
+                cmd_read_match(ftdi, match);
+                byte_offset = (loop*BUFFER_SIZE) + match->pos - 18;
+                to_byte_str(match->str,match_str);
+                printf("byte_offset = %d \n",byte_offset);
+                printf("match_str = %s \n",match_str);
 
-            fclose(fp);
-            return 1;
-        } else if (ack == -1)
+                fclose(fp);
+                return 1;
+            } else if (ack == -1)
+            {
+                printf("ERROR: during send_file cmd_send_text ftdi\n");
+                fclose(fp);
+                return -1;
+            }
+        } 
+        else
         {
-            printf("ERROR: during send_file\n");
-            fclose(fp);
-            return -1;
+            // Process locally.
+            printf("NOTE: Process locally.\n");
         }
         loop++;
     }

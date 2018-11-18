@@ -36,7 +36,8 @@ static char *manifest_file = "manifest.txt";
 static unsigned char target_hash[16] = {0};
 static struct manifest_info manifest_list[MAX_BOOKS] = {0};
 static int num_of_books = 0;
-static struct ftdi_context *ftdi;
+static struct ftdi_context *ftdi= NULL;
+static int lflag = 0;   // process locally? No FPGA?
 
 /*
  * Parses the manifest file.
@@ -99,7 +100,8 @@ int run()
     for (int i=0; i<num_of_books; i++)
     {
         printf("%i %s\n",i,manifest_list[i].file_path);
-        ack = send_file(manifest_list[i].file_path, ftdi, &match);
+        ack = send_file(manifest_list[i].file_path, ftdi, &match, 
+                lflag, target_hash);
         if (ack == 1)
         {
             // hash found.
@@ -121,7 +123,6 @@ int main(int argc, char *argv[])
     int num;
     int ret;
     int c;
-    int lflag = 0;
     opterr = 0;
 
     // Parse comand line args.
@@ -156,17 +157,15 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    // Copy and display md5_hash argument
-    strcpy(md5_hash_arg,argv[1]);
-    printf("md5_hash: %s\n",md5_hash_arg);
-
     // Convert md5_hash_arg hex string to target_hash byte array.
-    char tmp_str[2];
+    char tmp_str[2] ="00";
     printf("md5_hash_bytes: ");
     for (int i=0,j=0; i<32; i+=2,j++)
     {
         tmp_str[0] = md5_hash_arg[i];
         tmp_str[1] = md5_hash_arg[i+1];
+        // XXX printf("%d %x \n",i,md5_hash_arg[i]);
+        // XXX printf("%d %x \n",i+1,md5_hash_arg[i+1]);
         errno = 0;      // reset errno before strtol call
         target_hash[j] = (unsigned char)strtol(tmp_str,NULL,16);
         if (errno != 0)
@@ -220,6 +219,9 @@ int main(int argc, char *argv[])
     } else
     {
         // Process locally.
+        
+        // Run the search
+        run();
     }
 
     return EXIT_SUCCESS;
