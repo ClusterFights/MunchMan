@@ -48,7 +48,7 @@ static const int k[64] = {
 
 
 
-int md5(uint8_t *initial_msg, uint8_t *hash_str)
+int md5(uint8_t *initial_msg, uint8_t *hash_byte)
 {
     uint8_t msg[64] = {0};
     int initial_len = strlen(initial_msg);
@@ -153,15 +153,45 @@ int md5(uint8_t *initial_msg, uint8_t *hash_str)
     uint8_t *pb = (uint8_t *)&b;
     uint8_t *pc = (uint8_t *)&c;
     uint8_t *pd = (uint8_t *)&d;
-    snprintf(hash_str, 37, "%.2x%.2x%.2x%.2x_%.2x%.2x%.2x%.2x_%.2x%.2x%.2x%.2x_%.2x%.2x%.2x%.2x",
-            pa[0],pa[1],pa[2],pa[3],
-            pb[0],pb[1],pb[2],pb[3],
-            pc[0],pc[1],pc[2],pc[3],
-            pd[0],pd[1],pd[2],pd[3]
-            );
 
+    hash_byte[0] = pa[0];
+    hash_byte[1] = pa[1];
+    hash_byte[2] = pa[2];
+    hash_byte[3] = pa[3];
+
+    hash_byte[4] = pb[0];
+    hash_byte[5] = pb[1];
+    hash_byte[6] = pb[2];
+    hash_byte[7] = pb[3];
+
+    hash_byte[8] = pc[0];
+    hash_byte[9] = pc[1];
+    hash_byte[10] = pc[2];
+    hash_byte[11] = pc[3];
+
+    hash_byte[12] = pd[0];
+    hash_byte[13] = pd[1];
+    hash_byte[14] = pd[2];
+    hash_byte[15] = pd[3];
 
     return 0;
 
+}
+
+/*
+ * Helper functions to print a hash string
+ */
+void print_hash(unsigned char *hash)
+{
+    for (int i=0; i<16; i+=4)
+    {
+        printf("%.2x%.2x%.2x%.2x",hash[i],hash[i+1],hash[i+2],hash[i+3]);
+        if (i<12)
+        {
+            printf("_");
+        }
+
+    }
+    printf("\n");
 }
 

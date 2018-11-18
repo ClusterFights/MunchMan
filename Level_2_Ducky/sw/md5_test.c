@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 {
     int ret;
     uint8_t *msg;
-    uint8_t hash_str[33];
+    uint8_t hash_byte[16];
 
     if (argc==2)
     {
@@ -37,10 +37,10 @@ int main(int argc, char *argv[])
     }
     printf("usage: %s 'string'\n", argv[0]);
 
-    md5(msg, hash_str);
+    md5(msg, hash_byte);
 
     printf("msg = %s\n",msg);
-    printf("hash_str = %s\n",hash_str);
+    printf("hash_str = "); print_hash(hash_byte);
 
     return 0;
 }

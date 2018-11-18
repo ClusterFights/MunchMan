@@ -32,7 +32,8 @@ extern "C" {
 * Function
 ***************************
 */
-int md5(uint8_t *initial_msg, uint8_t *hash_str);
+int md5(uint8_t *initial_msg, uint8_t *hash_byte);
+void print_hash(unsigned char *hash);
 
 
 #ifdef __cplusplus

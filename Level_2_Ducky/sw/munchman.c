@@ -8,7 +8,11 @@
  */
 
 #include "munchman.h"
+#include "md5.h"
 #include <string.h>
+
+// Size of string to hash. 19 char + 1 `\0`
+#define STR_LEN 20
 
 unsigned char ret_buffer[BUFFER_SIZE] = {0};
 
@@ -112,6 +116,22 @@ void to_byte_str(char *src, char *dst)
 }
 
 /*
+ * Helper functions to push character into
+ * fixed length buffer
+ */
+void string_push(unsigned char *buffer, unsigned char ch)
+{
+    for (int i=0; i<(STR_LEN-2); i++)
+    {
+        buffer[i] = buffer[i+1];
+    }
+    buffer[STR_LEN-2] = ch;
+    // NOTE: last char buffer[STR_LEN-1] is '\0'
+    //
+}
+
+
+/*
  * Sends a file block by block to the FPGA to
  * search for md5_match.
  */
@@ -126,6 +146,13 @@ int send_file(char *filename, struct ftdi_context *ftdi,
     int loop=0;
     int byte_offset=0;
     char match_str[50];
+    char buffer_hash[STR_LEN] = {0};
+    int bhi = 0;    // buffer_hash_index
+    int num_hashes = 0;
+    unsigned char hash_str[16];
+
+    // Reset the match position to zero.
+    match->pos = 0;
 
     // Open filehandle
     fp = fopen(filename,"rb");
@@ -136,18 +163,10 @@ int send_file(char *filename, struct ftdi_context *ftdi,
 
     while (nread = fread(buffer, sizeof(char), sizeof(buffer), fp), nread > 0)
     {
-        /*
-        if (loop < 2)
-        {
-            printf("loop: %d\n",loop);
-            printf("buffer: %s\n\n",buffer);
-        }
-        */
 
         if (lflag == 0)
         {
             // Process on FPGA board
-            printf("NOTE: Process on FPGA.\n");
             ack = cmd_send_text(ftdi, buffer, nread);
             if (ack == 1)
             {
@@ -172,7 +191,46 @@ int send_file(char *filename, struct ftdi_context *ftdi,
         else
         {
             // Process locally.
-            printf("NOTE: Process locally.\n");
+            for (int i=0; i<nread; i++)
+            {
+                if (bhi < (STR_LEN-1))
+                {
+                    // buffer not full yet.
+                    buffer_hash[bhi++] = buffer[i];
+                } 
+                else
+                {
+                    // buffer_hash is full, so calc MD5 hash
+                    num_hashes++;
+                    md5(buffer_hash, hash_str);
+                    if ( (hash_str[0] == target_hash[0]) && (hash_str[1] == target_hash[1]) &&
+                         (hash_str[2] == target_hash[2]) && (hash_str[3] == target_hash[3]) &&
+                         (hash_str[4] == target_hash[4]) && (hash_str[5] == target_hash[5]) &&
+                         (hash_str[6] == target_hash[6]) && (hash_str[7] == target_hash[7]) &&
+                         (hash_str[8] == target_hash[8]) && (hash_str[9] == target_hash[9]) &&
+                         (hash_str[10] == target_hash[10]) && (hash_str[11] == target_hash[11]) &&
+                         (hash_str[12] == target_hash[12]) && (hash_str[13] == target_hash[13]) &&
+                         (hash_str[14] == target_hash[14]) && (hash_str[15] == target_hash[15])
+                       )
+                    {
+                        // It's a match!
+                        match->pos = i;
+                        strcpy(match->str,buffer_hash);
+                        byte_offset = (loop*BUFFER_SIZE) + match->pos - 19;
+                        to_byte_str(match->str,match_str);
+                        printf("num_hashes = %d \n",num_hashes);
+                        printf("byte_offset = %d \n",byte_offset);
+                        printf("match_str = %s \n",match_str);
+                        fclose(fp);
+                        return 1;
+                    }
+
+                    // buffer is full, so drop oldest char
+                    // TODO: on Last buffer of the file need to
+                    // process this last hash.
+                    string_push(buffer_hash,buffer[i]);
+                }
+            }
         }
         loop++;
     }
