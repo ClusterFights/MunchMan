@@ -65,7 +65,8 @@ size = file_list[index][0]
 file_path = file_list[index][1]
 
 # Select random substring
-max_offset = size - STR_LEN
+max_offset = size - STR_LEN -1
+print("max_offset: {}".format(max_offset))
 if args.offset is None:
     byte_offset = random.randint(0,max_offset)
 else:
@@ -75,12 +76,11 @@ else:
 # NOTE : Use latin-1 encoding to map byte values directly
 # to first 256 Unicode code points.  Generates
 # no exceptions, unlike utf-8.
-with open(file_path, mode="r", encoding="latin-1") as fp:
+with open(file_path, mode="rb") as fp:
     fp.seek(byte_offset)
-    latin_str = fp.read(STR_LEN)
+    byte_str = fp.read(STR_LEN)
 
 # Compute the hash of byte_str
-byte_str = latin_str.encode()
 md5 = hashlib.md5()
 md5.update(byte_str)
 
@@ -88,14 +88,7 @@ md5.update(byte_str)
 print("file_index: {} out of {}".format(index,num_files))
 print("file_path: ",file_path)
 print("byte_offset: ",byte_offset)
-#print('latin_str: "{}"'.format(latin_str))
 print('byte_str: {}'.format(byte_str))
 print('hash: {}'.format(md5.hexdigest()))
-
-if len(latin_str) != len(byte_str):
-    print("WARNING: latin_str and byte_str not the same length")
-    print("   len(latin_str): ",len(latin_str))
-    print("   len(byte_str): ",len(byte_str))
-    print("   latin_str: ",latin_str)
 
 
