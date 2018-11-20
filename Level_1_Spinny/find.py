@@ -80,7 +80,7 @@ class Find_Hash:
             # Add character to self.buffer_hash
             if len(self.buffer_hash) < self.STR_LEN:
                 # buffer not full yet
-                self.buffer_hash = self.buffer_hash + c
+                self.buffer_hash = self.buffer_hash + chr(c)
             else:
                 # buffer_hash is full, so calc MD5 hash
                 self.num_hashes = self.num_hashes + 1
@@ -95,7 +95,7 @@ class Find_Hash:
                 # buffer is full, so drop oldest char
                 # TODO : On last buffer of file need to
                 # process this last hash.
-                self.buffer_hash = self.buffer_hash[1:] + c
+                self.buffer_hash = self.buffer_hash[1:] + chr(c)
 
         return False
 
@@ -110,14 +110,12 @@ class Find_Hash:
                 break
             file_size, file_path = file_info
             self.buffer_hash = ""
-            # NOTE : Use latin-1 encoding to map byte values directly
-            # to first 256 Unicode code points.  Generates
-            # no exceptions, unlike utf-8.
-            with open(file_path, mode="r", encoding="latin-1") as fp:
+            # NOTE : Read file as binary using "rb"
+            with open(file_path, mode="rb") as fp:
                 print(index, file_path)
                 while True:
                     chunk = fp.read(self.BUF_LEN)
-                    if  chunk == "":
+                    if  (not chunk):
                         break
                     done = self.process(chunk)
                     if done:
