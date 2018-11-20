@@ -282,8 +282,11 @@ int read_ack(struct ftdi_context *ftdi)
 
     ret_buffer[0] = -1;
     ret = ftdi_read_data(ftdi, ret_buffer, BUFFER_SIZE);
-    if (ret > 0) {
+    if (ret == 1) {
         ack = ret_buffer[0];
+        if ( !(ack==0 || ack==1) ) {
+            printf("ERROR read_ack invalid value. ack=%x\n",ack);
+        }
     } else {
         printf("ERROR read_ack. ret=%d, ack=%x\n",ret,ack);
     }
@@ -389,4 +392,14 @@ int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result)
     return 1; // success
 }
 
+/*
+ * Helper sleep function
+ */
+void sleep_us(int us)
+{
+    struct timespec ts;
+    ts.tv_sec = us / 1000000;
+    ts.tv_nsec = (us % 1000000) * 1000;
+    nanosleep(&ts, NULL);
+}
 
