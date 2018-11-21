@@ -29,9 +29,14 @@ module sim_top_tb;
 *****************************
 */
 
-reg clk;
+// top_md5
+reg clk_100mhz;
 reg reset;
-reg rxd;
+
+// async_transmitter
+reg txd_start;
+reg [7:0] txd_data;
+
 
 /*
 *****************************
@@ -39,9 +44,20 @@ reg rxd;
 *****************************
 */
 
-wire txd;
+// top_md5
+wire serial_out;
 wire match_led;
 wire [3:0] led;
+
+// async_transmitter
+wire txd_busy;
+wire serial_in;
+
+// async_receiver
+wire data_out_ready;
+wire [7:0] data_out;
+wire data_out_idle;
+wire data_out_endofpacket;
 
 /*
 *****************************
@@ -49,9 +65,11 @@ wire [3:0] led;
 *****************************
 */
 
-integer file, r;  // file handler
+integer file, r;    // file handler
+integer i;          // loop counter
 
 reg finished;
+reg done;
 
 /*
 *****************************
@@ -87,13 +105,36 @@ top_md5 #
     .NUM_LEDS(NUM_LEDS)
 ) top_md5_inst
 (
-    .clk(clk),
+    .clk(clk_100mhz),
     .reset(reset),
-    .rxd(rxd),
+    .rxd(serial_in),
 
-    .txd(txd),
+    .txd(serial_out),
     .match_led(match_led),
     .led(led)
+);
+
+async_transmitter # (
+    .ClkFrequency(CLK_FREQUENCY),
+    .Baud(BAUD)
+) async_transmitter_inst (
+    .clk(clk_100mhz),
+    .TxD_start(txd_start),
+    .TxD_data(txd_data),
+    .TxD(serial_in),
+    .TxD_busy(txd_busy)
+);
+
+async_receiver # (
+    .ClkFrequency(CLK_FREQUENCY),
+    .Baud(BAUD)
+) async_receiver_inst (
+    .clk(clk_100mhz),
+    .RxD(serial_out),
+    .RxD_data_ready(data_out_ready),
+    .RxD_data(data_out),
+    .RxD_idle(data_out_idle),
+    .RxD_endofpacket(data_out_endofpacket)
 );
 
 /*
@@ -104,11 +145,19 @@ top_md5 #
 
 // Main testbench
 initial begin
+    // For viewer
+    $dumpfile("sim_top.vcd");
+    $dumpvars;
+
     // initialize memories
     file = $fopen("alice30.txt", "rb");
     if (file == `NULL)
     begin
         $display("data_file handle was NULL");
+    while (txd_busy == 1)
+    begin
+        @ (posedge clk_100mhz);
+    end
         $finish;
     end
     r = $fread(tv_mem, file);
@@ -117,36 +166,35 @@ initial begin
     $fclose(file);
 
     // initialize registers
-    clk             = 0;
+    clk_100mhz      = 0;
     reset           = 0;
-    rxd             = 0;
+    txd_start       = 0;
+    txd_data        = 0;
 
     // Wait 100 ns for global reset to finish
     #100;
     // Add stimulus here
-    @(posedge clk);
+    @(posedge clk_100mhz);
     reset   = 1;
-    @(posedge clk);
-    @(posedge clk);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
     reset   = 0;
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge finished);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    cmd_test;
+//    @(posedge finished);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
     $finish;
 end
 
 
-// Generate a 100mhz clk
-always begin
-    #5 clk <= ~clk;
-end
-
+// Test reading from tv_mem
+/*
 reg [15:0] count;
-always @ (posedge clk)
+always @ (posedge clk_100mhz)
 begin
     if (reset) begin
         count <= 0;
@@ -158,6 +206,55 @@ begin
             finished <= 1;
         end
     end
+end
+*/
+
+// Task to send test cmd 0x04.
+task cmd_test;
+begin
+    // Wait for transmitter to not be busy
+    @ (posedge clk_100mhz);
+    done = 0;
+    while(!done)
+    begin
+        @ (posedge clk_100mhz);
+        if (txd_busy == 0)
+        begin
+            done = 1;
+        end
+    end
+
+    // Send the test_cmd 0x04
+    @ (posedge clk_100mhz);
+    txd_start = 1;
+    txd_data = 8'h04;
+
+    @ (posedge clk_100mhz);
+    txd_start = 0;
+    txd_data = 8'h00;
+
+    // Read Back the test data
+    done = 0;
+    i = 0;
+    while(!done)
+    begin
+        @ (posedge clk_100mhz);
+        if (data_out_ready==1)
+        begin
+            $display("%d val=%d",i,data_out);
+            if (data_out==1)
+                done = 1;
+        end
+        i = i + 1;
+    end
+
+end
+endtask
+
+
+// Generate a 100mhz clk
+always begin
+    #5 clk_100mhz <= ~clk_100mhz;
 end
 
 endmodule
