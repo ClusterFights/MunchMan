@@ -261,11 +261,6 @@ begin
                     txd_start <= 1;
                     char_count <= char_count - 1;
                     cmd_state <= TEST2;
-                    if (char_count == 0) begin
-                        $display("TEST done, go IDLE");
-                        txd_start <= 0;
-                        cmd_state <= IDLE;
-                    end
                 end else begin
                     txd_start <= 0;
                 end
@@ -276,6 +271,10 @@ begin
                 $display("TEST2: wait for txd_busy.");
                 if (txd_busy) begin
                     cmd_state <= TEST;
+                    if (char_count == 0) begin
+                        $display("TEST done, go IDLE");
+                        cmd_state <= IDLE;
+                    end
                 end
             end
             ACK : begin
