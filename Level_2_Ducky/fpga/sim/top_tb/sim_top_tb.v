@@ -88,6 +88,8 @@ parameter CMD_SEND_TEXT_OP      = 8'h02;
 parameter CMD_READ_MATCH_OP     = 8'h03;
 parameter CMD_TEST_OP           = 8'h04;
 
+parameter BUFFER_SIZE           = 100;
+
 /*
 ******************************************
 * Testbench memories
@@ -100,6 +102,9 @@ reg [7:0] tv_mem [0:FILE_SIZE_IN_BYTES-1];
 
 // the target hash
 reg [127:0] target_hash = 128'ha2004f37_730b9445_670a738f_a0fc9ee5;
+
+// Buffer for the text to be sent to FPGA.
+reg [(BUFFER_SIZE*8)-1:0] text_str;
 
 /*
 *****************************
@@ -179,6 +184,7 @@ initial begin
     reset           = 0;
     txd_start       = 0;
     txd_data        = 0;
+    text_str        = 0;
 
     // Wait 100 ns for global reset to finish
     #100;
@@ -193,6 +199,9 @@ initial begin
     @(posedge clk_100mhz);
     // XXX cmd_test;
     cmd_set_hash;
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    cmd_send_text(BUFFER_SIZE);
 //    @(posedge finished);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
@@ -219,11 +228,39 @@ begin
 end
 */
 
+// Wait for transmitter to not be busy
+task wait_for_transmit_ready;
+begin
+    @ (posedge clk_100mhz);
+    done = 0;
+    while(!done)
+    begin
+        @ (posedge clk_100mhz);
+        if (txd_busy == 0)
+        begin
+            done = 1;
+        end
+    end
+end
+endtask
+
+// Task to send a character
+task send_char;
+    input [7:0] char;
+begin
+    wait_for_transmit_ready;
+    @ (posedge clk_100mhz);
+    txd_start = 1;
+    txd_data = char;
+    @ (posedge clk_100mhz);
+    txd_start = 0;
+end
+endtask
+
 // Read the ack
 task read_ack;
 begin
     $display("%t: begin read_ack",$time);
-    // XXX @ (posedge clk_100mhz);
     i=0;
     done = 0;
     while(!done)
@@ -244,27 +281,11 @@ begin
 end
 endtask
 
-// Wait for transmitter to not be busy
-task wait_for_transmit_ready;
-begin
-    // XXX $display("%t: begin wait_for_trasmit_ready",$time);
-    @ (posedge clk_100mhz);
-    done = 0;
-    while(!done)
-    begin
-        @ (posedge clk_100mhz);
-        if (txd_busy == 0)
-        begin
-            done = 1;
-        end
-    end
-end
-endtask
 
 // Task to send test cmd.
 task cmd_test;
 begin
-    $display("%t: begin cmd_test",$time);
+    $display("\n%t: BEGIN cmd_test",$time);
     wait_for_transmit_ready;
 
     // Send the test_cmd
@@ -290,6 +311,7 @@ begin
         end
         i = i + 1;
     end
+    $display("\n%t: END cmd_test",$time);
 
 end
 endtask
@@ -297,7 +319,7 @@ endtask
 // Task to send target hash
 task cmd_set_hash;
 begin
-    $display("%t: BEGIN cmd_set_hash",$time);
+    $display("\n%t: BEGIN cmd_set_hash",$time);
     wait_for_transmit_ready;
 
     // Send the cmd_set_hash
@@ -331,6 +353,38 @@ begin
     $display("%t cmd_state=%x",$time,top_md5_inst.cmd_parser_inst.cmd_state);
     $display("%t target_hash=%x",$time,top_md5_inst.cmd_parser_inst.target_hash);
     $display("%t: END cmd_set_hash",$time);
+end
+endtask
+
+
+// Task to send a block of text
+task cmd_send_text;
+    input [15:0] text_str_len;
+begin
+    $display("\n%t: BEGIN cmd_send_text",$time);
+
+    // Send the command
+    send_char(CMD_SEND_TEXT_OP);
+
+    // Send the number of bytes to be sent
+    // Send MSB first
+    send_char(text_str_len[15:8]);
+    $display("%t: MSB len=%x",$time,txd_data);
+    // Send LSB second
+    send_char(text_str_len[7:0]);
+    $display("%t: LSB len=%x",$time,txd_data);
+
+    // Send the characters
+    for (i=0; i <text_str_len; i++)
+    begin
+        send_char(text_str[8*i +: 8]);
+        $display("%t: %d char=%x",$time,i,txd_data);
+    end
+
+    // Read the ack
+    read_ack;
+
+    $display("%t: END cmd_send_text",$time);
 end
 endtask
 
