@@ -286,16 +286,8 @@ endtask
 task cmd_test;
 begin
     $display("\n%t: BEGIN cmd_test",$time);
-    wait_for_transmit_ready;
-
-    // Send the test_cmd
-    @ (posedge clk_100mhz);
-    txd_start = 1;
-    txd_data = CMD_TEST_OP;
-
-    @ (posedge clk_100mhz);
-    txd_start = 0;
-    txd_data = 8'h00;
+    // Send the command
+    send_char(CMD_TEST_OP);
 
     // Read Back the test data
     done = 0;
@@ -320,30 +312,15 @@ endtask
 task cmd_set_hash;
 begin
     $display("\n%t: BEGIN cmd_set_hash",$time);
-    wait_for_transmit_ready;
 
-    // Send the cmd_set_hash
-    @ (posedge clk_100mhz);
-    txd_start = 1;
-    txd_data = CMD_SET_HASH_OP;
-
-    @ (posedge clk_100mhz);
-    txd_start = 0;
-    txd_data = 8'h00;
+    // Send the command
+    send_char(CMD_SET_HASH_OP);
 
     // Send the 16 target hash bytes
     for (i=15; i>=0; i=i-1)
     begin
-        wait_for_transmit_ready;
-
-        @ (posedge clk_100mhz);
-        txd_start = 1;
-        txd_data = target_hash[8*i +: 8];
+        send_char(target_hash[8*i +: 8]);
         $display("%t: %d hash_byte:%2x",$time,i,txd_data);
-
-        @ (posedge clk_100mhz);
-        txd_start = 0;
-
     end
 
     // Read the ack
