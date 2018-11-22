@@ -16,7 +16,7 @@
 // Force error when implicit net has no type.
 `default_nettype none
 
-`timescale 1 ns / 1 ps
+`timescale 1 ns / 1 ns
 
 `define TESTBENCH
 `define NULL    0
@@ -82,6 +82,12 @@ parameter BAUD = 12_000_000;
 parameter NUM_LEDS = 4;
 parameter FILE_SIZE_IN_BYTES = 163_185;
 
+
+parameter CMD_SET_HASH_OP       = 8'h01;
+parameter CMD_SEND_TEXT_OP      = 8'h02;
+parameter CMD_READ_MATCH_OP     = 8'h03;
+parameter CMD_TEST_OP           = 8'h04;
+
 /*
 ******************************************
 * Testbench memories
@@ -91,6 +97,9 @@ parameter FILE_SIZE_IN_BYTES = 163_185;
 // tv_mem holds bytes from the
 // sample text file alice30.txt
 reg [7:0] tv_mem [0:FILE_SIZE_IN_BYTES-1];
+
+// the target hash
+reg [127:0] target_hash = 128'ha2004f37_730b9445_670a738f_a0fc9ee5;
 
 /*
 *****************************
@@ -182,7 +191,8 @@ initial begin
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
-    cmd_test;
+    // XXX cmd_test;
+    cmd_set_hash;
 //    @(posedge finished);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
@@ -209,10 +219,35 @@ begin
 end
 */
 
-// Task to send test cmd 0x04.
-task cmd_test;
+// Read the ack
+task read_ack;
 begin
-    // Wait for transmitter to not be busy
+    $display("%t: begin read_ack",$time);
+    // XXX @ (posedge clk_100mhz);
+    i=0;
+    done = 0;
+    while(!done)
+    begin
+        if (data_out_ready==1)
+        begin
+            $display("%t: ACK value=%d",$time,data_out);
+            done = 1;
+        end
+        @ (posedge clk_100mhz);
+        i = i + 1;
+        if (i == 1000)
+        begin
+            $display("%t: ERROR no ACK",$time);
+            done = 1;
+        end
+    end
+end
+endtask
+
+// Wait for transmitter to not be busy
+task wait_for_transmit_ready;
+begin
+    // XXX $display("%t: begin wait_for_trasmit_ready",$time);
     @ (posedge clk_100mhz);
     done = 0;
     while(!done)
@@ -223,11 +258,19 @@ begin
             done = 1;
         end
     end
+end
+endtask
 
-    // Send the test_cmd 0x04
+// Task to send test cmd.
+task cmd_test;
+begin
+    $display("%t: begin cmd_test",$time);
+    wait_for_transmit_ready;
+
+    // Send the test_cmd
     @ (posedge clk_100mhz);
     txd_start = 1;
-    txd_data = 8'h04;
+    txd_data = CMD_TEST_OP;
 
     @ (posedge clk_100mhz);
     txd_start = 0;
@@ -241,7 +284,7 @@ begin
         @ (posedge clk_100mhz);
         if (data_out_ready==1)
         begin
-            $display("%d val=%d",i,data_out);
+            $display("%t: %d val=%d",$time,i,data_out);
             if (data_out==1)
                 done = 1;
         end
@@ -250,6 +293,49 @@ begin
 
 end
 endtask
+
+// Task to send target hash
+task cmd_set_hash;
+begin
+    $display("%t: BEGIN cmd_set_hash",$time);
+    wait_for_transmit_ready;
+
+    // Send the cmd_set_hash
+    @ (posedge clk_100mhz);
+    txd_start = 1;
+    txd_data = CMD_SET_HASH_OP;
+
+    @ (posedge clk_100mhz);
+    txd_start = 0;
+    txd_data = 8'h00;
+
+    // Send the 16 target hash bytes
+    for (i=15; i>=0; i=i-1)
+    begin
+        wait_for_transmit_ready;
+
+        @ (posedge clk_100mhz);
+        txd_start = 1;
+        txd_data = target_hash[8*i +: 8];
+        $display("%t: %d hash_byte:%2x",$time,i,txd_data);
+
+        @ (posedge clk_100mhz);
+        txd_start = 0;
+
+    end
+
+    // Read the ack
+    read_ack;
+
+    // Print value.
+    $display("%t cmd_state=%x",$time,top_md5_inst.cmd_parser_inst.cmd_state);
+    $display("%t target_hash=%x",$time,top_md5_inst.cmd_parser_inst.target_hash);
+    $display("%t: END cmd_set_hash",$time);
+end
+endtask
+
+
+
 
 
 // Generate a 100mhz clk
