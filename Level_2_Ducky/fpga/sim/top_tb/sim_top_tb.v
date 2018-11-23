@@ -93,7 +93,8 @@ reg[19*8:0] match_str;
 parameter CLK_FREQUENCY = 100_000_000;
 parameter BAUD = 12_000_000;
 parameter NUM_LEDS = 4;
-parameter FILE_SIZE_IN_BYTES = 163_185;
+parameter FILE_SIZE_IN_BYTES = 163_185;  // +1 (alice30.txt)
+// XXX parameter FILE_SIZE_IN_BYTES = 254;  // +1 (test.txt)
 
 
 parameter CMD_SET_HASH_OP       = 8'h01;
@@ -115,17 +116,20 @@ reg [7:0] tv_mem [0:FILE_SIZE_IN_BYTES-1];
 
 // the target hash
 
+// file: alice30.txt
 // byte_offset: 800
 // byte_str: b"\nAlice's Adventures"
 // reg [127:0] target_hash = 128'h1d5468d37f38dc34dca0692c3a6f2c83;
 
+// file: alice30.txt
 // byte_offset: 100
 // byte_str: b"ed alice30.txt or a"
 reg [127:0] target_hash = 128'h7e2ba776cc7b346f3592bfedb41b18bd;
 
-// byte_offset: 163164
-// byte_str: b"        THE END\r\n\x1a\r"
-// reg [127:0] target_hash = 128'h51338b874fb3fb9673c2a7306e13e38f;
+// file: test.txt
+// byte_offset: 233
+// byte_str: b"123456789ABCDEF0123"
+// reg [127:0] target_hash = 128'hccfa4ae8ea9d1e44d22f73b9c53c844c;
 
 // Buffer for the text to be sent to FPGA.
 reg [(BUFFER_SIZE*8)-1:0] text_str;
@@ -189,6 +193,7 @@ initial begin
 
     // initialize memories
     file = $fopen("alice30.txt", "rb");
+    // XXX file = $fopen("test.txt", "rb");
     if (file == `NULL)
     begin
         $display("data_file handle was NULL");
@@ -419,12 +424,14 @@ begin
     $display("%t: LSB len=%x",$time,txd_data);
 
     // Send the characters
+    $display("");
     for (i=0; i <text_str_len; i++)
     begin
         send_char(text_str[8*i +: 8]);
         // XXX $display("%t: %d char=%c",$time,i,txd_data);
         $write("%c",txd_data);
     end
+    $display("\n");
 
     // Read the ack
     read_ack(ack);

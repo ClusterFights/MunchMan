@@ -8,7 +8,7 @@ you want to see.
 
 ## Description
 
-This directory basicaly simulates the whole top_md5
+This directory basically simulates the whole top_md5
 design.  The testbench contains task which implement
 the cmd_set_hash, cmd_send_text, and cmd_read_match.
 It also has a task, send_file, which breaks the text
