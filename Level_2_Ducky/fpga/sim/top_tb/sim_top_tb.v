@@ -75,10 +75,14 @@ reg ack;
 
 // version for send_file
 reg sf_done=0;
-reg sf_ack=0;
+reg [7:0] sf_ack=0;
 integer sf_i;
 integer sf_j=0;
 integer sf_k=0;
+
+reg match;
+reg[15:0] match_pos;
+reg[19*8:0] match_str;
 
 /*
 *****************************
@@ -97,7 +101,7 @@ parameter CMD_SEND_TEXT_OP      = 8'h02;
 parameter CMD_READ_MATCH_OP     = 8'h03;
 parameter CMD_TEST_OP           = 8'h04;
 
-parameter BUFFER_SIZE           = 100;
+parameter BUFFER_SIZE           = 200;
 
 /*
 ******************************************
@@ -110,9 +114,18 @@ parameter BUFFER_SIZE           = 100;
 reg [7:0] tv_mem [0:FILE_SIZE_IN_BYTES-1];
 
 // the target hash
+
 // byte_offset: 800
 // byte_str: b"\nAlice's Adventures"
-reg [127:0] target_hash = 128'h1d5468d37f38dc34dca0692c3a6f2c83;
+// reg [127:0] target_hash = 128'h1d5468d37f38dc34dca0692c3a6f2c83;
+
+// byte_offset: 100
+// byte_str: b"ed alice30.txt or a"
+reg [127:0] target_hash = 128'h7e2ba776cc7b346f3592bfedb41b18bd;
+
+// byte_offset: 163164
+// byte_str: b"        THE END\r\n\x1a\r"
+// reg [127:0] target_hash = 128'h51338b874fb3fb9673c2a7306e13e38f;
 
 // Buffer for the text to be sent to FPGA.
 reg [(BUFFER_SIZE*8)-1:0] text_str;
@@ -196,6 +209,9 @@ initial begin
     txd_start       = 0;
     txd_data        = 0;
     text_str        = 0;
+    match_pos       = 0;
+    match_str       = 0;
+    match           = 0;
 
     // Wait 100 ns for global reset to finish
     #100;
@@ -213,7 +229,12 @@ initial begin
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
     // XXX cmd_send_text(BUFFER_SIZE);
-    send_file;
+    send_file(match);
+    @(posedge clk_100mhz);
+    if (match == 1)
+    begin
+        cmd_read_match;
+    end
 //    @(posedge finished);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
@@ -269,11 +290,39 @@ begin
 end
 endtask
 
+// Read a char
+task read_char;
+    output [7:0] char;
+begin
+    i = 0;
+    done = 0;
+    char = 255;
+    while(!done)
+    begin
+        if (data_out_ready==1)
+        begin
+            char = data_out;
+            done = 1;
+        end
+        @ (posedge clk_100mhz);
+        i = i + 1;
+        if (i == 1000)
+        begin
+            $display("%t: ERROR read_char",$time);
+            done = 1;
+        end
+    end
+end
+endtask
+
 // Read the ack
 task read_ack;
-    output ack;
+    output [7:0] ack;
 begin
-    $display("%t: begin read_ack",$time);
+    $display("%t: BEGIN read_ack",$time);
+    read_char(ack);
+    $display("%t: END read_ack",$time);
+    /*
     i=0;
     done = 0;
     ack = 0;
@@ -293,6 +342,7 @@ begin
             done = 1;
         end
     end
+    */
 end
 endtask
 
@@ -325,7 +375,7 @@ endtask
 
 // Task to send target hash
 task cmd_set_hash;
-    output ack;
+    output [7:0] ack;
 begin
     $display("\n%t: BEGIN cmd_set_hash",$time);
 
@@ -336,7 +386,7 @@ begin
     for (i=15; i>=0; i=i-1)
     begin
         send_char(target_hash[8*i +: 8]);
-        $display("%t: %d hash_byte:%2x",$time,i,txd_data);
+        // XXX $display("%t: %d hash_byte:%2x",$time,i,txd_data);
     end
 
     // Read the ack
@@ -353,7 +403,7 @@ endtask
 // Task to send a block of text
 task cmd_send_text;
     input [15:0] text_str_len;
-    output ack;
+    output [7:0] ack;
 begin
     $display("\n%t: BEGIN cmd_send_text",$time);
 
@@ -372,7 +422,8 @@ begin
     for (i=0; i <text_str_len; i++)
     begin
         send_char(text_str[8*i +: 8]);
-        $display("%t: %d char=%c",$time,i,txd_data);
+        // XXX $display("%t: %d char=%c",$time,i,txd_data);
+        $write("%c",txd_data);
     end
 
     // Read the ack
@@ -384,8 +435,10 @@ endtask
 
 // Task to send test file
 task send_file;
+    output match;
 begin
     $display("\n%t: BEGIN send_file",$time);
+    match = 0;
 
     sf_done=0; sf_i=0; sf_j=0; sf_k=0; sf_ack=0;
     while(!sf_done)
@@ -395,6 +448,26 @@ begin
             // last transfer
             sf_j= FILE_SIZE_IN_BYTES -sf_i;
             $display("%t: last transfer: %d:%d %d",$time,sf_i,FILE_SIZE_IN_BYTES-1,sf_j);
+
+            // Copy into text_str
+            for (sf_k=0; sf_k<sf_j; sf_k=sf_k+1)
+            begin
+                text_str[sf_k*8 +: 8] = tv_mem[sf_i];
+                sf_i=sf_i+1;
+            end
+            // Send to device
+            cmd_send_text(sf_j,sf_ack);
+
+            // Check if match found
+            if (sf_ack == 1)
+            begin
+                $display("%t: MATCH FOUND!!",$time);
+                match = 1;
+            end
+            else
+            begin
+                $display("%t: MATCH NOT found",$time);
+            end
             sf_i=sf_j;
             sf_done = 1;
         end
@@ -416,6 +489,7 @@ begin
             if (sf_ack == 1)
             begin
                 $display("%t: MATCH FOUND!!",$time);
+                match = 1;
                 sf_done = 1;
             end
             else
@@ -429,6 +503,35 @@ begin
 end
 endtask
 
+// Task read match info
+task cmd_read_match;
+begin
+    $display("\n%t: BEGIN cmd_read_match",$time);
+
+    // Send the command
+    send_char(CMD_READ_MATCH_OP);
+
+    // Read the the match byte position
+    // Read MSB
+    $display("%t: Read byte position",$time);
+    read_char(match_pos[15:8]);
+    // Read LSB
+    read_char(match_pos[7:0]);
+    match_pos = match_pos - 18;
+
+    // Read the match string
+    $display("%t: Read match string",$time);
+    for (j=18; j>=0; j=j-1)
+    begin
+        read_char(match_str[j*8 +: 8]);
+    end
+
+    $display("%t: match_pos: %d",$time,match_pos);
+    $display("%t: match_str: '%s'",$time,match_str);
+
+    $display("%t: END cmd_read_match",$time);
+end
+endtask
 
 
 // Generate a 100mhz clk
