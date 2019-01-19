@@ -29,7 +29,7 @@ Linux system.
 > source /opt/Xilinx/Vivado/2018.2/settings64.sh
 > cd vivado_prj
 > ./build.sh
-> vivado arty_s7_md5/arty_s7_md5.xpr
+> vivado project_1/project_1.xpr
 ```
 
 __NOTE__ : This builds a project for the arty_s7 with the XC7S50 part.  If you have the arty_s7
