@@ -36,6 +36,10 @@ set_property -dict { PACKAGE_PIN H15   IOSTANDARD LVCMOS33 } [get_ports { led_ou
 #set_property -dict { PACKAGE_PIN H13   IOSTANDARD LVCMOS33 } [get_ports { btn[3] }]; #IO_L20P_T3_A20_15 Sch=btn[3]
 
 ## PMOD Header JA
+set_property -dict { PACKAGE_PIN L17   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[0] }]; #IO_L18P_T2_A12_D28_14 Sch=jc1/ck_io[41]
+set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[1] }]; #IO_L18N_T2_A11_D27_14 Sch=jc2/ck_io[40]
+set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[2] }]; #IO_L15P_T2_DQS_RDWR_B_14 Sch=jc3/ck_io[39]
+set_property -dict { PACKAGE_PIN N14   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[3] }]; #IO_L15N_T2_DQS_DOUT_CSO_B_14 Sch=jc4/ck_io[38]
 #set_property -dict { PACKAGE_PIN L17   IOSTANDARD LVCMOS33 } [get_ports { ja[0] }]; #IO_L4P_T0_D04_14 Sch=ja_p[1]
 #set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 } [get_ports { ja[1] }]; #IO_L4N_T0_D05_14 Sch=ja_n[1]
 #set_property -dict { PACKAGE_PIN M14   IOSTANDARD LVCMOS33 } [get_ports { ja[2] }]; #IO_L5P_T0_D06_14 Sch=ja_p[2]
@@ -56,10 +60,10 @@ set_property -dict { PACKAGE_PIN H15   IOSTANDARD LVCMOS33 } [get_ports { led_ou
 #set_property -dict { PACKAGE_PIN P16   IOSTANDARD LVCMOS33 } [get_ports { jb[7] }]; #IO_L12N_T1_MRCC_14 Sch=jb_n[4]
 
 ## PMOD Header JC
-set_property -dict { PACKAGE_PIN U15   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[0] }]; #IO_L18P_T2_A12_D28_14 Sch=jc1/ck_io[41]
-set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[1] }]; #IO_L18N_T2_A11_D27_14 Sch=jc2/ck_io[40]
-set_property -dict { PACKAGE_PIN U17   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[2] }]; #IO_L15P_T2_DQS_RDWR_B_14 Sch=jc3/ck_io[39]
-set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[3] }]; #IO_L15N_T2_DQS_DOUT_CSO_B_14 Sch=jc4/ck_io[38]
+#set_property -dict { PACKAGE_PIN U15   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[0] }]; #IO_L18P_T2_A12_D28_14 Sch=jc1/ck_io[41]
+#set_property -dict { PACKAGE_PIN V16   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[1] }]; #IO_L18N_T2_A11_D27_14 Sch=jc2/ck_io[40]
+#set_property -dict { PACKAGE_PIN U17   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[2] }]; #IO_L15P_T2_DQS_RDWR_B_14 Sch=jc3/ck_io[39]
+#set_property -dict { PACKAGE_PIN U18   IOSTANDARD LVCMOS33 PULLTYPE PULLDOWN} [get_ports { rpi_in[3] }]; #IO_L15N_T2_DQS_DOUT_CSO_B_14 Sch=jc4/ck_io[38]
 #set_property -dict { PACKAGE_PIN U16   IOSTANDARD LVCMOS33 } [get_ports { jc[4] }]; #IO_L16P_T2_CSI_B_14 Sch=jc7/ck_io[37]
 #set_property -dict { PACKAGE_PIN P13   IOSTANDARD LVCMOS33 } [get_ports { jc[5] }]; #IO_L19P_T3_A10_D26_14 Sch=jc8/ck_io[36]
 #set_property -dict { PACKAGE_PIN R13   IOSTANDARD LVCMOS33 } [get_ports { jc[6] }]; #IO_L19N_T3_A09_D25_VREF_14 Sch=jc9/ck_io[35]
