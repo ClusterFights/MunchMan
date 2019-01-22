@@ -27,7 +27,10 @@ module top_data_test
     inout wire [7:0] bus_data,
     input wire bus_rnw,         // rpi/master perspective
 
-    output reg [3:0] led_out
+    output reg [3:0] led_out,
+    output wire led0_r,         // indicates reset pressed
+    output reg led0_g,         // indicates match
+    output reg led1_r         // indicates not match
 );
 
 
@@ -45,6 +48,8 @@ reg [7:0] bus_data_out;
 assign bus_data = (bus_rnw==1) ? bus_data_out : 8'bz;
 
 assign reset = ~reset_n;
+
+assign led0_r = reset;
 
 
 /*
@@ -73,9 +78,9 @@ end
 
 // States
 localparam IDLE             = 0;
-localparam CHECK            = 1;
-localparam WAIT             = 2;
-localparam DONE             = 3;
+localparam WAIT_CLOCK_LOW   = 1;
+localparam WAIT_CLOCK_HIGH  = 2;
+localparam CHECK            = 3;
 
 reg [1:0] state;
 reg [7:0] expected_val;
@@ -87,36 +92,50 @@ begin
         expected_val <= 0;
         bus_data_out <= 0;
         led_out <= 0;
+        led0_g <= 0;
+        led1_r <= 0;
     end else begin
         case (state)
             IDLE : begin
                 bus_data_out <= 1;  // assume pass
                 expected_val <= 0;
+                state <= WAIT_CLOCK_LOW;
+            end
+            WAIT_CLOCK_LOW : begin
+                if (bus_clk_reg == 0 && bus_rnw_reg == 0) begin
+                    state <= WAIT_CLOCK_HIGH;
+                end
+            end
+            WAIT_CLOCK_HIGH : begin
                 if (bus_clk_reg == 1) begin
                     state <= CHECK;
                 end
             end
             CHECK : begin
+                led_out <= bus_data_reg[3:0];
                 if (bus_data_reg != expected_val) begin
                     bus_data_out <= 0;  // nope, fail
-                end
-                state <= WAIT;
-            end
-            WAIT : begin
-                if (bus_clk_reg == 1) begin
-                    expected_val <= expected_val + 1;
-                    state <= CHECK;
+                    led1_r <= led1_r + 1;
+                end else begin
+                    // match
+                    led0_g <= led0_g + 1;
                 end
                 if (expected_val == 255) begin
-                    state <= DONE;
+                    led_out[3:0] <= bus_data_out[3:0];
+                    state <= IDLE;
+                end else begin
+                    expected_val <= expected_val + 1;
+                    state <= WAIT_CLOCK_LOW;
                 end
             end
+            /*
             DONE : begin
                 if (bus_clk_reg == 1 && bus_rnw_reg ==1) begin
                     led_out[3:0] <= bus_data_out[3:0];
                     state <= IDLE;
                 end
             end
+            */
             default : begin
                 state <= IDLE;
             end
