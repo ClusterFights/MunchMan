@@ -13,6 +13,28 @@ interface using the Raspberry Pi GPIOs.
 To start with I'm going try the [C GPIO library for Raspberry
 Pi](https://hackaday.io/project/17066-c-gpio-library-for-raspberry-pi) for the parallel interface.
 
+## Parallel Interface
+
+This interface is an 8-bit parallel, synchronous, master interface.
+The RPI is the master and controls the clock.  Data must be valid on the
+rising edge of the clock.  Down the road we may play with transfering data
+on both clock edges.
+
+The following table shows the connections between the RPI and the ArtyS7 board.
+
+| Signal Name   | RPI GPIO  | ArtyS7     |
+| ------------- |:---------:| ----------:|
+| data0         | 21        | JA(1) L17  |
+| data1         | 20        | JA(2) L18  |
+| data2         | 16        | JA(3) M14  |
+| data3         | 12        | JA(4) N14  |
+| data4         | 25        | JA(7) M16  |
+| data5         | 24        | JA(8) M17  |
+| data6         | 23        | JA(9) M18  |
+| data7         | 18        | JA(10) N18 |
+| R/W           | 26        | JB(1) P17  |
+| CLK           | 19        | JB(2) P18  |
+
 ## Development
 
 Here is the outline of the development plan.
@@ -22,9 +44,9 @@ Here is the outline of the development plan.
 - Write code on the the Raspberry Pi that drives the 4 leds from the RPi GPIO.
 - Figure out max datarate that can be written.
 
-2. **GPIO Input Test**: 
+2. **Data Send Test**: The RPI send sequential bytes 0..255 to the fpga.  The FPGA
+checks that it receives 256 sequential bytes.  If success it returns 1, else 0 to the
+RPI.
 
-3. **GPIO by directional Test**:
-
-4. **Update Level 2 code to use Parallel interface.**
+3. **Update Level 2 code to use Parallel interface.**
 
