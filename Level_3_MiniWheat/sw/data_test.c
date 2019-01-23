@@ -134,7 +134,7 @@ int main(int argc, char *argv[]) {
     gettimeofday(&tv1, NULL);
     for (i=0; i< 256; i++)
     {
-        printf("i: %d\n",i);
+        // XXX printf("i: %d\n",i);
         bus_write((unsigned char)i);
         // Sleep for 1 seconds
         //sleep_ms(10);
