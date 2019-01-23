@@ -166,6 +166,8 @@ int main(int argc, char *argv[]) {
     
     printf("done! \n");
 
+    // Send bytes 0..256
+
     gettimeofday(&tv1, NULL);
     for (i=0; i< 256; i++)
     {
@@ -178,9 +180,59 @@ int main(int argc, char *argv[]) {
 
     double total_time = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
     (double) (tv2.tv_sec - tv1.tv_sec);
-    printf ("Total time = %f seconds\n", total_time);
+    printf ("send total time = %f seconds\n", total_time);
     double bytes_per_sec = 256 / total_time;
-    printf("bytes_per_sec: %f\n",bytes_per_sec);
+    printf("send bytes_per_sec: %f\n",bytes_per_sec);
 
+    // Receive bytes.
+
+    // Change the bus direction to read from FPGA
+    bus_read_config();
+
+    // Set RNW to read mode (1).
+    GPIO_SET_N(RNW);
+
+    sleep_ms(100);
+
+    // Read 256 bytes
+    unsigned int read_pins=0;
+    unsigned char read_val=0;
+    gettimeofday(&tv1, NULL);
+    for (i=0; i< 256; i++)
+    {
+        // drive the clock low
+        GPIO_CLR_N(CLK);
+        GPIO_CLR_N(CLK);
+
+        // drive the clock high
+        GPIO_SET_N(CLK);
+        GPIO_SET_N(CLK);
+
+        // Read the data off of the bus
+        read_pins = GPIO_LEV;
+        read_val =  ((read_pins >> (DATA0-0))&0x01) |
+                    ((read_pins >> (DATA1-1))&0x02) |
+                    ((read_pins >> (DATA2-2))&0x04) |
+                    ((read_pins >> (DATA3-3))&0x08) |
+
+                    ((read_pins >> (DATA4-4))&0x10) |
+                    ((read_pins >> (DATA5-5))&0x20) |
+                    ((read_pins >> (DATA6-6))&0x40) |
+                    ((read_pins >> (DATA7-7))&0x80);
+
+        if (read_val != i) {
+            printf("i: %d, read_val: %d\n",i,read_val);
+        }
+
+        // Sleep for for a bit
+        // XXX sleep_ms(10);
+    }
+    gettimeofday(&tv2, NULL);
+
+    total_time = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+        (double) (tv2.tv_sec - tv1.tv_sec);
+    printf ("recv total time = %f seconds\n", total_time);
+    bytes_per_sec = 256 / total_time;
+    printf("recv bytes_per_sec: %f\n",bytes_per_sec);
 }
 
