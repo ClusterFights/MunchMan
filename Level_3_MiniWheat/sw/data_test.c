@@ -34,7 +34,10 @@ Run:
 #define RNW     (26)
 #define CLK     (19)
 
-unsigned char prev_byte = 0xFF;
+unsigned int set_reg = 0;
+unsigned int clr_reg = 0;
+
+struct timespec ns; 
 
 void sleep_ms(int ms) 
 {
@@ -50,7 +53,8 @@ void sleep_ms(int ms)
 void sync_bus()
 {
     GPIO_SET_N(CLK);
-    GPIO_SET_N(RNW);
+    /*
+    GPIO_CLR_N(RNW);
 
     GPIO_SET_N(DATA0);
     GPIO_CLR_N(DATA1);
@@ -61,6 +65,19 @@ void sync_bus()
     GPIO_CLR_N(DATA5);
     GPIO_SET_N(DATA6);
     GPIO_CLR_N(DATA7);
+    */
+
+    // First sync work 0xB8 8'b1011_1000
+    GPIO_CLR = (1<<RNW) | (1<<DATA0) | (1<<DATA1) | (1<<DATA2) | (1<<DATA6);
+    GPIO_SET = (1<<CLK) | (1<<DATA3) | (1<<DATA4) | (1<<DATA5) | (1<<DATA7);
+
+    sleep_ms(10);
+
+    // Second sync work 0x8B 8'b1000_1011
+    GPIO_CLR = (1<<RNW) | (1<<DATA2) | (1<<DATA4) | (1<<DATA5) | (1<<DATA6);
+    GPIO_SET = (1<<CLK) | (1<<DATA0) | (1<<DATA1) | (1<<DATA3) | (1<<DATA7);
+
+    sleep_ms(10);
 }
 
 /*
@@ -102,54 +119,42 @@ void bus_read_config()
  */
 inline void bus_write(unsigned char byte)
 {
-    // Set the clock to low
-    GPIO_CLR_N(CLK);
-
-    // Set RNW to write mode (0).
-    // XXX GPIO_CLR_N(RNW);
+    // Clear the set and clr variables
+    set_reg = 0;
+    clr_reg = 0;
 
     // Setup data
-    if ((byte & 0x01) != (prev_byte & 0x01)) {
-        if (byte & 0x01) GPIO_SET_N(DATA0); else GPIO_CLR_N(DATA0);
-    }
+    if (byte & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
+    if (byte & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
+    if (byte & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
+    if (byte & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
 
-    if ((byte & 0x02) != (prev_byte & 0x02)) {
-        if (byte & 0x02) GPIO_SET_N(DATA1); else GPIO_CLR_N(DATA1);
-    }
+    if (byte & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
+    if (byte & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
+    if (byte & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
+    if (byte & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
 
-    if ((byte & 0x04) != (prev_byte & 0x04)) {
-        if (byte & 0x04) GPIO_SET_N(DATA2); else GPIO_CLR_N(DATA2);
-    }
+    // Clock should be set and cleared
+    clr_reg |= (1<<CLK);
+    set_reg |= (1<<CLK);
 
-    if ((byte & 0x08) != (prev_byte & 0x08)) {
-        if (byte & 0x08) GPIO_SET_N(DATA3); else GPIO_CLR_N(DATA3);
-    }
+    // Clear first, setting clock low
+    // Then set, setting clock high
+    GPIO_CLR = clr_reg;
+    GPIO_SET = set_reg;
 
-    if ((byte & 0x10) != (prev_byte & 0x10)) {
-        if (byte & 0x10) GPIO_SET_N(DATA4); else GPIO_CLR_N(DATA4);
-    }
-
-    if ((byte & 0x20) != (prev_byte & 0x20)) {
-        if (byte & 0x20) GPIO_SET_N(DATA5); else GPIO_CLR_N(DATA5);
-    }
-
-    if ((byte & 0x40) != (prev_byte & 0x40)) {
-        if (byte & 0x40) GPIO_SET_N(DATA6); else GPIO_CLR_N(DATA6);
-    }
-
-    if ((byte & 0x80) != (prev_byte & 0x80)) {
-        if (byte & 0x80) GPIO_SET_N(DATA7); else GPIO_CLR_N(DATA7);
-    }
-
-    // Assert the CLK
+    // Seems to be necessary to get consistant results.
+    // not sure why.
     GPIO_SET_N(CLK);
-
-    prev_byte = byte;
 }
 
 int main(int argc, char *argv[]) {
     int i;
     struct timeval tv1, tv2;
+
+    ns.tv_sec = 0;
+    ns.tv_nsec = 1;
+
     bus_write_config();
 
     printf("sleeping... \n");
@@ -166,8 +171,8 @@ int main(int argc, char *argv[]) {
     {
         // XXX printf("i: %d\n",i);
         bus_write((unsigned char)i);
-        // Sleep for 1 seconds
-        //sleep_ms(10);
+        // Sleep for for a bit
+        // XXX sleep_ms(50);
     }
     gettimeofday(&tv2, NULL);
 
