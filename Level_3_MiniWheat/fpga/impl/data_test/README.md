@@ -8,6 +8,10 @@ This design test the 8-bit parallel interface from the rpi.  It expects the byte
 to be sent sequentially.  It checks that the bytes are sent correctly and returns
 1 for success and 0 for failure.
 
+Testing show that the 8-bit interface can send data from the RPI
+to the ArtyS7 at a speed of 8-16MB per second.  It varies from
+run to run. 
+
 It is implemented using the Xilinx Vivado 2018.2 tools running
 on Ubuntu 16.04 OS.
 
