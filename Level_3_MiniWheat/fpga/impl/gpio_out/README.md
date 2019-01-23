@@ -7,6 +7,8 @@ This directory implements the gpio_out project on the
 This is a very simple design that echos the values coming in on pins 1-4 of the JC Pmod connector to
 the 4 leds.
 
+Testing show that the RPI output pin can be toggled at a rate close to 30MHz.
+
 It is implemented using the Xilinx Vivado 2018.2 tools running
 on Ubuntu 16.04 OS.
 
