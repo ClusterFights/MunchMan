@@ -34,6 +34,7 @@ Run:
 #define RNW     (26)
 #define CLK     (19)
 
+unsigned char prev_byte = 0xFF;
 
 void sleep_ms(int ms) 
 {
@@ -105,20 +106,45 @@ inline void bus_write(unsigned char byte)
     GPIO_CLR_N(CLK);
 
     // Set RNW to write mode (0).
-    GPIO_CLR_N(RNW);
+    // XXX GPIO_CLR_N(RNW);
 
     // Setup data
-    if (byte & 0x01) GPIO_SET_N(DATA0); else GPIO_CLR_N(DATA0);
-    if (byte & 0x02) GPIO_SET_N(DATA1); else GPIO_CLR_N(DATA1);
-    if (byte & 0x04) GPIO_SET_N(DATA2); else GPIO_CLR_N(DATA2);
-    if (byte & 0x08) GPIO_SET_N(DATA3); else GPIO_CLR_N(DATA3);
-    if (byte & 0x10) GPIO_SET_N(DATA4); else GPIO_CLR_N(DATA4);
-    if (byte & 0x20) GPIO_SET_N(DATA5); else GPIO_CLR_N(DATA5);
-    if (byte & 0x40) GPIO_SET_N(DATA6); else GPIO_CLR_N(DATA6);
-    if (byte & 0x80) GPIO_SET_N(DATA7); else GPIO_CLR_N(DATA7);
+    if ((byte & 0x01) != (prev_byte & 0x01)) {
+        if (byte & 0x01) GPIO_SET_N(DATA0); else GPIO_CLR_N(DATA0);
+    }
+
+    if ((byte & 0x02) != (prev_byte & 0x02)) {
+        if (byte & 0x02) GPIO_SET_N(DATA1); else GPIO_CLR_N(DATA1);
+    }
+
+    if ((byte & 0x04) != (prev_byte & 0x04)) {
+        if (byte & 0x04) GPIO_SET_N(DATA2); else GPIO_CLR_N(DATA2);
+    }
+
+    if ((byte & 0x08) != (prev_byte & 0x08)) {
+        if (byte & 0x08) GPIO_SET_N(DATA3); else GPIO_CLR_N(DATA3);
+    }
+
+    if ((byte & 0x10) != (prev_byte & 0x10)) {
+        if (byte & 0x10) GPIO_SET_N(DATA4); else GPIO_CLR_N(DATA4);
+    }
+
+    if ((byte & 0x20) != (prev_byte & 0x20)) {
+        if (byte & 0x20) GPIO_SET_N(DATA5); else GPIO_CLR_N(DATA5);
+    }
+
+    if ((byte & 0x40) != (prev_byte & 0x40)) {
+        if (byte & 0x40) GPIO_SET_N(DATA6); else GPIO_CLR_N(DATA6);
+    }
+
+    if ((byte & 0x80) != (prev_byte & 0x80)) {
+        if (byte & 0x80) GPIO_SET_N(DATA7); else GPIO_CLR_N(DATA7);
+    }
 
     // Assert the CLK
     GPIO_SET_N(CLK);
+
+    prev_byte = byte;
 }
 
 int main(int argc, char *argv[]) {
@@ -129,6 +155,10 @@ int main(int argc, char *argv[]) {
     printf("sleeping... \n");
     sync_bus();
     sleep_ms(1000);
+
+    // Set RNW to write mode (0).
+    GPIO_CLR_N(RNW);
+    
     printf("done! \n");
 
     gettimeofday(&tv1, NULL);
