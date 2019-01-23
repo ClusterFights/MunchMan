@@ -44,6 +44,25 @@ void sleep_ms(int ms)
 }
 
 /*
+ * Used to sync with FPGA.  Set the whole parallel bus to zeros.
+ */
+void sync_bus()
+{
+    GPIO_SET_N(CLK);
+    GPIO_SET_N(RNW);
+
+    GPIO_SET_N(DATA0);
+    GPIO_CLR_N(DATA1);
+    GPIO_SET_N(DATA2);
+    GPIO_CLR_N(DATA3);
+
+    GPIO_SET_N(DATA4);
+    GPIO_CLR_N(DATA5);
+    GPIO_SET_N(DATA6);
+    GPIO_CLR_N(DATA7);
+}
+
+/*
  * Set the parallel bus config for writing.
  */
 void bus_write_config()
@@ -58,12 +77,6 @@ void bus_write_config()
     PI_GPIO_config(DATA7, BCM_GPIO_OUT);
     PI_GPIO_config(RNW, BCM_GPIO_OUT);
     PI_GPIO_config(CLK, BCM_GPIO_OUT);
-
-    // Set the clock to low
-    GPIO_CLR_N(CLK);
-
-    // Set the rnw high
-    GPIO_SET_N(RNW); 
 }
 
 /*
@@ -81,15 +94,12 @@ void bus_read_config()
     PI_GPIO_config(DATA7, BCM_GPIO_IN);
     PI_GPIO_config(RNW, BCM_GPIO_OUT);
     PI_GPIO_config(CLK, BCM_GPIO_OUT);
-
-    // Set the clock to low
-    GPIO_CLR_N(CLK);
 }
 
 /*
  * Write a byte of data of the parallel interface.
  */
-void bus_write(unsigned char byte)
+inline void bus_write(unsigned char byte)
 {
     // Set the clock to low
     GPIO_CLR_N(CLK);
@@ -116,13 +126,18 @@ int main(int argc, char *argv[]) {
     struct timeval tv1, tv2;
     bus_write_config();
 
+    printf("sleeping... \n");
+    sync_bus();
+    sleep_ms(1000);
+    printf("done! \n");
+
     gettimeofday(&tv1, NULL);
     for (i=0; i< 256; i++)
     {
         printf("i: %d\n",i);
         bus_write((unsigned char)i);
         // Sleep for 1 seconds
-        sleep_ms(1000);
+        //sleep_ms(10);
     }
     gettimeofday(&tv2, NULL);
 
