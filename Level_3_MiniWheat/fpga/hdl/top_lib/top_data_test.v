@@ -78,11 +78,12 @@ end
 
 // States
 localparam IDLE             = 0;
-localparam WAIT_CLOCK_LOW   = 1;
-localparam WAIT_CLOCK_HIGH  = 2;
-localparam CHECK            = 3;
+localparam SYNC             = 1;
+localparam WAIT_CLOCK_LOW   = 2;
+localparam WAIT_CLOCK_HIGH  = 3;
+localparam CHECK            = 4;
 
-reg [1:0] state;
+reg [3:0] state;
 reg [7:0] expected_val;
 
 always @ (posedge clk_100mhz)
@@ -99,10 +100,16 @@ begin
             IDLE : begin
                 bus_data_out <= 1;  // assume pass
                 expected_val <= 0;
-                state <= WAIT_CLOCK_LOW;
+                state <= SYNC;
+            end
+            SYNC : begin
+                // Wait sync word on data bus
+                if (bus_data_reg == 8'h55) begin
+                    state <= WAIT_CLOCK_LOW;
+                end
             end
             WAIT_CLOCK_LOW : begin
-                if (bus_clk_reg == 0 && bus_rnw_reg == 0) begin
+                if (bus_clk_reg == 0) begin
                     state <= WAIT_CLOCK_HIGH;
                 end
             end
