@@ -78,10 +78,12 @@ end
 
 // States
 localparam IDLE             = 0;
-localparam SYNC             = 1;
-localparam WAIT_CLOCK_LOW   = 2;
-localparam WAIT_CLOCK_HIGH  = 3;
-localparam CHECK            = 4;
+localparam SYNC1            = 1;
+localparam SYNC2            = 2;
+localparam WAIT_CLOCK_LOW   = 3;
+localparam WAIT_CLOCK_HIGH  = 4;
+localparam CHECK            = 5;
+localparam DONE             = 6;
 
 reg [3:0] state;
 reg [7:0] expected_val;
@@ -100,11 +102,17 @@ begin
             IDLE : begin
                 bus_data_out <= 1;  // assume pass
                 expected_val <= 0;
-                state <= SYNC;
+                state <= SYNC1;
             end
-            SYNC : begin
-                // Wait sync word on data bus
-                if (bus_data_reg == 8'h55) begin
+            SYNC1 : begin
+                // Wait for 1st sync word
+                if (bus_data_reg == 8'hB8) begin
+                    state <= SYNC2;
+                end
+            end
+            SYNC2 : begin
+                // Wait for 2nd sync word
+                if (bus_data_reg == 8'h8B) begin
                     state <= WAIT_CLOCK_LOW;
                 end
             end
@@ -129,20 +137,15 @@ begin
                 end
                 if (expected_val == 255) begin
                     led_out[3:0] <= bus_data_out[3:0];
-                    state <= IDLE;
+                    state <= DONE;
                 end else begin
                     expected_val <= expected_val + 1;
                     state <= WAIT_CLOCK_LOW;
                 end
             end
-            /*
             DONE : begin
-                if (bus_clk_reg == 1 && bus_rnw_reg ==1) begin
-                    led_out[3:0] <= bus_data_out[3:0];
-                    state <= IDLE;
-                end
+                state <= DONE;
             end
-            */
             default : begin
                 state <= IDLE;
             end
