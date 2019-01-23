@@ -35,6 +35,15 @@ The following table shows the connections between the RPI and the ArtyS7 board.
 | R/W           | 26        | JB(1) P17  |
 | CLK           | 19        | JB(2) P18  |
 
+## Results
+
+The GPIO_output_test is able to toggle a single RPI GPIO pin at about 30MHz!  To
+get this performance the C test code has to be compiled with the -O3 optimization flag.
+
+The Data_Send_Test was able to send a byte from the RPI to the FPGA at a
+about 10MB per second.  The FPGA is able to send data back to the RPI at about 5MB per second.
+Sending/receiving a byte has much more overhead than toggling a single pin.
+
 ## Development
 
 Here is the outline of the development plan.
@@ -45,8 +54,8 @@ Here is the outline of the development plan.
 - Figure out max datarate that can be written.
 
 2. **Data Send Test**: The RPI send sequential bytes 0..255 to the fpga.  The FPGA
-checks that it receives 256 sequential bytes.  If success it returns 1, else 0 to the
-RPI.
+checks that it receives 256 sequential bytes.  If success green led[0] is turned on.
+The FPGA then sends bytes 0..255 to the RPI.
 
 3. **Update Level 2 code to use Parallel interface.**
 
