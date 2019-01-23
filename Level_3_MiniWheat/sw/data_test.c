@@ -53,7 +53,8 @@ void sleep_ms(int ms)
 void sync_bus()
 {
     GPIO_SET_N(CLK);
-    GPIO_SET_N(RNW);
+    /*
+    GPIO_CLR_N(RNW);
 
     GPIO_SET_N(DATA0);
     GPIO_CLR_N(DATA1);
@@ -64,6 +65,19 @@ void sync_bus()
     GPIO_CLR_N(DATA5);
     GPIO_SET_N(DATA6);
     GPIO_CLR_N(DATA7);
+    */
+
+    // First sync work 0xB8 8'b1011_1000
+    GPIO_CLR = (1<<RNW) | (1<<DATA0) | (1<<DATA1) | (1<<DATA2) | (1<<DATA6);
+    GPIO_SET = (1<<CLK) | (1<<DATA3) | (1<<DATA4) | (1<<DATA5) | (1<<DATA7);
+
+    sleep_ms(10);
+
+    // Second sync work 0x8B 8'b1000_1011
+    GPIO_CLR = (1<<RNW) | (1<<DATA2) | (1<<DATA4) | (1<<DATA5) | (1<<DATA6);
+    GPIO_SET = (1<<CLK) | (1<<DATA0) | (1<<DATA1) | (1<<DATA3) | (1<<DATA7);
+
+    sleep_ms(10);
 }
 
 /*
@@ -157,7 +171,8 @@ int main(int argc, char *argv[]) {
     {
         // XXX printf("i: %d\n",i);
         bus_write((unsigned char)i);
-        // Sleep for 1 seconds
+        // Sleep for for a bit
+        // XXX sleep_ms(50);
     }
     gettimeofday(&tv2, NULL);
 
