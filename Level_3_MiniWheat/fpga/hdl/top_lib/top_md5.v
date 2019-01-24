@@ -4,8 +4,12 @@
 *
 * This module implements the md5
 * hashing accelerator.
+* This version has been modified to use the
+* 8-bit parallel interface between the RPI and
+* the ArtyS7 board.
 *
 * Author : Brandon Bloodget
+* Modification Date : 01/23/2019 - Add parallel interface.
 *
 *****************************
 */
