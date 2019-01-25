@@ -9,7 +9,9 @@
 * the ArtyS7 board.
 *
 * Author : Brandon Bloodget
-* Modification Date : 01/23/2019 - Add parallel interface.
+*
+* Updates:
+* 01/25/2019 - Add 8-bit parallel interface.
 *
 *****************************
 */
@@ -19,16 +21,17 @@
 
 module top_md5 #
 (
-    parameter integer CLK_FREQUENCY = 100_000_000,
-    parameter integer BAUD = 12_000_000,
     parameter integer NUM_LEDS = 8
 )
 (
     input wire clk,
     input wire reset,
-    input wire rxd,
 
-    output wire txd,
+    // rpi parallel bus
+    input wire bus_clk,
+    inout wire [7:0] bus_data,
+    input wire bus_rnw,         // rpi/master perspective
+
     output reg  match_led,
     output wire [NUM_LEDS-1:0] led
 );
@@ -42,12 +45,6 @@ module top_md5 #
 wire locked;
 
 wire tick;
-
-// uart_rx (receive)
-wire rxd_data_ready;
-wire [7:0] rxd_data;
-wire rxd_idle;
-wire rxd_endofpacket;
 
 wire proc_start;
 wire [15:0] proc_num_bytes;
@@ -72,10 +69,22 @@ wire [151:0] md5_msg;
 wire md5_msg_valid;
 
 
-// uart_tx (transmit)
-wire txd_busy;
+// parallel bus 
+wire rxd_data_ready;
+wire [7:0] rxd_data;
+
+wire txd_ready_next;
 wire txd_start;
 wire [7:0] txd_data;
+wire [7:0] bus_data_out;
+
+/*
+*****************************
+* Assignments
+*****************************
+*/
+
+assign bus_data = (bus_rnw==1) ? bus_data_out : 8'bz;
 
 /*
 *****************************
@@ -83,28 +92,39 @@ wire [7:0] txd_data;
 *****************************
 */
 
-async_receiver # (
-    .ClkFrequency(CLK_FREQUENCY),
-    .Baud(BAUD)
-) async_receiver_inst (
-    .clk(clk),
-    .RxD(rxd),
-    .RxD_data_ready(rxd_data_ready),
-    .RxD_data(rxd_data),
-    .RxD_idle(rxd_idle),
-    .RxD_endofpacket(rxd_endofpacket)
+par8_receiver par8_receiver_inst
+(
+    .clk(clk),     // fast, like 100mhz
+    .reset(reset),
+
+    // parallel bus
+    .bus_clk(bus_clk),
+    .bus_data(bus_data),
+    .bus_rnw(bus_rnw),     // rpi/master perspective
+
+    // output
+    .rxd_data(rxd_data),  // valid for one clock cycle when rxd_data_ready is asserted.
+    .rxd_data_ready(rxd_data_ready)
 );
 
-async_transmitter # (
-    .ClkFrequency(CLK_FREQUENCY),
-    .Baud(BAUD)
-) async_transmitter_inst (
-    .clk(clk),
-    .TxD_start(txd_start),
-    .TxD_data(txd_data),
-    .TxD(txd),
-    .TxD_busy(txd_busy)
+par8_transmitter par8_transmitter_inst
+(
+    .clk(clk),     // fast, like 100mhz
+    .reset(reset),
+
+    // Data to send
+    .txd_data(txd_data),
+    .valid(txd_start),
+
+    // parallel bus
+    .bus_clk(bus_clk),
+    .bus_rnw(bus_rnw),     // rpi/master perspective
+
+    // output
+    .bus_data(bus_data_out),
+    .ready_next(txd_ready_next)      // will be ready next clock cycle for data
 );
+
 
 cmd_parser # (
     .NUM_LEDS(NUM_LEDS)
@@ -117,7 +137,7 @@ cmd_parser # (
     .rxd_data_ready(rxd_data_ready),
 
     // uart_tx (transmit)
-    .txd_busy(txd_busy),
+    .txd_ready_next(txd_ready_next),
     .txd_start(txd_start),
     .txd_data(txd_data), // [7:0]
 

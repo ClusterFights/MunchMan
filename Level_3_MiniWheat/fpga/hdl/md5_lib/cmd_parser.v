@@ -20,6 +20,10 @@
 *
 * Author : Brandon Bloodget
 *
+* Updates:
+* 01/025/2014 : changed port txd_busy to txd_ready_next, to be compatible with
+*               par8_transmitter.
+*
 *****************************
 */
 
@@ -39,7 +43,7 @@ module cmd_parser #
     input wire rxd_data_ready,
 
     // uart_tx (transmit)
-    input wire txd_busy,
+    input wire txd_ready_next,
     output reg txd_start,
     output reg [7:0] txd_data,
 
@@ -82,14 +86,14 @@ localparam PROC_CHARS1      = 2;
 localparam PROC_CHARS2      = 3;
 localparam PROC_CHARS3      = 4;
 localparam RET_CHARS1       = 5;
-localparam RET_CHARS1_WAIT  = 6;
-localparam RET_CHARS1_WAIT2 = 7;
-localparam RET_CHARS2       = 8;
-localparam RET_CHARS2_WAIT  = 9;
-localparam TEST             = 10;
-localparam TEST2            = 11;
-localparam ACK              = 12;
-localparam NACK             = 13;
+// XXX localparam RET_CHARS1_WAIT  = 6;
+// XXX localparam RET_CHARS1_WAIT2 = 7;
+localparam RET_CHARS2       = 6;
+// XXX localparam RET_CHARS2_WAIT  = 9;
+localparam TEST             = 7;
+localparam TEST2            = 8;
+localparam ACK              = 9;
+localparam NACK             = 10;
 
 // Character constants
 localparam SET_CMD      = 8'h01;
@@ -199,20 +203,21 @@ begin
             end
             RET_CHARS1 : begin
                 // Return match byte position
-                if (!txd_busy) begin
+                if (txd_ready_next) begin
                     txd_data <= (char_count==0) ? proc_byte_pos[15:8] :
                         proc_byte_pos[7:0];
                     txd_start <= 1;
                     char_count <= char_count + 1;
-                    cmd_state <= RET_CHARS1_WAIT;
+                    // XXX cmd_state <= RET_CHARS1_WAIT;
                     if (char_count == 1) begin
                         char_count <= 0;
-                        cmd_state <= RET_CHARS1_WAIT2;
+                        cmd_state <= RET_CHARS2;
                     end
                 end else begin
                     txd_start <= 0;
                 end
             end
+            /*
             RET_CHARS1_WAIT : begin
                 // Wait for the txd_busy to go high
                 txd_start <= 0;
@@ -227,14 +232,15 @@ begin
                     cmd_state <= RET_CHARS2;
                 end
             end
+            */
             RET_CHARS2 : begin
                 // Return the matched string
-                if (!txd_busy) begin
+                if (txd_ready_next) begin
                     txd_data <= proc_match_char;
                     proc_match_char_next <= 1;
                     txd_start <= 1;
                     char_count <= char_count + 1;
-                    cmd_state <= RET_CHARS2_WAIT;
+                    // XXX cmd_state <= RET_CHARS2_WAIT;
                     if (char_count == 19) begin
                         proc_match_char_next <= 0;
                         txd_start <= 0;
@@ -245,6 +251,7 @@ begin
                     txd_start <= 0;
                 end
             end
+            /*
             RET_CHARS2_WAIT : begin
                 // Wait for the txd_busy to go high
                 proc_match_char_next <= 0;
@@ -253,9 +260,10 @@ begin
                     cmd_state <= RET_CHARS2;
                 end
             end
+            */
             TEST : begin
                 // Return test countdown 10..1
-                if (!txd_busy) begin
+                if (txd_ready_next) begin
                     txd_data <= char_count[7:0];
                     $display("TEST count: %d",txd_data);
                     txd_start <= 1;
@@ -266,9 +274,10 @@ begin
                 end
             end
             TEST2 : begin
-                // Wait for the txd_busy to go high
                 txd_start <= 0;
-                $display("TEST2: wait for txd_busy.");
+                cmd_state <= IDLE;
+                $display("TEST2: done.");
+                /*
                 if (txd_busy) begin
                     cmd_state <= TEST;
                     if (char_count == 0) begin
@@ -276,9 +285,10 @@ begin
                         cmd_state <= IDLE;
                     end
                 end
+                */
             end
             ACK : begin
-                if (!txd_busy) begin
+                if (txd_ready_next) begin
                     txd_data <= ACK_CHAR;
                     txd_start <= 1;
                     cmd_state <= IDLE;
@@ -287,7 +297,7 @@ begin
                 end
             end
             NACK : begin
-                if (!txd_busy) begin
+                if (txd_ready_next) begin
                     txd_data <= NACK_CHAR;
                     txd_start <= 1;
                     cmd_state <= IDLE;
