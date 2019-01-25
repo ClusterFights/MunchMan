@@ -5,6 +5,9 @@
  *
  * AUTHOR : Brandon Blodget
  * CREATE DATE: 11/04/2018
+ *
+ * Updates:
+ * 01/25/2019 : Updates for new parallel bus
  */
 
 #ifndef _MUNCHMAN_H_
@@ -28,6 +31,18 @@ extern "C" {
 */
 #define BUFFER_SIZE 200
 
+// Parallel Bus GPIOs
+#define DATA0   (21)
+#define DATA1   (20)
+#define DATA2   (16)
+#define DATA3   (12)
+#define DATA4   (25)
+#define DATA5   (24)
+#define DATA6   (23)
+#define DATA7   (18)
+#define RNW     (26)
+#define CLK     (19)
+
 /*
 ***************************
 * Structures
@@ -40,6 +55,18 @@ struct match_result
     unsigned char str[19];
 };
 
+/*
+***************************
+* Variables
+***************************
+*/
+extern unsigned char ret_buffer[];
+
+extern unsigned int set_reg;
+extern unsigned int clr_reg;
+
+extern unsigned int read_pins;
+extern unsigned char read_val;
 
 
 /*
@@ -47,8 +74,16 @@ struct match_result
 * Functions
 ***************************
 */
-// XXX int ftdi_setup(struct ftdi_context *ftdi);
-// XXX void clear_ftdi(struct ftdi_context *ftdi);
+
+void sleep_ms(int ms);
+void sync_bus();
+void bus_write_config();
+void bus_read_config();
+void bus_write(unsigned char byte);
+unsigned char bus_read();
+
+
+/*
 int filecopy(FILE *ifp, struct ftdi_context *ftdi);
 void cmd_test(struct ftdi_context *ftdi);
 int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash);
@@ -58,15 +93,11 @@ int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result);
 int send_file(char *filename, struct ftdi_context *ftdi, 
         struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes);
+*/
+
 void sleep_us(int us);
 
 
-/*
-***************************
-* Variables
-***************************
-*/
-extern unsigned char ret_buffer[];
 
 #ifdef __cplusplus
 }

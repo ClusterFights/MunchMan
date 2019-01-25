@@ -5,54 +5,168 @@
  *
  * AUTHOR : Brandon Blodget
  * CREATE DATE: 11/04/2018
+ *
+ * Updates:
+ * 01/25/2019 : Updates for new parallel bus
  */
 
 #include "munchman.h"
 #include "md5.h"
 #include <string.h>
 
+#define PI_GPIO_ERR  // errno.h
+#include "PI_GPIO.c" // stdio.h, sys/mman.h, fcntl.h, stdlib.h - signal.h
+
 // Size of string to hash. 19 char + 1 `\0`
 #define STR_LEN 20
 
 unsigned char ret_buffer[BUFFER_SIZE] = {0};
 
-int ftdi_setup(struct ftdi_context *ftdi)
+unsigned int set_reg = 0;
+unsigned int clr_reg = 0;
+
+unsigned int read_pins=0;
+unsigned char read_val=0;
+
+
+void sleep_ms(int ms) 
 {
-    int ret;
-
-    // Set the interface to B which should be the uart.
-    ftdi_set_interface(ftdi, INTERFACE_B);
-
-    // Open the fpga ftdi connection
-    if ((ret = ftdi_usb_open(ftdi, 0x0403, 0x6010)) < 0)
-    {
-        printf("unable to open ftdi device: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
-        return -1;
-    }
-
-    // Set the BAUD rate
-    if ((ret = ftdi_set_baudrate(ftdi, 12000000)) < 0)
-    {
-        printf("unable to set baudrate: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
-        return -1;
-    }
-    return 0;
+    struct timespec ts; 
+    ts.tv_sec = ms / 1000;
+    ts.tv_nsec = (ms % 1000) * 1000000;
+    nanosleep(&ts, NULL);
 }
 
 /*
- * Reads from the ftdi channel and sends the results
- * to the bit bucket.
+ * Used to sync with FPGA.  Set the whole parallel bus to zeros.
  */
-void clear_ftdi(struct ftdi_context *ftdi)
+void sync_bus()
 {
-    int ret;
-    ret = ftdi_read_data(ftdi, ret_buffer, BUFFER_SIZE);
-    if (ret > 0) {
-        printf("WARN, clear_ftdi read some data ret=%d\n",ret);
-    }
+    GPIO_SET_N(CLK);
+
+    // First sync work 0xB8 8'b1011_1000
+    GPIO_CLR = (1<<RNW) | (1<<DATA0) | (1<<DATA1) | (1<<DATA2) | (1<<DATA6);
+    GPIO_SET = (1<<CLK) | (1<<DATA3) | (1<<DATA4) | (1<<DATA5) | (1<<DATA7);
+
+    sleep_ms(10);
+
+    // Second sync work 0x8B 8'b1000_1011
+    GPIO_CLR = (1<<RNW) | (1<<DATA2) | (1<<DATA4) | (1<<DATA5) | (1<<DATA6);
+    GPIO_SET = (1<<CLK) | (1<<DATA0) | (1<<DATA1) | (1<<DATA3) | (1<<DATA7);
+
+    sleep_ms(10);
+
+    // Set RNW to write mode (0).
+    GPIO_CLR_N(RNW);
+}
+
+/*
+ * Set the parallel bus config for writing.
+ */
+void bus_write_config()
+{
+    PI_GPIO_config(DATA0, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA1, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA2, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA3, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA4, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA5, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA6, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA7, BCM_GPIO_OUT);
+    PI_GPIO_config(RNW, BCM_GPIO_OUT);
+    PI_GPIO_config(CLK, BCM_GPIO_OUT);
+
+    // Set RNW to write mode (0).
+    GPIO_CLR_N(RNW);
+}
+
+/*
+ * Set the parallel bus config for reading.
+ */
+void bus_read_config()
+{
+    PI_GPIO_config(DATA0, BCM_GPIO_IN);
+    PI_GPIO_config(DATA1, BCM_GPIO_IN);
+    PI_GPIO_config(DATA2, BCM_GPIO_IN);
+    PI_GPIO_config(DATA3, BCM_GPIO_IN);
+    PI_GPIO_config(DATA4, BCM_GPIO_IN);
+    PI_GPIO_config(DATA5, BCM_GPIO_IN);
+    PI_GPIO_config(DATA6, BCM_GPIO_IN);
+    PI_GPIO_config(DATA7, BCM_GPIO_IN);
+    PI_GPIO_config(RNW, BCM_GPIO_OUT);
+    PI_GPIO_config(CLK, BCM_GPIO_OUT);
+
+    // Set RNW to read mode (1).
+    GPIO_SET_N(RNW);
+}
+
+/*
+ * Write a byte of data of the parallel interface.
+ */
+void bus_write(unsigned char byte)
+{
+    // Clear the set and clr variables
+    set_reg = 0;
+    clr_reg = 0;
+
+    // Setup data
+    if (byte & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
+    if (byte & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
+    if (byte & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
+    if (byte & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
+
+    if (byte & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
+    if (byte & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
+    if (byte & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
+    if (byte & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+
+    // Clear the clock
+    clr_reg |= (1<<CLK);
+
+    // Clear first, setting clock low
+    // Then set, setting clock high
+    GPIO_CLR = clr_reg;
+    GPIO_SET = set_reg;
+
+    // After the other IOs are set
+    // Assert the clock last.
+    GPIO_SET_N(CLK);
+}
+
+/*
+ * Read a byte of data of the parallel interface.
+ */
+unsigned char bus_read()
+{
+    // drive the clock low
+    GPIO_CLR_N(CLK);
+    GPIO_CLR_N(CLK);
+
+    // drive the clock high
+    GPIO_SET_N(CLK);
+    GPIO_SET_N(CLK);
+
+    // Read the data off of the bus
+    read_pins = GPIO_LEV;
+    read_val =  ((read_pins >> (DATA0-0))&0x01) |
+                ((read_pins >> (DATA1-1))&0x02) |
+                ((read_pins >> (DATA2-2))&0x04) |
+                ((read_pins >> (DATA3-3))&0x08) |
+
+                ((read_pins >> (DATA4-4))&0x10) |
+                ((read_pins >> (DATA5-5))&0x20) |
+                ((read_pins >> (DATA6-6))&0x40) |
+                ((read_pins >> (DATA7-7))&0x80);
+
+    return read_val;
 }
 
 
+// ********** old stuff ***************
+
+
+
+/*
 int filecopy(FILE *ifp, struct ftdi_context *ftdi)
 {
     char buffer[4096];
@@ -83,6 +197,7 @@ int filecopy(FILE *ifp, struct ftdi_context *ftdi)
 
     return num_sent;
 }
+*/
 
 /*
  * Helper functions that changes chars
@@ -135,6 +250,7 @@ void string_push(unsigned char *buffer, unsigned char ch)
  * Sends a file block by block to the FPGA to
  * search for md5_match.
  */
+/*
 int send_file(char *filename, struct ftdi_context *ftdi, 
         struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes)
@@ -238,6 +354,7 @@ int send_file(char *filename, struct ftdi_context *ftdi,
     fclose(fp);
     return 0;
 }
+*/
 
 
 /*
@@ -245,6 +362,7 @@ int send_file(char *filename, struct ftdi_context *ftdi,
  * out the return bytes which should be
  * 10,9,8...1
  */
+/*
 void cmd_test(struct ftdi_context *ftdi)
 {
     int ret;
@@ -268,6 +386,7 @@ void cmd_test(struct ftdi_context *ftdi)
         printf("ERROR cmd_test ret=%d\n",ret);
     }
 }
+*/
 
 /*
  * Reads the ACK.
@@ -275,6 +394,7 @@ void cmd_test(struct ftdi_context *ftdi)
  * 0 = NACK.
  * -1 = ERROR.
  */
+/*
 int read_ack(struct ftdi_context *ftdi)
 {
     int ret;
@@ -292,11 +412,13 @@ int read_ack(struct ftdi_context *ftdi)
     }
     return ack;
 }
+*/
 
 /*
  * Sends the set hash cmd 0x01.
  * Return 1 for ACK, 0 for NACK, -1 for ERROR.
  */
+/*
 int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash)
 {
     int ret;
@@ -319,6 +441,7 @@ int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash)
 
     return read_ack(ftdi);
 }
+*/
 
 /*
  * Sends the send_text cmd, 0x02.
@@ -327,6 +450,7 @@ int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash)
  * ACK indicates that a string was found that matches
  * the target hash.
  */
+/*
 int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
         int text_str_len)
 {
@@ -361,6 +485,7 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
     // Read the ACK.
     return read_ack(ftdi);
 }
+*/
 
 /*
  * Sends the read match, 0x03.
@@ -368,6 +493,7 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
  * Assumes that result has a str that has been allocated
  * Return 1 for success.
  */
+/*
 int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result)
 {
     int ret;
@@ -391,6 +517,7 @@ int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result)
 
     return 1; // success
 }
+*/
 
 /*
  * Helper sleep function
