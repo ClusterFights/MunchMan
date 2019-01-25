@@ -177,7 +177,6 @@ int main(int argc, char *argv[]) {
     printf("send bytes_per_sec: %f\n",bytes_per_sec);
 
     // Receive bytes.
-    /*
 
     // Change the bus direction to read from FPGA
     bus_read_config();
@@ -227,6 +226,5 @@ int main(int argc, char *argv[]) {
     printf ("recv total time = %f seconds\n", total_time);
     bytes_per_sec = 256 / total_time;
     printf("recv bytes_per_sec: %f\n",bytes_per_sec);
-    */
 }
 
