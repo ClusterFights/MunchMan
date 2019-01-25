@@ -1,20 +1,13 @@
 /*  
-data_test.c
-
-This program sends sequential bytes 0..255 over
-the parallel interface to the ArtyS7 board.
-It then reads one byte back.  1 indicates success,
-0 fail.
-
-Author: Brandon Blodget
-Create Date: 01/22/2019
-
-Compile:
- gcc $GPIO_BASE -Wall -o data_test data_test.c && sudo chown root data_test && sudo chmod +s data_test
-
-Run:
- ./data_test
-
+* data_test.c
+* 
+* This program sends sequential bytes 0..255 over
+* the parallel interface to the ArtyS7 board.
+* It then reads one byte back.  1 indicates success,
+* 0 fail.
+* 
+* Author: Brandon Blodget
+* Create Date: 01/22/2019
 */
 #include <stdio.h>
 #include <time.h>
@@ -134,17 +127,16 @@ inline void bus_write(unsigned char byte)
     if (byte & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
     if (byte & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
 
-    // Clock should be set and cleared
+    // Clear the clock
     clr_reg |= (1<<CLK);
-    set_reg |= (1<<CLK);
 
     // Clear first, setting clock low
     // Then set, setting clock high
     GPIO_CLR = clr_reg;
     GPIO_SET = set_reg;
 
-    // Seems to be necessary to get consistant results.
-    // not sure why.
+    // After the other IOs are set
+    // Assert the clock last.
     GPIO_SET_N(CLK);
 }
 
@@ -174,7 +166,7 @@ int main(int argc, char *argv[]) {
         // XXX printf("i: %d\n",i);
         bus_write((unsigned char)i);
         // Sleep for for a bit
-        // XXX sleep_ms(50);
+        // XXX sleep_ms(1000);
     }
     gettimeofday(&tv2, NULL);
 
