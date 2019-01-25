@@ -51,7 +51,7 @@ static const int k[64] = {
 int md5(uint8_t *initial_msg, uint8_t *hash_byte)
 {
     uint8_t msg[64] = {0};
-    int initial_len = strlen(initial_msg);
+    int initial_len = strlen((char *)initial_msg);
 
     // Since the ClusterFight Challenge is using a string size
     // of 19-bytes, we will assume the initial_msg will be
