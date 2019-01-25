@@ -38,20 +38,64 @@ module top_data_test
 
 /*
 *****************************
-* Assignments
+* Signals & Assignments
 *****************************
 */
 
 wire reset;
 
 // bus_data out (read)
-reg [7:0] bus_data_out;
+wire [7:0] bus_data_out;
+
+wire [7:0] rxd_data;
+wire rxd_data_ready;
+
+reg [7:0] txd_data;
+reg txd_valid;
+wire trans_ready_next;
 
 assign bus_data = (bus_rnw==1) ? bus_data_out : 8'bz;
-
 assign reset = ~reset_n;
-
 assign led0_r = reset;
+
+/*
+*****************************
+* Instantiation
+*****************************
+*/
+
+par8_receiver par8_receiver_inst
+(
+    .clk(clk_100mhz),     // fast, like 100mhz
+    .reset(reset),
+
+    // parallel bus
+    .bus_clk(bus_clk),
+    .bus_data(bus_data),
+    .bus_rnw(bus_rnw),     // rpi/master perspective
+
+    // output
+    .rxd_data(rxd_data),  // valid for one clock cycle when rxd_data_ready is asserted.
+    .rxd_data_ready(rxd_data_ready)
+);
+
+par8_transmitter par8_transmitter_inst
+(
+    .clk(clk_100mhz),     // fast, like 100mhz
+    .reset(reset),
+
+    // Data to send
+    .txd_data(txd_data),
+    .valid(txd_valid),
+
+    // parallel bus
+    .bus_clk(bus_clk),
+    .bus_rnw(bus_rnw),     // rpi/master perspective
+
+    // output
+    .bus_data(bus_data_out),
+    .ready_next(trans_ready_next)
+);
 
 
 /*
@@ -60,129 +104,77 @@ assign led0_r = reset;
 *****************************
 */
 
-// register the parallel bus
-reg bus_clk_reg;
-reg bus_rnw_reg;
-reg [7:0] bus_data_reg;
-
-always @ (posedge clk_100mhz)
-begin
-    if (reset) begin
-        bus_clk_reg <= 0;
-        bus_rnw_reg <= 0;
-        bus_data_reg <= 0;
-    end else begin
-        bus_clk_reg <= bus_clk;
-        bus_rnw_reg <= bus_rnw;
-        bus_data_reg <= bus_data;
-    end
-end
-
 // States
 localparam IDLE             = 0;
-localparam SYNC1            = 1;
-localparam SYNC2            = 2;
-localparam WAIT_CLOCK_LOW   = 3;
-localparam WAIT_CLOCK_HIGH  = 4;
-localparam CHECK            = 5;
-localparam RECV_DONE        = 6;
-
-localparam SEND_WAIT_CLOCK_LOW   = 7;
-localparam SEND_WAIT_CLOCK_HIGH  = 8;
-localparam SEND_CHECK            = 9;
-localparam SEND_DONE             = 10;
+localparam CHECK            = 1;
+localparam RECV_DONE        = 2;
+localparam SEND_CHECK       = 3;
+localparam SEND_DONE        = 4;
 
 reg [3:0] state;
 reg [7:0] expected_val;
+reg [3:0] led_val;
+reg [7:0] send_count;
 
 always @ (posedge clk_100mhz)
 begin
     if (reset) begin
         state <= IDLE;
         expected_val <= 0;
-        bus_data_out <= 0;
+        led_val <= 0;
         led_out <= 0;
         led0_g <= 0;
         led1_r <= 0;
+        txd_data <= 0;
+        txd_valid <= 0;
     end else begin
         case (state)
             IDLE : begin
-                bus_data_out <= 1;  // assume pass
+                led_val <= 1;  // assume pass
                 expected_val <= 0;
-                state <= SYNC1;
-            end
-            SYNC1 : begin
-                // Wait for 1st sync word
-                if (bus_data_reg == 8'hB8) begin
-                    state <= SYNC2;
-                end
-            end
-            SYNC2 : begin
-                // Wait for 2nd sync word
-                if (bus_data_reg == 8'h8B) begin
-                    state <= WAIT_CLOCK_LOW;
-                end
-            end
-            WAIT_CLOCK_LOW : begin
-                if (bus_clk_reg == 0) begin
-                    state <= WAIT_CLOCK_HIGH;
-                end
-            end
-            WAIT_CLOCK_HIGH : begin
-                if (bus_clk_reg == 1) begin
-                    state <= CHECK;
-                end
+                state <= CHECK;
             end
             CHECK : begin
-                led_out <= bus_data_reg[3:0];
-                if (bus_data_reg != expected_val) begin
-                    bus_data_out <= 0;  // nope, fail
-                    led1_r <= led1_r + 1;
-                end else begin
-                    // match
-                    led0_g <= led0_g + 1;
-                end
-                if (expected_val == 255) begin
-                    led_out[3:0] <= bus_data_out[3:0];
-                    state <= RECV_DONE;
-                end else begin
-                    expected_val <= expected_val + 1;
-                    state <= WAIT_CLOCK_LOW;
+                if (rxd_data_ready) begin
+                    led_out <= rxd_data[3:0];
+                    if (rxd_data != expected_val) begin
+                        led_val <= 0;  // nope, fail
+                        led1_r <= led1_r + 1;
+                    end else begin
+                        // match
+                        led0_g <= led0_g + 1;
+                    end
+
+                    if (expected_val == 255) begin
+                        led_out[3:0] <= led_val[3:0];
+                        state <= RECV_DONE;
+                    end else begin
+                        expected_val <= expected_val + 1;
+                        state <= CHECK;
+                    end
                 end
             end
             RECV_DONE : begin
-                // Wait to switch to "Read" mode,
-                if (bus_rnw_reg == 1) begin
-                    bus_data_out <= 8'hFF; // setting to -1
-                    state <= SEND_WAIT_CLOCK_LOW;
-                end
-            end
-
-            // send test: send bytes 0...255 back
-            SEND_WAIT_CLOCK_LOW : begin
-                if (bus_clk_reg == 0) begin
-                    // Set the data
-                    bus_data_out <= bus_data_out + 1;
-                    state <= SEND_WAIT_CLOCK_HIGH;
-                end
-            end
-            SEND_WAIT_CLOCK_HIGH : begin
-                if (bus_clk_reg == 1) begin
-                    state <= SEND_CHECK;
-                end
+                send_count <= 0; 
+                txd_valid <= 0;
+                state <= SEND_CHECK;
             end
             SEND_CHECK : begin
-                if (bus_data_out == 255) begin
-                    state <= SEND_DONE;
+                if (trans_ready_next) begin
+                    txd_data <= send_count;
+                    txd_valid <= 1;
+                    send_count <= send_count + 1;
+                    if (send_count == 255) begin
+                        state <= SEND_DONE;
+                    end
                 end else begin
-                    state <= SEND_WAIT_CLOCK_LOW;
+                    txd_valid <= 0;
                 end
             end
             SEND_DONE : begin
                 led_out[1] <= 1;
                 state <= SEND_DONE;
             end
-
             default : begin
                 state <= IDLE;
             end
