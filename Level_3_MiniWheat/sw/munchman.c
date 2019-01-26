@@ -412,14 +412,22 @@ void cmd_test()
 
     bus_write(0x04);
 
+    sleep_ms(100);
+    bus_read_config();
+    sleep_ms(100);
+
     // Read the test bytes 10,9,8..1
     printf("Read the test bytes 10,9,8..1.\n");
     ret = bus_read_data(ret_buffer, 10);
 
     for (int i=0; i<ret; i++)
     {
-        printf("%d: %x\n",i,ret_buffer[i]);
+        printf("%d: %d\n",i,ret_buffer[i]);
     }
+
+    sleep_ms(100);
+    bus_write_config();
+    sleep_ms(100);
 }
 
 /*

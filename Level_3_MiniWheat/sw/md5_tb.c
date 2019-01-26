@@ -40,7 +40,10 @@ int main(int argc, char *argv[])
 
     // Init and sync bus
     bus_write_config();
+    sleep_ms(100);
+
     sync_bus();
+    sleep_ms(100);
 
     // Send the test command 0x04.
     printf("Sending the test command 0x04.\n");
