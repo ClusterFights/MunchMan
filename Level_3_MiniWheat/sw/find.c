@@ -99,6 +99,7 @@ int run()
     struct match_result match;
     struct timeval tv1, tv2;
     int num_hashes=0;
+    long long total_proc_bytes=0;
 
     // Start the timer.
     gettimeofday(&tv1, NULL);
@@ -111,6 +112,7 @@ int run()
                 lflag, target_hash, &num_hashes);
         if (ack == 1)
         {
+            total_proc_bytes += num_hashes;
             // hash found.
 
             // Stop the timer
@@ -118,7 +120,9 @@ int run()
             double total_time = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                  (double) (tv2.tv_sec - tv1.tv_sec);
             printf ("Total time = %f seconds\n", total_time);
-            double bytes_per_sec = num_hashes / total_time;
+            printf ("Total bytes processed = %lld \n", total_proc_bytes);
+            // double bytes_per_sec = num_hashes / total_time;
+            double bytes_per_sec = total_proc_bytes / total_time;
             printf("bytes_per_sec: %f\n",bytes_per_sec);
 
 
@@ -128,6 +132,7 @@ int run()
             // error occured
             return ack;
         }
+        total_proc_bytes += manifest_list[i].size;
     }
 
     return 0;
