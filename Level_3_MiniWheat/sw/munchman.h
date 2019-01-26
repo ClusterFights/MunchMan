@@ -29,7 +29,7 @@ extern "C" {
 * Constants
 ***************************
 */
-#define BUFFER_SIZE 30000
+#define BUFFER_SIZE 40000
 
 // Parallel Bus GPIOs
 #define DATA0   (21)

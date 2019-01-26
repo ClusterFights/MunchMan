@@ -121,9 +121,9 @@ int run()
                  (double) (tv2.tv_sec - tv1.tv_sec);
             printf ("Total time = %f seconds\n", total_time);
             printf ("Total bytes processed = %lld \n", total_proc_bytes);
-            // double bytes_per_sec = num_hashes / total_time;
-            double bytes_per_sec = total_proc_bytes / total_time;
-            printf("bytes_per_sec: %f\n",bytes_per_sec);
+            // double hashes_per_sec = num_hashes / total_time;
+            double hashes_per_sec = total_proc_bytes / total_time;
+            printf("hashes_per_sec: %f\n",hashes_per_sec);
 
 
             return 1;

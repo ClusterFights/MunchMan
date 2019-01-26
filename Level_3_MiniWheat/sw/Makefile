@@ -1,7 +1,7 @@
 CC=gcc
 GPIO_BASE=-DGPIO_BASE=0x3f200000
 
-all: test_toggle data_test md5_tb find munchman.h
+all: test_toggle data_test md5_tb find
 
 test_toggle: test_toggle.c
 	$(CC) $(GPIO_BASE) -Wall -O3 -o $@ $^
