@@ -490,7 +490,7 @@ unsigned char cmd_send_text(unsigned char *text_str, int text_str_len)
     bus_write(0x02);
 
     // Send the number of bytes to be sent.
-    len_bytes[0] = (unsigned char)text_str_len>>8;
+    len_bytes[0] = (unsigned char)(text_str_len>>8);
     len_bytes[1] = (unsigned char)(text_str_len & 0xFF);
     ret = bus_write_data(len_bytes, 2);
     if (ret != 2)
