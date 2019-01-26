@@ -76,6 +76,7 @@ extern unsigned char read_val;
 */
 
 void sleep_ms(int ms);
+void sleep_us(int us);
 void sync_bus();
 void bus_write_config();
 void bus_read_config();
@@ -89,20 +90,8 @@ unsigned char cmd_set_hash(unsigned char *target_hash);
 unsigned char cmd_send_text(unsigned char *text_str, int text_str_len);
 unsigned char cmd_read_match(struct match_result *result);
 
-/*
-int filecopy(FILE *ifp, struct ftdi_context *ftdi);
-void cmd_test(struct ftdi_context *ftdi);
-int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash);
-int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
-        int text_str_len);
-int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result);
-int send_file(char *filename, struct ftdi_context *ftdi, 
-        struct match_result *match, int lflag,
+unsigned char send_file(char *filename, struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes);
-*/
-
-void sleep_us(int us);
-
 
 
 #ifdef __cplusplus

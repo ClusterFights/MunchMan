@@ -256,40 +256,6 @@ unsigned char bus_read()
 // ********** old stuff ***************
 
 
-
-/*
-int filecopy(FILE *ifp, struct ftdi_context *ftdi)
-{
-    char buffer[4096];
-    char *out_ptr = buffer;
-    size_t nread; 
-    int nwritten;
-    int num_sent = 0;
-
-    while (nread = fread(buffer, sizeof(char), sizeof(buffer), ifp), nread > 0)
-    {
-        out_ptr = buffer;
-        do
-        {
-            nwritten = ftdi_write_data(ftdi, out_ptr, nread);
-            if (nwritten >= 0)
-            {
-                num_sent += nwritten;
-                nread -= nwritten;
-                out_ptr += nwritten;
-            } 
-            else
-            {
-                printf("Error during ftd_write_data: %d",nwritten);
-                return -1;
-            }
-        } while (nread > 0);
-    }
-
-    return num_sent;
-}
-*/
-
 /*
  * Helper functions that changes chars
  * like newline into `\n` so match
@@ -341,14 +307,12 @@ void string_push(unsigned char *buffer, unsigned char ch)
  * Sends a file block by block to the FPGA to
  * search for md5_match.
  */
-/*
-int send_file(char *filename, struct ftdi_context *ftdi, 
-        struct match_result *match, int lflag,
+unsigned char send_file(char *filename, struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes)
 {
     char buffer[BUFFER_SIZE];
     size_t nread;
-    int ack=0;
+    unsigned char ack=0;
     FILE *fp;
     int loop=0;
     int byte_offset=0;
@@ -373,13 +337,13 @@ int send_file(char *filename, struct ftdi_context *ftdi,
         if (lflag == 0)
         {
             // Process on FPGA board
-            ack = cmd_send_text(ftdi, buffer, nread);
-            if (ack == 1)
+            ack = cmd_send_text(buffer, nread);
+            if (ack)
             {
                 printf("FOUND! md5_hash found.\n");
 
                 printf("\nSent command to read match data, 0x03.\n");
-                cmd_read_match(ftdi, match);
+                cmd_read_match(match);
                 byte_offset = (loop*BUFFER_SIZE) + match->pos - 18;
                 *num_hashes = byte_offset + 1;
                 to_byte_str(match->str,match_str);
@@ -388,9 +352,9 @@ int send_file(char *filename, struct ftdi_context *ftdi,
 
                 fclose(fp);
                 return 1;
-            } else if (ack == -1)
+            } else
             {
-                printf("ERROR: during send_file cmd_send_text ftdi\n");
+                printf("ERROR: during send_file cmd_send_text fpga. ack=%d\n",ack);
                 fclose(fp);
                 return -1;
             }
@@ -445,8 +409,6 @@ int send_file(char *filename, struct ftdi_context *ftdi,
     fclose(fp);
     return 0;
 }
-*/
-
 
 /*
  * Sends the test command 0x04 and prints
