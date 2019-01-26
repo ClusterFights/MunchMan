@@ -134,9 +134,53 @@ void bus_write(unsigned char byte)
 }
 
 /*
- * Read a byte of data of the parallel interface.
+ * Read a byte of data from the parallel interface.
+ * Returns the number of bytes read.
  */
-unsigned char bus_read()
+int bus_read_data(unsigned char *buffer, int num_to_read)
+{
+    int i=0;
+
+    // TODO :  It would be nice if the first byte the FPGA sent was the
+    // total number of bytes it will send.
+
+    //TODO : Make check better
+    if (num_to_read >= BUFFER_SIZE)
+    {
+        printf("ERROR num_to_read(%d)>=BUFFER_SIZE(%d)\n",num_to_read, BUFFER_SIZE);
+        return -1;
+    }
+
+    for (i=0; i<num_to_read; i++)
+    {
+        // drive the clock low
+        GPIO_CLR_N(CLK);
+        GPIO_CLR_N(CLK);
+
+        // drive the clock high
+        GPIO_SET_N(CLK);
+        GPIO_SET_N(CLK);
+
+        // Read the data off of the bus
+        read_pins = GPIO_LEV;
+        buffer[i] =  ((read_pins >> (DATA0-0))&0x01) |
+                    ((read_pins >> (DATA1-1))&0x02) |
+                    ((read_pins >> (DATA2-2))&0x04) |
+                    ((read_pins >> (DATA3-3))&0x08) |
+
+                    ((read_pins >> (DATA4-4))&0x10) |
+                    ((read_pins >> (DATA5-5))&0x20) |
+                    ((read_pins >> (DATA6-6))&0x40) |
+                    ((read_pins >> (DATA7-7))&0x80);
+    }
+    return num_to_read;
+
+}
+
+/*
+ * Reads multiple bytes into a buffer.
+ */
+unsigned char bus_read(unsigned char *buffer, int num_to_read)
 {
     // drive the clock low
     GPIO_CLR_N(CLK);
@@ -362,31 +406,21 @@ int send_file(char *filename, struct ftdi_context *ftdi,
  * out the return bytes which should be
  * 10,9,8...1
  */
-/*
-void cmd_test(struct ftdi_context *ftdi)
+void cmd_test()
 {
     int ret;
 
-    ret = ftdi_write_data(ftdi, "\x04", 1); // cmd
-    if (ret != 1)
-    {
-        printf("ERROR during cmd_test, ftdi_write_data: %d != %d\n",ret,1);
-    }
+    bus_write(0x04);
 
     // Read the test bytes 10,9,8..1
     printf("Read the test bytes 10,9,8..1.\n");
-    ret = ftdi_read_data(ftdi, ret_buffer, BUFFER_SIZE);
-    if (ret > 0) {
-        printf("Num of bytes read=%d\n",ret);
-        for (int i=0; i<ret; i++)
-        {
-            printf("%d: %x\n",i,ret_buffer[i]);
-        }
-    } else {
-        printf("ERROR cmd_test ret=%d\n",ret);
+    ret = bus_read_data(ret_buffer, 10);
+
+    for (int i=0; i<ret; i++)
+    {
+        printf("%d: %x\n",i,ret_buffer[i]);
     }
 }
-*/
 
 /*
  * Reads the ACK.

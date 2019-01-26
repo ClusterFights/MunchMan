@@ -38,28 +38,15 @@ int main(int argc, char *argv[])
     int ack;
     int ret;
 
-    // Setup the FTDI connections
-    /*
-    printf("Setup ftdi\n");
-    if ((ftdi = ftdi_new()) == 0)
-    {
-        printf("ftdi_new failed\n");
-        return EXIT_FAILURE;
-    }
-
-    // Initialize the ftdi.
-    printf("Initialize ftdi\n");
-    ftdi_setup(ftdi);
-
-    // Read anything that is hanging around.
-    printf("Clear input char queue.\n");
-    clear_ftdi(ftdi);
-    */
+    // Init and sync bus
+    bus_write_config();
+    sync_bus();
 
     // Send the test command 0x04.
     printf("Sending the test command 0x04.\n");
-    cmd_test(ftdi);
+    cmd_test();
 
+    /*
     // Send the set hash command 0x01.
     printf("Sending the set hash command 0x01.\n");
     cmd_set_hash(ftdi, target_hash);
@@ -73,16 +60,8 @@ int main(int argc, char *argv[])
     cmd_read_match(ftdi, &match);
     printf("match.pos = %d \n",match.pos);
     printf("match.str = %s \n",match.str);
-
-    // Close connections
-    /*
-    printf("Close the ftdi_usb.\n");
-    ret = ftdi_usb_close(ftdi);
-    if (ret < 0)
-    {
-        printf("unable to close ftdi: %d (%s)\n", ret, ftdi_get_error_string(ftdi));
-    }
     */
+
 
     return EXIT_SUCCESS;
 }

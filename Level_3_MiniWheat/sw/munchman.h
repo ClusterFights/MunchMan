@@ -81,7 +81,9 @@ void bus_write_config();
 void bus_read_config();
 void bus_write(unsigned char byte);
 unsigned char bus_read();
+int bus_read_data(unsigned char *buffer, int num_to_read);
 
+void cmd_test();
 
 /*
 int filecopy(FILE *ifp, struct ftdi_context *ftdi);
