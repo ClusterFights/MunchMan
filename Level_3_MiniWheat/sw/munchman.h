@@ -82,8 +82,12 @@ void bus_read_config();
 void bus_write(unsigned char byte);
 unsigned char bus_read();
 int bus_read_data(unsigned char *buffer, int num_to_read);
+int bus_write_data(unsigned char *buffer, int num_to_write);
 
 void cmd_test();
+unsigned char cmd_set_hash(unsigned char *target_hash);
+unsigned char cmd_send_text(unsigned char *text_str, int text_str_len);
+unsigned char cmd_read_match(struct match_result *result);
 
 /*
 int filecopy(FILE *ifp, struct ftdi_context *ftdi);

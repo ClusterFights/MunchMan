@@ -137,6 +137,53 @@ void bus_write(unsigned char byte)
  * Read a byte of data from the parallel interface.
  * Returns the number of bytes read.
  */
+int bus_write_data(unsigned char *buffer, int num_to_write)
+{
+    int i;
+
+    //TODO : Make check better
+    if (num_to_write >= BUFFER_SIZE)
+    {
+        printf("ERROR num_to_write(%d)>=BUFFER_SIZE(%d)\n",num_to_write, BUFFER_SIZE);
+        return -1;
+    }
+
+    for (i=0; i< num_to_write; i++)
+    {
+        // Clear the set and clr variables
+        set_reg = 0;
+        clr_reg = 0;
+
+        // Setup data
+        if (buffer[i] & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
+        if (buffer[i] & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
+        if (buffer[i] & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
+        if (buffer[i] & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
+
+        if (buffer[i] & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
+        if (buffer[i] & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
+        if (buffer[i] & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
+        if (buffer[i] & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+
+        // Clear the clock
+        clr_reg |= (1<<CLK);
+
+        // Clear first, setting clock low
+        // Then set, setting clock high
+        GPIO_CLR = clr_reg;
+        GPIO_SET = set_reg;
+
+        // After the other IOs are set
+        // Assert the clock last.
+        GPIO_SET_N(CLK);
+    }
+    return num_to_write;
+}
+
+/*
+ * Reads multiple bytes into a buffer.
+ * Returns the number of bytes read.
+ */
 int bus_read_data(unsigned char *buffer, int num_to_read)
 {
     int i=0;
@@ -178,9 +225,9 @@ int bus_read_data(unsigned char *buffer, int num_to_read)
 }
 
 /*
- * Reads multiple bytes into a buffer.
+ * Read a byte of data from the parallel interface.
  */
-unsigned char bus_read(unsigned char *buffer, int num_to_read)
+unsigned char bus_read()
 {
     // drive the clock low
     GPIO_CLR_N(CLK);
@@ -426,60 +473,34 @@ void cmd_test()
     bus_write_config();
 }
 
-/*
- * Reads the ACK.
- * 1 = ACK.
- * 0 = NACK.
- * -1 = ERROR.
- */
-/*
-int read_ack(struct ftdi_context *ftdi)
-{
-    int ret;
-    int ack = -1;
-
-    ret_buffer[0] = -1;
-    ret = ftdi_read_data(ftdi, ret_buffer, BUFFER_SIZE);
-    if (ret == 1) {
-        ack = ret_buffer[0];
-        if ( !(ack==0 || ack==1) ) {
-            printf("ERROR read_ack invalid value. ack=%x\n",ack);
-        }
-    } else {
-        printf("ERROR read_ack. ret=%d, ack=%x\n",ret,ack);
-    }
-    return ack;
-}
-*/
 
 /*
  * Sends the set hash cmd 0x01.
  * Return 1 for ACK, 0 for NACK, -1 for ERROR.
  */
-/*
-int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash)
+unsigned char cmd_set_hash(unsigned char *target_hash)
 {
     int ret;
+    unsigned char ack;
 
     // Send the set hash command 0x01.
-    ret = ftdi_write_data(ftdi, "\x01", 1); // cmd
-    if (ret != 1)
-    {
-        printf("Error cmd_set_hash during cmd write: %d != %d\n",ret,1);
-        return -1;
-    }
+    bus_write(0x01);
 
     // Send the target hash.
-    ret = ftdi_write_data(ftdi, target_hash, 16); //data
+    ret = bus_write_data(target_hash, 16); //data
     if (ret != 16)
     {
         printf("ERROR cmd_set_hash during hash write: %d != %d\n",ret,16);
         return -1;
     }
 
-    return read_ack(ftdi);
+    // Return the ack
+    bus_read_config();
+    ack = bus_read();
+    bus_write_config();
+
+    return ack;
 }
-*/
 
 /*
  * Sends the send_text cmd, 0x02.
@@ -488,24 +509,19 @@ int cmd_set_hash(struct ftdi_context *ftdi, unsigned char *target_hash)
  * ACK indicates that a string was found that matches
  * the target hash.
  */
-/*
-int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
-        int text_str_len)
+unsigned char cmd_send_text(unsigned char *text_str, int text_str_len)
 {
     int ret;
+    unsigned char ack;
     unsigned char len_bytes[2];
 
-    ret = ftdi_write_data(ftdi, "\x02", 1); // cmd
-    if (ret != 1)
-    {
-        printf("ERROR cmd_send_text during write cmd: %d != %d\n",ret,1);
-        return -1;
-    }
+    // Send the send text command 0x02.
+    bus_write(0x02);
 
     // Send the number of bytes to be sent.
     len_bytes[0] = (unsigned char)text_str_len>>8;
     len_bytes[1] = (unsigned char)(text_str_len & 0xFF);
-    ret = ftdi_write_data(ftdi, len_bytes, 2);
+    ret = bus_write_data(len_bytes, 2);
     if (ret != 2)
     {
         printf("ERROR cmd_send during send length: %d != %d\n",ret,2);
@@ -513,17 +529,20 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
     }
 
     // Send the string.
-    ret = ftdi_write_data(ftdi, text_str, text_str_len);
+    ret = bus_write_data(text_str, text_str_len);
     if (ret != text_str_len)
     {
         printf("ERROR cmd_send_text during send text: %d != %d\n",ret,text_str_len);
         return -1;
     }
 
-    // Read the ACK.
-    return read_ack(ftdi);
+    // Return the ack
+    bus_read_config();
+    ack = bus_read();
+    bus_write_config();
+
+    return ack;
 }
-*/
 
 /*
  * Sends the read match, 0x03.
@@ -531,20 +550,17 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
  * Assumes that result has a str that has been allocated
  * Return 1 for success.
  */
-/*
-int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result)
+unsigned char cmd_read_match(struct match_result *result)
 {
     int ret;
 
-    ret = ftdi_write_data(ftdi, "\x03", 1); // cmd
-    if (ret != 1)
-    {
-        printf("ERROR cmd_read_match, during write cmd: %d != %d\n",ret,1);
-        return -1;
-    }
+    // Send the read match command 0x03.
+    bus_write(0x03);
+
+    bus_read_config();
 
     // Read the match data
-    ret = ftdi_read_data(ftdi, ret_buffer, BUFFER_SIZE);
+    ret = bus_read_data(ret_buffer, 21);
     if (ret == 21) {
         result->pos = (int)((ret_buffer[0]<<8) + (ret_buffer[1]&0xFF));
         strncpy(result->str,&ret_buffer[2],19);
@@ -553,9 +569,10 @@ int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result)
         return -1;
     }
 
+    bus_write_config();
+
     return 1; // success
 }
-*/
 
 /*
  * Helper sleep function

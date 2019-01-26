@@ -33,10 +33,7 @@ static struct match_result match;
 
 int main(int argc, char *argv[])
 {
-    // XXX struct ftdi_context *ftdi;
-    // XXX struct ftdi_version_info version;
-    int ack;
-    int ret;
+    unsigned char ack;
 
     // Init and sync bus
     bus_write_config();
@@ -49,22 +46,31 @@ int main(int argc, char *argv[])
     printf("Sending the test command 0x04.\n");
     cmd_test();
 
-    /*
     // Send the set hash command 0x01.
     printf("Sending the set hash command 0x01.\n");
-    cmd_set_hash(ftdi, target_hash);
+    ack = cmd_set_hash(target_hash);
+    if (!ack) {
+        printf("ERROR, during set hash command. ack=%d\n",ack);
+        return EXIT_FAILURE;
+    }
 
     // Send the send text command 0x02.
     printf("Sending the send text command 0x02.\n");
-    cmd_send_text(ftdi, test_str, test_str_len);
+    ack = cmd_send_text(test_str, test_str_len);
+    if (!ack) {
+        printf("ERROR, during send text command. ack=%d\n",ack);
+        return EXIT_FAILURE;
+    }
 
     // Send the command to read match data, 0x03.
     printf("\nSent command to read match data, 0x03.\n");
-    cmd_read_match(ftdi, &match);
+    ack = cmd_read_match(&match);
+    if (!ack) {
+        printf("ERROR, during read match data. ack=%d\n",ack);
+        return EXIT_FAILURE;
+    }
     printf("match.pos = %d \n",match.pos);
     printf("match.str = %s \n",match.str);
-    */
-
 
     return EXIT_SUCCESS;
 }
