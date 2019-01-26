@@ -268,7 +268,9 @@ begin
                     $display("TEST count: %d",txd_data);
                     txd_start <= 1;
                     char_count <= char_count - 1;
-                    cmd_state <= TEST2;
+                    if (char_count == 1) begin
+                        cmd_state <= TEST2;
+                    end
                 end else begin
                     txd_start <= 0;
                 end
