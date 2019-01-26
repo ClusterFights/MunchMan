@@ -347,6 +347,8 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                 byte_offset = (loop*BUFFER_SIZE) + match->pos - 18;
                 *num_hashes = byte_offset + 1;
                 to_byte_str(match->str,match_str);
+                printf("num_hashes = %d \n",*num_hashes);
+                printf("loop = %d \n",loop);
                 printf("byte_offset = %d \n",byte_offset);
                 printf("match_str = %s \n",match_str);
 
@@ -390,6 +392,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                         byte_offset = (loop*BUFFER_SIZE) + match->pos - 19;
                         to_byte_str(match->str,match_str);
                         printf("num_hashes = %d \n",*num_hashes);
+                        printf("loop = %d \n",loop);
                         printf("byte_offset = %d \n",byte_offset);
                         printf("match_str = %s \n",match_str);
                         fclose(fp);

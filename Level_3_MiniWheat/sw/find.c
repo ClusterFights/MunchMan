@@ -206,6 +206,10 @@ int main(int argc, char *argv[])
         sync_bus();
         sleep_ms(100);
 
+        // Send the test command 0x04.
+        printf("Sending the test command 0x04.\n");
+        cmd_test();
+
         // Send the set hash command 0x01.
         printf("Sending the set hash command 0x01.\n");
         ack = cmd_set_hash(target_hash);
