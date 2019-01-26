@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
 
     // TODO : Remove this.
-    sleep_ms(100);
+    sleep_us(300);
 
     // Read 256 bytes
     unsigned char val;
