@@ -78,6 +78,9 @@ void bus_write_config()
 
     // Set RNW to write mode (0).
     GPIO_CLR_N(RNW);
+
+    // FIXME : This is a test
+    sleep_us(2000);
 }
 
 /*
@@ -98,6 +101,9 @@ void bus_read_config()
 
     // Set RNW to read mode (1).
     GPIO_SET_N(RNW);
+
+    // FIXME : This is a test
+    sleep_us(2000);
 }
 
 /*
@@ -338,7 +344,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
         {
             // Process on FPGA board
             ack = cmd_send_text(buffer, nread);
-            if (ack)
+            if (ack==1)
             {
                 printf("FOUND! md5_hash found.\n");
 
@@ -354,7 +360,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
 
                 fclose(fp);
                 return 1;
-            } else
+            } else if (ack==-1)
             {
                 printf("ERROR: during send_file cmd_send_text fpga. ack=%d\n",ack);
                 fclose(fp);
