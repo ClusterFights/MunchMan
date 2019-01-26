@@ -142,9 +142,9 @@ int bus_write_data(unsigned char *buffer, int num_to_write)
     int i;
 
     //TODO : Make check better
-    if (num_to_write >= BUFFER_SIZE)
+    if (num_to_write > BUFFER_SIZE)
     {
-        printf("ERROR num_to_write(%d)>=BUFFER_SIZE(%d)\n",num_to_write, BUFFER_SIZE);
+        printf("ERROR num_to_write(%d)>BUFFER_SIZE(%d)\n",num_to_write, BUFFER_SIZE);
         return -1;
     }
 
@@ -192,9 +192,9 @@ int bus_read_data(unsigned char *buffer, int num_to_read)
     // total number of bytes it will send.
 
     //TODO : Make check better
-    if (num_to_read >= BUFFER_SIZE)
+    if (num_to_read > BUFFER_SIZE)
     {
-        printf("ERROR num_to_read(%d)>=BUFFER_SIZE(%d)\n",num_to_read, BUFFER_SIZE);
+        printf("ERROR num_to_read(%d)>BUFFER_SIZE(%d)\n",num_to_read, BUFFER_SIZE);
         return -1;
     }
 

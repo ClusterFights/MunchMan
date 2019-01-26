@@ -202,9 +202,9 @@ int main(int argc, char *argv[])
     {
         // Init and sync bus
         bus_write_config();
-        sleep_ms(10);
+        sleep_ms(100);
         sync_bus();
-        sleep_ms(10);
+        sleep_ms(100);
 
         // Send the set hash command 0x01.
         printf("Sending the set hash command 0x01.\n");
