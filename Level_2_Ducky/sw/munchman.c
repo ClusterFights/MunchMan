@@ -341,7 +341,7 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
     }
 
     // Send the number of bytes to be sent.
-    len_bytes[0] = (unsigned char)text_str_len>>8;
+    len_bytes[0] = (unsigned char)(text_str_len>>8);
     len_bytes[1] = (unsigned char)(text_str_len & 0xFF);
     ret = ftdi_write_data(ftdi, len_bytes, 2);
     if (ret != 2)
