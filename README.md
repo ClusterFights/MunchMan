@@ -1,13 +1,14 @@
 # MunchMan
 ![munchman icon](images/munchman_icon.png)
+
 _Munch Man munches data as fast as he can_
 
-Inspired by the classic 80's game for the TI-99/4a.
+Inspired by the classic 80's game of the same name for the TI-99/4a.
 
 ## Description
 
-Munch Man is a clusterfigher.  The plan is to start simple
-and level up over time.  
+Munch Man is a [ClusterFigher](http://clusterfights.com/wiki/index.php?title=Main_Page).
+The plan is to start simple and level up over time.  
 
 ![level1_spinny](images/level1_spinny.png)
 __Level_1_Spinny__ : Python scripts for generating a
