@@ -1,4 +1,5 @@
 # Level 3 : MiniWheat
+![level3_MiniWheat](../images/level3_MiniWheat.png)
 
 ## Description
 

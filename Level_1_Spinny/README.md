@@ -1,4 +1,5 @@
 # Level 1 : Spinny
+![level1_spinny](../images/level1_spinny.png)
 
 ## Description
 
