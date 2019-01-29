@@ -110,14 +110,12 @@ class Find_Hash:
                 break
             file_size, file_path = file_info
             self.buffer_hash = ""
-            # NOTE : Use latin-1 encoding to map byte values directly
-            # to first 256 Unicode code points.  Generates
-            # no exceptions, unlike utf-8.
+            # NOTE : Read file as binary using "rb"
             with open(file_path, mode="rb") as fp:
                 print(index, file_path)
                 while True:
                     chunk = fp.read(self.BUF_LEN)
-                    if  chunk == "":
+                    if  (not chunk):
                         break
                     done = self.process(chunk)
                     if done:

@@ -282,8 +282,11 @@ int read_ack(struct ftdi_context *ftdi)
 
     ret_buffer[0] = -1;
     ret = ftdi_read_data(ftdi, ret_buffer, BUFFER_SIZE);
-    if (ret > 0) {
+    if (ret == 1) {
         ack = ret_buffer[0];
+        if ( !(ack==0 || ack==1) ) {
+            printf("ERROR read_ack invalid value. ack=%x\n",ack);
+        }
     } else {
         printf("ERROR read_ack. ret=%d, ack=%x\n",ret,ack);
     }
@@ -338,7 +341,7 @@ int cmd_send_text(struct ftdi_context *ftdi, unsigned char *text_str,
     }
 
     // Send the number of bytes to be sent.
-    len_bytes[0] = (unsigned char)text_str_len>>8;
+    len_bytes[0] = (unsigned char)(text_str_len>>8);
     len_bytes[1] = (unsigned char)(text_str_len & 0xFF);
     ret = ftdi_write_data(ftdi, len_bytes, 2);
     if (ret != 2)
@@ -389,4 +392,14 @@ int cmd_read_match(struct ftdi_context *ftdi, struct match_result *result)
     return 1; // success
 }
 
+/*
+ * Helper sleep function
+ */
+void sleep_us(int us)
+{
+    struct timespec ts;
+    ts.tv_sec = us / 1000000;
+    ts.tv_nsec = (us % 1000000) * 1000;
+    nanosleep(&ts, NULL);
+}
 

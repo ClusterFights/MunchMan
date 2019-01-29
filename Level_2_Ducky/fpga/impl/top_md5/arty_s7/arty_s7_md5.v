@@ -31,6 +31,7 @@ module arty_s7_md5 #
     input wire rxd,
 
     output wire txd,
+    output wire led0_g,
     output wire [NUM_LEDS-1:0] led
 );
 
@@ -62,6 +63,7 @@ top_md5 #
     .rxd(rxd),
 
     .txd(txd),
+    .match_led(led0_g),
     .led(led)
 );
 

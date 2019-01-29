@@ -16,38 +16,123 @@
 // Force error when implicit net has no type.
 `default_nettype none
 
-`timescale 1 ns / 1 ps
+`timescale 1 ns / 1 ns
 
 `define TESTBENCH
+`define NULL    0
 
 module sim_top_tb;
 
-// Inputs (registers)
-reg clk;
+/*
+*****************************
+* Inputs (registers)
+*****************************
+*/
+
+// top_md5
+reg clk_100mhz;
 reg reset;
-reg rxd;
-reg [7:0] rxd_data;
-reg rxd_data_ready;
-reg txd_busy;
+
+// async_transmitter
+reg txd_start;
+reg [7:0] txd_data;
 
 
-// Outputs (wires)
-wire txd_start;
-wire [7:0] txd_data;
-wire [7:0] led;
+/*
+*****************************
+* Outputs (wires)
+*****************************
+*/
+
+// top_md5
+wire serial_out;
+wire match_led;
+wire [3:0] led;
+
+// async_transmitter
+wire txd_busy;
+wire serial_in;
+
+// async_receiver
+wire data_out_ready;
+wire [7:0] data_out;
+wire data_out_idle;
+wire data_out_endofpacket;
+
+/*
+*****************************
+* Internal (wires)
+*****************************
+*/
+
+integer file, r;    // file handler
+integer i,j,k;      // loop counters
+
+reg finished;
+reg done;
+reg ret;
+reg ack;
+
+// version for send_file
+reg sf_done=0;
+reg [7:0] sf_ack=0;
+integer sf_i;
+integer sf_j=0;
+integer sf_k=0;
+
+reg match;
+reg[15:0] match_pos;
+reg[19*8:0] match_str;
+
+/*
+*****************************
+* Parameters
+*****************************
+*/
+
+parameter CLK_FREQUENCY = 100_000_000;
+parameter BAUD = 12_000_000;
+parameter NUM_LEDS = 4;
+parameter FILE_SIZE_IN_BYTES = 163_185;  // +1 (alice30.txt)
+// XXX parameter FILE_SIZE_IN_BYTES = 254;  // +1 (test.txt)
 
 
-// Define the tests.
+parameter CMD_SET_HASH_OP       = 8'h01;
+parameter CMD_SEND_TEXT_OP      = 8'h02;
+parameter CMD_READ_MATCH_OP     = 8'h03;
+parameter CMD_TEST_OP           = 8'h04;
 
-// test1 : set the target hash.
-// hash is for "The quick brown fox"
-reg [135:0] test1 = 136'h01_a2004f37_730b9445_670a738f_a0fc9ee5;
+parameter BUFFER_SIZE           = 200;
 
-// test2 : Send the text string.
-// string : "Hello. The quick brown fox jumps over the lazy dog."
-// string length is 51 dec or 0x33.
-// total length in bytes is 54 dec.
-reg [431:0] test2 = 432'h02_0033_48656c6c_6f2e2054_68652071_7569636b_2062726f_776e2066_6f78206a_756d7073_206f7665_72207468_65206c61_7a792064_6f672e;
+/*
+******************************************
+* Testbench memories
+******************************************
+*/
+
+// tv_mem holds bytes from the
+// sample text file alice30.txt
+reg [7:0] tv_mem [0:FILE_SIZE_IN_BYTES-1];
+
+// the target hash
+
+// file: alice30.txt
+// byte_offset: 800
+// byte_str: b"\nAlice's Adventures"
+// reg [127:0] target_hash = 128'h1d5468d37f38dc34dca0692c3a6f2c83;
+
+// file: alice30.txt
+// byte_offset: 100
+// byte_str: b"ed alice30.txt or a"
+reg [127:0] target_hash = 128'h7e2ba776cc7b346f3592bfedb41b18bd;
+
+// file: test.txt
+// byte_offset: 233
+// byte_str: b"123456789ABCDEF0123"
+// reg [127:0] target_hash = 128'hccfa4ae8ea9d1e44d22f73b9c53c844c;
+
+// Buffer for the text to be sent to FPGA.
+reg [(BUFFER_SIZE*8)-1:0] text_str;
 
 /*
 *****************************
@@ -55,240 +140,411 @@ reg [431:0] test2 = 432'h02_0033_48656c6c_6f2e2054_68652071_7569636b_2062726f_77
 *****************************
 */
 
-sim_top sim_top_inst
-(
-    .clk(clk),
-    .reset(reset),
-
-    // uart_rx (receive)
-    .rxd_data(rxd_data),   // [7:0] 
-    .rxd_data_ready(rxd_data_ready),
-
-    // uart_tx (transmit)
-    .txd_busy(txd_busy),
-
-    .txd_start(txd_start),
-    .txd_data(txd_data),   // [7:0] 
-
-    .led(led)    // [7:0] 
-);
-
-/*
 top_md5 #
 (
-    .CLK_FREQUENCY(100_000_000),
-    .BAUD(12_000_000),
-    .NUM_LEDS(8)
+    .CLK_FREQUENCY(CLK_FREQUENCY),
+    .BAUD(BAUD),
+    .NUM_LEDS(NUM_LEDS)
 ) top_md5_inst
 (
-    .clk(clk),
+    .clk(clk_100mhz),
     .reset(reset),
-    .rxd(rxd),
+    .rxd(serial_in),
 
-    .txd,
-    .led
+    .txd(serial_out),
+    .match_led(match_led),
+    .led(led)
 );
-*/
 
+async_transmitter # (
+    .ClkFrequency(CLK_FREQUENCY),
+    .Baud(BAUD)
+) async_transmitter_inst (
+    .clk(clk_100mhz),
+    .TxD_start(txd_start),
+    .TxD_data(txd_data),
+    .TxD(serial_in),
+    .TxD_busy(txd_busy)
+);
+
+async_receiver # (
+    .ClkFrequency(CLK_FREQUENCY),
+    .Baud(BAUD)
+) async_receiver_inst (
+    .clk(clk_100mhz),
+    .RxD(serial_out),
+    .RxD_data_ready(data_out_ready),
+    .RxD_data(data_out),
+    .RxD_idle(data_out_idle),
+    .RxD_endofpacket(data_out_endofpacket)
+);
 
 /*
 *****************************
 * Main
 *****************************
 */
+
+// Main testbench
 initial begin
+    // For viewer
     $dumpfile("sim_top.vcd");
     $dumpvars;
-    clk = 0;
-    reset = 0;
-    rxd_data = 0;
-    rxd_data_ready = 0;
-    txd_busy = 0;
 
-    // Wait 100ns
+    // initialize memories
+    file = $fopen("alice30.txt", "rb");
+    // XXX file = $fopen("test.txt", "rb");
+    if (file == `NULL)
+    begin
+        $display("data_file handle was NULL");
+    while (txd_busy == 1)
+    begin
+        @ (posedge clk_100mhz);
+    end
+        $finish;
+    end
+    r = $fread(tv_mem, file);
+    $display("r: ",r);
+    $display("feof: ",$feof(file));
+    $fclose(file);
+
+    // initialize registers
+    clk_100mhz      = 0;
+    reset           = 0;
+    txd_start       = 0;
+    txd_data        = 0;
+    text_str        = 0;
+    match_pos       = 0;
+    match_str       = 0;
+    match           = 0;
+
+    // Wait 100 ns for global reset to finish
     #100;
     // Add stimulus here
-    @(posedge clk);
-    reset = 1;
-    @(posedge clk);
-    @(posedge clk);
-    reset = 0;
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
-    @(posedge clk);
+    @(posedge clk_100mhz);
+    reset   = 1;
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    reset   = 0;
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    // XXX cmd_test;
+    cmd_set_hash(ret);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    // XXX cmd_send_text(BUFFER_SIZE);
+    send_file(match);
+    @(posedge clk_100mhz);
+    if (match == 1)
+    begin
+        cmd_read_match;
+    end
+//    @(posedge finished);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    $finish;
 end
 
 
-// Internal signals
-reg [7:0] tb_state;
-reg [10:0] tb_char_count;
-reg [15:0] ret_byte_pos;
-
-// States
-localparam IDLE             = 0;
-localparam TEST0            = 1;
-localparam TEST0_RET        = 2;
-localparam EXTRA_CLOCKS0    = 3;
-localparam TEST1            = 4;
-localparam TEST1_RET        = 5;
-localparam EXTRA_CLOCKS1    = 6;
-localparam TEST2            = 7;
-localparam TEST2_RET        = 8;
-localparam EXTRA_CLOCKS2    = 9;
-localparam TEST3            = 10;
-localparam TEST3_RET1       = 11;
-localparam TEST3_RET2       = 12;
-localparam EXTRA_CLOCKS3    = 13;
-localparam FINISHED         = 14;
-
-always @ (posedge clk)
+// Test reading from tv_mem
+/*
+reg [15:0] count;
+always @ (posedge clk_100mhz)
 begin
     if (reset) begin
-        tb_state <= IDLE;
-        tb_char_count <= 0;
-        ret_byte_pos <= 0;
+        count <= 0;
+        finished <= 0;
     end else begin
-        case (tb_state)
-            IDLE : begin
-                tb_state <= TEST0;
-            end
-            TEST0 : begin
-                // Test the test command (0x04) which
-                // returns countdown 10..1
-                rxd_data_ready <= 1;
-                rxd_data <= 8'h04;
-                tb_char_count <= 10;
-                tb_state <= TEST0_RET;
-            end
-            TEST0_RET : begin
-                rxd_data_ready <= 0;
-                if (txd_start) begin
-                    tb_char_count <= tb_char_count - 1;
-                    $display("TB: TEST0: %d",txd_data);
-                    if (tb_char_count == 1) begin
-                        tb_char_count <= 5;
-                        tb_state <= EXTRA_CLOCKS0;
-                        $display("TB: next state EXTRA_CLOCKS0");
-                    end
-                end else begin
-                    $display("TB: stuck in TEST0_RET");
-                end
-            end
-            EXTRA_CLOCKS0 : begin
-                tb_char_count <= tb_char_count - 1;
-                if (tb_char_count == 0) begin
-                    tb_char_count <= 17;
-                    // XXX tb_state <= TEST1;
-                    tb_state <= FINISHED;
-                end
-            end
-            TEST1 : begin
-                rxd_data_ready <= 1;
-                rxd_data <= test1[135:128];
-                test1[135:0] <= {test1[127:0],8'h0};
-                tb_char_count <= tb_char_count - 1;
-                if (tb_char_count == 0) begin
-                    rxd_data_ready <= 0;
-                    rxd_data <= 0;
-                    tb_state <= TEST1_RET;
-                end
-            end
-            TEST1_RET : begin
-                if (txd_start) begin
-                    $display("TEST1 ACK: %d",txd_data);
-                    tb_char_count <= 4;
-                    tb_state <= EXTRA_CLOCKS1;
-                end
-            end
-            EXTRA_CLOCKS1 : begin
-                tb_char_count <= tb_char_count - 1;
-                if (tb_char_count == 0) begin
-                    tb_char_count <= 54;
-                    tb_state <= TEST2;
-                end
-            end
-            TEST2 : begin
-                rxd_data_ready <= 1;
-                rxd_data <= test2[431:424];
-                test2[431:0] <= {test2[423:0],8'h0};
-                tb_char_count <= tb_char_count - 1;
-                if (tb_char_count == 0) begin
-                    rxd_data_ready <= 0;
-                    rxd_data <= 0;
-                    tb_state <= TEST2_RET;
-                end
-            end
-            TEST2_RET : begin
-                if (txd_start) begin
-                    $display("TEST2 ACK: %d",txd_data);
-                    tb_char_count <= 4;
-                    tb_state <= EXTRA_CLOCKS2;
-                end
-            end
-            EXTRA_CLOCKS2 : begin
-                tb_char_count <= tb_char_count - 1;
-                if (tb_char_count == 0) begin
-                    tb_state <= TEST3;
-                end
-            end
-            TEST3 : begin
-                // Send cmd 0x03. To read match data
-                rxd_data_ready <= 1;
-                rxd_data <= 8'h03;
-                tb_char_count <= 2;
-                tb_state <= TEST3_RET1;
-            end
-            TEST3_RET1 : begin
-                rxd_data_ready <= 0;
-                if (txd_start) begin
-                    tb_char_count <= tb_char_count - 1;
-                    ret_byte_pos[15:0] <= {ret_byte_pos[7:0],txd_data[7:0]};
-                end
-                if (tb_char_count == 0) begin
-                    $display("byte_pos: %d",ret_byte_pos);
-                    tb_char_count <= 19;
-                    tb_state <= TEST3_RET2;
-                end
-            end
-            TEST3_RET2 : begin
-                if (txd_start) begin
-                    tb_char_count <= tb_char_count - 1;
-                    $display("%x %s",txd_data, txd_data);
-                end
-                if (tb_char_count == 0) begin
-                    tb_char_count <= 4;
-                    tb_state <= EXTRA_CLOCKS3;
-                end
-            end
-            EXTRA_CLOCKS3 : begin
-                tb_char_count <= tb_char_count - 1;
-                if (tb_char_count == 0) begin
-                    tb_state <= FINISHED;
-                end
-            end
-            FINISHED : begin
-                $finish;
-            end
-            default : begin
-                tb_state <= IDLE;
-            end
-        endcase
+        count <= count + 1;
+        $display("%d %c",count, tv_mem[count]);
+        if (count == 50) begin
+            finished <= 1;
+        end
     end
 end
+*/
+
+// Wait for transmitter to not be busy
+task wait_for_transmit_ready;
+begin
+    @ (posedge clk_100mhz);
+    done = 0;
+    while(!done)
+    begin
+        @ (posedge clk_100mhz);
+        if (txd_busy == 0)
+        begin
+            done = 1;
+        end
+    end
+end
+endtask
+
+// Task to send a character
+task send_char;
+    input [7:0] char;
+begin
+    wait_for_transmit_ready;
+    @ (posedge clk_100mhz);
+    txd_start = 1;
+    txd_data = char;
+    @ (posedge clk_100mhz);
+    txd_start = 0;
+end
+endtask
+
+// Read a char
+task read_char;
+    output [7:0] char;
+begin
+    i = 0;
+    done = 0;
+    char = 255;
+    while(!done)
+    begin
+        if (data_out_ready==1)
+        begin
+            char = data_out;
+            done = 1;
+        end
+        @ (posedge clk_100mhz);
+        i = i + 1;
+        if (i == 1000)
+        begin
+            $display("%t: ERROR read_char",$time);
+            done = 1;
+        end
+    end
+end
+endtask
+
+// Read the ack
+task read_ack;
+    output [7:0] ack;
+begin
+    $display("%t: BEGIN read_ack",$time);
+    read_char(ack);
+    $display("%t: END read_ack",$time);
+    /*
+    i=0;
+    done = 0;
+    ack = 0;
+    while(!done)
+    begin
+        if (data_out_ready==1)
+        begin
+            $display("%t: ACK value=%d",$time,data_out);
+            ack = data_out;
+            done = 1;
+        end
+        @ (posedge clk_100mhz);
+        i = i + 1;
+        if (i == 1000)
+        begin
+            $display("%t: ERROR no ACK",$time);
+            done = 1;
+        end
+    end
+    */
+end
+endtask
 
 
-// Generate a ~12mhz clk
+// Task to send test cmd.
+task cmd_test;
+begin
+    $display("\n%t: BEGIN cmd_test",$time);
+    // Send the command
+    send_char(CMD_TEST_OP);
+
+    // Read Back the test data
+    done = 0;
+    i = 0;
+    while(!done)
+    begin
+        @ (posedge clk_100mhz);
+        if (data_out_ready==1)
+        begin
+            $display("%t: %d val=%d",$time,i,data_out);
+            if (data_out==1)
+                done = 1;
+        end
+        i = i + 1;
+    end
+    $display("\n%t: END cmd_test",$time);
+
+end
+endtask
+
+// Task to send target hash
+task cmd_set_hash;
+    output [7:0] ack;
+begin
+    $display("\n%t: BEGIN cmd_set_hash",$time);
+
+    // Send the command
+    send_char(CMD_SET_HASH_OP);
+
+    // Send the 16 target hash bytes
+    for (i=15; i>=0; i=i-1)
+    begin
+        send_char(target_hash[8*i +: 8]);
+        // XXX $display("%t: %d hash_byte:%2x",$time,i,txd_data);
+    end
+
+    // Read the ack
+    read_ack(ack);
+
+    // Print value.
+    $display("%t cmd_state=%x",$time,top_md5_inst.cmd_parser_inst.cmd_state);
+    $display("%t target_hash=%x",$time,top_md5_inst.cmd_parser_inst.target_hash);
+    $display("%t: END cmd_set_hash",$time);
+end
+endtask
+
+
+// Task to send a block of text
+task cmd_send_text;
+    input [15:0] text_str_len;
+    output [7:0] ack;
+begin
+    $display("\n%t: BEGIN cmd_send_text",$time);
+
+    // Send the command
+    send_char(CMD_SEND_TEXT_OP);
+
+    // Send the number of bytes to be sent
+    // Send MSB first
+    send_char(text_str_len[15:8]);
+    $display("%t: MSB len=%x",$time,txd_data);
+    // Send LSB second
+    send_char(text_str_len[7:0]);
+    $display("%t: LSB len=%x",$time,txd_data);
+
+    // Send the characters
+    $display("");
+    for (i=0; i <text_str_len; i++)
+    begin
+        send_char(text_str[8*i +: 8]);
+        // XXX $display("%t: %d char=%c",$time,i,txd_data);
+        $write("%c",txd_data);
+    end
+    $display("\n");
+
+    // Read the ack
+    read_ack(ack);
+
+    $display("%t: END cmd_send_text",$time);
+end
+endtask
+
+// Task to send test file
+task send_file;
+    output match;
+begin
+    $display("\n%t: BEGIN send_file",$time);
+    match = 0;
+
+    sf_done=0; sf_i=0; sf_j=0; sf_k=0; sf_ack=0;
+    while(!sf_done)
+    begin
+        if (sf_i+BUFFER_SIZE-1 > FILE_SIZE_IN_BYTES)
+        begin
+            // last transfer
+            sf_j= FILE_SIZE_IN_BYTES -sf_i;
+            $display("%t: last transfer: %d:%d %d",$time,sf_i,FILE_SIZE_IN_BYTES-1,sf_j);
+
+            // Copy into text_str
+            for (sf_k=0; sf_k<sf_j; sf_k=sf_k+1)
+            begin
+                text_str[sf_k*8 +: 8] = tv_mem[sf_i];
+                sf_i=sf_i+1;
+            end
+            // Send to device
+            cmd_send_text(sf_j,sf_ack);
+
+            // Check if match found
+            if (sf_ack == 1)
+            begin
+                $display("%t: MATCH FOUND!!",$time);
+                match = 1;
+            end
+            else
+            begin
+                $display("%t: MATCH NOT found",$time);
+            end
+            sf_i=sf_j;
+            sf_done = 1;
+        end
+        else
+        begin
+            // full transfer
+            sf_j= sf_i + BUFFER_SIZE;
+            $display("%t: full transfer: %d:%d",$time,sf_i,sf_j-1);
+            // Copy into text_str
+            for (sf_k=0; sf_k<BUFFER_SIZE; sf_k=sf_k+1)
+            begin
+                text_str[sf_k*8 +: 8] = tv_mem[sf_i];
+                sf_i=sf_i+1;
+            end
+            // Send to device
+            cmd_send_text(BUFFER_SIZE,sf_ack);
+            
+            // Check if match found
+            if (sf_ack == 1)
+            begin
+                $display("%t: MATCH FOUND!!",$time);
+                match = 1;
+                sf_done = 1;
+            end
+            else
+            begin
+                $display("%t: MATCH NOT found",$time);
+            end
+        end
+    end // while
+
+    $display("%t: END send_file",$time);
+end
+endtask
+
+// Task read match info
+task cmd_read_match;
+begin
+    $display("\n%t: BEGIN cmd_read_match",$time);
+
+    // Send the command
+    send_char(CMD_READ_MATCH_OP);
+
+    // Read the the match byte position
+    // Read MSB
+    $display("%t: Read byte position",$time);
+    read_char(match_pos[15:8]);
+    // Read LSB
+    read_char(match_pos[7:0]);
+    match_pos = match_pos - 18;
+
+    // Read the match string
+    $display("%t: Read match string",$time);
+    for (j=18; j>=0; j=j-1)
+    begin
+        read_char(match_str[j*8 +: 8]);
+    end
+
+    $display("%t: match_pos: %d",$time,match_pos);
+    $display("%t: match_str: '%s'",$time,match_str);
+
+    $display("%t: END cmd_read_match",$time);
+end
+endtask
+
+
+// Generate a 100mhz clk
 always begin
-    #41 clk <= ~clk;
+    #5 clk_100mhz <= ~clk_100mhz;
 end
 
-
 endmodule
-
 

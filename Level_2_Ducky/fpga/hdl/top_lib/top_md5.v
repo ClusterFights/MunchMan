@@ -25,6 +25,7 @@ module top_md5 #
     input wire rxd,
 
     output wire txd,
+    output reg  match_led,
     output wire [NUM_LEDS-1:0] led
 );
 
@@ -180,6 +181,45 @@ md5core md5core_inst
     .m_out(md5_msg_ret),  // [151:0] 
     .valid_out(md5_msg_ret_valid)
 );
+
+/*
+*****************************
+* main
+*****************************
+*/
+
+// Create a pwm signal
+reg [16:0] pwm_count;
+reg pwm;
+always @ (posedge clk)
+begin
+    if (reset) begin
+        pwm_count <= 0;
+        pwm <= 0;
+    end else begin
+        pwm_count <= pwm_count + 1;
+        if (pwm_count == 0) begin
+            pwm <= ~pwm;
+        end
+    end
+end
+
+// Drive the match_led
+reg proc_match_latch;
+always @ (posedge clk)
+begin
+    if (reset) begin
+        proc_match_latch <= 0;
+        match_led <= 0;
+    end else begin
+        if (proc_match) begin
+            proc_match_latch <= 1;
+        end
+        if (proc_match_latch) begin
+            match_led <= pwm;
+        end
+    end
+end
 
 
 endmodule

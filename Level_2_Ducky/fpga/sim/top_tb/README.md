@@ -2,19 +2,23 @@
 
 ## Status
 
-__Broken__ : Currently this simulation is broken.
-To fix it need to update sim_top_tb to instantiate
-top_md5 instead of sim_top.  cmd_parser has been updated
-to look for transistions on txd_busy which sim_top_tb
-currently does not generate.  So sim_top_tb needs to be updated
-to work with top_md5.
+__GOOD__ : The 'make run' target works.  The 'make view'
+waveform is out of date but you can add the signals
+you want to see.
 
 ## Description
 
-This directory holds a simulation for the three modules
-cmd_parser, string_process_match, and top_md5 all working
-together. This is almost the full design,  just leaving out
-the uart and pll which have already been tested.
+This directory basically simulates the whole top_md5
+design.  The testbench contains task which implement
+the cmd_set_hash, cmd_send_text, and cmd_read_match.
+It also has a task, send_file, which breaks the text
+file alice30.txt into chunks and sends it into the
+design. The size of the chunks are determined by the
+parameter BUFFER_SIZE.
+
+The testbench has a uart which converts the
+streaming char bytes into a serial stream.  Likewise
+it reads the output serial stream into bytes.
 
 * __compile__ : Default target. Compiles without running the simulation.  Good way to
   test for syntax errors.
@@ -31,35 +35,38 @@ the uart and pll which have already been tested.
 ...
 vvp sim_top.vvp
 VCD info: dumpfile sim_top.vcd opened for output.
-TEST1 ACK:   1
-TEST2 ACK:   1
-byte_pos:    51
-54 T
-68 h
-65 e
-20  
-71 q
-75 u
-69 i
-63 c
-6b k
-20  
-62 b
-72 r
-6f o
-77 w
-6e n
-20  
-66 f
-6f o
-78 x
-```
+r:      163184
+feof:          1
 
-```
-> make view
-```
+                 155: BEGIN cmd_set_hash
+               15235: BEGIN read_ack
+               17005: END read_ack
+               17005 cmd_state=00
+               17005 target_hash=7e2ba776cc7b346f3592bfedb41b18bd
+               17005: END cmd_set_hash
 
-![sim_top_tb waveform](images/sim_top_tb.png)
+               17025: BEGIN send_file
+               17025: full transfer:           0:        199
+
+               17025: BEGIN cmd_send_text
+               18005: MSB len=00
+               18945: LSB len=c8
+***This is the Project Gutenberg Etext of Alice in Wonderland***
+*This 30th edition should be labeled alice30.txt or alice30.zip.
+***This Edition Is Being Officially Released On March 8, 1994***
+**              206945: BEGIN read_ack
+              212605: END read_ack
+              212605: END cmd_send_text
+              212605: MATCH FOUND!!
+              212605: END send_file
+
+              212615: BEGIN cmd_read_match
+              212655: Read byte position
+              215365: Read match string
+              233215: match_pos:   100
+              233215: match_str: ' ed alice30.txt or a'
+              233215: END cmd_read_match
+```
 
 
 

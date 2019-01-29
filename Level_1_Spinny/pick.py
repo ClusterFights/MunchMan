@@ -73,9 +73,7 @@ else:
     byte_offset = args.offset
 
 # Extract the string
-# NOTE : Use latin-1 encoding to map byte values directly
-# to first 256 Unicode code points.  Generates
-# no exceptions, unlike utf-8.
+# NOTE : Read file as binary using "rb"
 with open(file_path, mode="rb") as fp:
     fp.seek(byte_offset)
     byte_str = fp.read(STR_LEN)
@@ -90,5 +88,4 @@ print("file_path: ",file_path)
 print("byte_offset: ",byte_offset)
 print('byte_str: {}'.format(byte_str))
 print('hash: {}'.format(md5.hexdigest()))
-
 

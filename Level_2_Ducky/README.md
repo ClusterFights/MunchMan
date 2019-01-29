@@ -1,4 +1,5 @@
 # Level 2 : Ducky
+![level2_ducky](../images/level2_ducky.png)
 
 ## Description
 
