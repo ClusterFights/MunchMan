@@ -27,7 +27,8 @@ module md5core
     input wire reset,
     input wire en,
 
-    input wire [511:0] m_in,
+    input wire [447:0] m_in,
+    input wire [63:0] length,
     input wire valid_in,
 
     output reg [31:0] a_out, b_out, c_out, d_out,
@@ -128,7 +129,7 @@ hash_op #
     .b(b0),
     .c(c0),
     .d(d0),
-    .m_in(m_in),
+    .m_in( {m_in, length} ),
     .valid_in(valid_in),
 
     .a_out(hop_a[1]),
