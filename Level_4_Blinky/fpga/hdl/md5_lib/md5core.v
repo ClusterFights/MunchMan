@@ -27,13 +27,11 @@ module md5core
     input wire reset,
     input wire en,
 
-    // m_in is only the 19 character (152 bits)
-    // of the msg.  msg_pad holds the rest.
-    input wire [151:0] m_in,
+    input wire [511:0] m_in,
     input wire valid_in,
 
     output reg [31:0] a_out, b_out, c_out, d_out,
-    output reg [151:0] m_out,
+    output reg [511:0] m_out,
     output reg valid_out
 );
 
@@ -78,14 +76,6 @@ localparam[31:0] b0 = 32'hefcdab89;
 localparam[31:0] c0 = 32'h98badcfe;
 localparam[31:0] d0 = 32'h10325476;
 
-// For the ClusterFight competition all MD5 hashes are 19 characters.
-// The first bit following the message is '1' hence the 0x80.
-// The message is padded to 56 bytes by adding 0's.  The last
-// 64-bits hold the original msg length in bits in big endian format.
-// The original length is 19 chars = 152 bits = 0x98 bits.
-// So the padding to the end of the message is constant.
-localparam[359:0] msg_pad = 360'h80_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_98000000_00000000;
-
 /*
 *****************************
 * Functions
@@ -111,7 +101,7 @@ wire[31:0] hop_a [0:64];
 wire[31:0] hop_b [0:64];
 wire[31:0] hop_c [0:64];
 wire[31:0] hop_d [0:64];
-wire[151:0] hop_m [0:64];
+wire[511:0] hop_m [0:64];
 wire [0:64] hop_valid;
 
 
@@ -126,8 +116,7 @@ hash_op #
 (
     .index(0),
     .s(s[5*(63-0) +: 5]),
-    .k(k[32*(63-0) +: 32]),
-    .msg_pad(msg_pad)
+    .k(k[32*(63-0) +: 32])
 ) hash_op_inst
 (
     .clk(clk),
@@ -139,8 +128,6 @@ hash_op #
     .b(b0),
     .c(c0),
     .d(d0),
-    // m_in is only the 19 character (152 bits)
-    // of the msg.  msg_pad holds the rest.
     .m_in(m_in),
     .valid_in(valid_in),
 
@@ -160,8 +147,7 @@ generate
         (
             .index(gi),
             .s(s[5*(63-gi) +: 5]),
-            .k(k[32*(63-gi) +: 32]),
-            .msg_pad(msg_pad)
+            .k(k[32*(63-gi) +: 32])
         ) hash_op_inst
         (
             .clk(clk),

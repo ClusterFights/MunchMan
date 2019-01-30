@@ -24,7 +24,7 @@ reg clk_12mhz;
 reg reset;
 reg en;
 reg valid_in;
-reg [151:0] mesg;
+reg [511:0] mesg;
 
 
 // Outputs (wires)
@@ -47,6 +47,8 @@ wire [127:0] hash2 = 128'hac98cf84_ae657376_cea165e6_729ddb39;
 // mesg3="This is a test. 123"
 wire [151:0] mesg3 = 152'h54686973_20697320_61207465_73742e20_313233;
 wire [127:0] hash3 = 128'hcaea4868_5020e1b5_11a454f6_60943eaa;
+
+localparam[359:0] msg_pad = 360'h80_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_98000000_00000000;
 /*
 *****************************
 * Instantiation (DUT)
@@ -126,15 +128,15 @@ begin
 
             case (sim_count)
                 5 : begin
-                    mesg <= mesg1;
+                    mesg <= {mesg1, msg_pad};
                     valid_in <= 1;
                 end
                 6 : begin
-                    mesg <= mesg2;
+                    mesg <= {mesg2, msg_pad};
                     valid_in <= 1;
                 end
                 7 : begin
-                    mesg <= mesg3;
+                    mesg <= {mesg3, msg_pad};
                     valid_in <= 1;
                 end
                 default : begin
