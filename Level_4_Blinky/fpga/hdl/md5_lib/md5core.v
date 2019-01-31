@@ -6,14 +6,11 @@
 * modules to implement the core of the
 * md5 hash algorithm.
 *
-* It has been optimized for the ClustFight 
-* competition which has fixed length strings
-* of 19 characters.
-*
-* Target Board: iCE40HX-8K Breakout Board.
-*
 * Author : Brandon Bloodget
 * Create Date: 10/16/2018
+*
+* Updates:
+* 01/30/2019 : Update to support variable length strings.
 *
 *****************************
 */
@@ -28,13 +25,24 @@ module md5core
     input wire en,
 
     input wire [447:0] m_in,
-    input wire [63:0] length,
+    input wire [15:0] length,   // big endian
     input wire valid_in,
 
     output reg [31:0] a_out, b_out, c_out, d_out,
     output reg [511:0] m_out,
     output reg valid_out
 );
+
+/*
+*****************************
+* Assignments
+*****************************
+*/
+
+wire [63:0] length_pad;
+
+// change to little endian plus pad
+assign length_pad = {length[7:0],length[15:8],48'h0};
 
 /*
 *****************************
@@ -129,7 +137,7 @@ hash_op #
     .b(b0),
     .c(c0),
     .d(d0),
-    .m_in( {m_in, length} ),
+    .m_in( {m_in, length_pad} ),
     .valid_in(valid_in),
 
     .a_out(hop_a[1]),

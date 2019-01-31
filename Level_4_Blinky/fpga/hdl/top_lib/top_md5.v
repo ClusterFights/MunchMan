@@ -12,6 +12,7 @@
 *
 * Updates:
 * 01/25/2019 - Add 8-bit parallel interface.
+* 01/30/2019 - Update to support variable length strings.
 *
 *****************************
 */
@@ -52,6 +53,7 @@ wire [7:0] proc_data;
 wire proc_data_valid;
 wire proc_match_char_next;
 wire [127:0] proc_target_hash;
+wire [15:0] proc_str_len;
 
 wire proc_done;
 wire proc_match;
@@ -62,10 +64,11 @@ wire [31:0] a_ret;
 wire [31:0] b_ret;
 wire [31:0] c_ret;
 wire [31:0] d_ret;
-wire [151:0] md5_msg_ret;
+wire [511:0] md5_msg_ret;
 wire md5_msg_ret_valid;
 
-wire [151:0] md5_msg;
+wire [447:0] md5_msg;
+wire [15:0] md5_length;
 wire md5_msg_valid;
 
 
@@ -153,6 +156,7 @@ cmd_parser # (
     .proc_data_valid(proc_data_valid),
     .proc_match_char_next(proc_match_char_next),
     .proc_target_hash(proc_target_hash), // [127:0] 
+    .proc_str_len(proc_str_len),    // [15:0]
 
     // feedback/debug
     .led(led)    //   
@@ -171,6 +175,7 @@ string_process_match string_process_match_inst
     .proc_data_valid(proc_data_valid),
     .proc_match_char_next(proc_match_char_next),
     .proc_target_hash(proc_target_hash),   // [127:0] 
+    .proc_str_len(proc_str_len),    // [15:0]
 
     .proc_done(proc_done),
     .proc_match(proc_match),
@@ -184,8 +189,8 @@ string_process_match string_process_match_inst
     .d_ret(d_ret),
     .md5_msg_ret(md5_msg_ret),    // [151:0] 
     .md5_msg_ret_valid(md5_msg_ret_valid),
-
-    .md5_msg(md5_msg),        // [151:0] 
+    .md5_msg(md5_msg),        // [447:0] 
+    .md5_length(md5_length),  // [15:0]
     .md5_msg_valid(md5_msg_valid)
 );
 
@@ -195,14 +200,15 @@ md5core md5core_inst
     .reset(reset),
     .en(1'b1),
 
-    .m_in(md5_msg),   // [151:0] 
+    .m_in(md5_msg),   // [447:0] 
+    .length(md5_length),   // [15:0]
     .valid_in(md5_msg_valid),
 
     .a_out(a_ret),  // [31:0] 
     .b_out(b_ret),
     .c_out(c_ret),
     .d_out(d_ret),
-    .m_out(md5_msg_ret),  // [151:0] 
+    .m_out(md5_msg_ret),  // [511:0] 
     .valid_out(md5_msg_ret_valid)
 );
 

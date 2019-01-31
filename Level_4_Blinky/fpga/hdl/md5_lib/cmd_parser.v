@@ -21,8 +21,9 @@
 * Author : Brandon Bloodget
 *
 * Updates:
-* 01/025/2014 : changed port txd_busy to txd_ready_next, to be compatible with
+* 01/25/2019 : changed port txd_busy to txd_ready_next, to be compatible with
 *               par8_transmitter.
+* 01/30/2019 : Added set STR_LEN command.
 *
 *****************************
 */
@@ -58,6 +59,7 @@ module cmd_parser #
     output reg proc_data_valid,
     output reg proc_match_char_next,
     output wire [127:0] proc_target_hash,
+    output wire [15:0] proc_str_len,    // big endian
 
     // feedback/debug
     output wire [NUM_LEDS-1:0] led
@@ -72,6 +74,7 @@ module cmd_parser #
 assign led[NUM_LEDS-1:0] = cmd_state[NUM_LEDS-1:0];
 assign proc_target_hash[127:0] = target_hash[127:0];
 assign proc_num_bytes[15:0] = num_bytes[15:0];
+assign proc_str_len[15:0] = str_len[15:0];
 
 /*
 *****************************
@@ -94,12 +97,14 @@ localparam TEST             = 7;
 localparam TEST2            = 8;
 localparam ACK              = 9;
 localparam NACK             = 10;
+localparam STR_LEN          = 11;
 
 // Character constants
 localparam SET_CMD      = 8'h01;
 localparam PROC_CMD     = 8'h02;
 localparam RET_CMD      = 8'h03;
 localparam TEST_CMD     = 8'h04;
+localparam STR_LEN_CMD  = 8'h05;
 
 // Character constants
 localparam NACK_CHAR    = 8'h00;
@@ -115,6 +120,7 @@ reg [7:0] cmd_state;
 reg [15:0] char_count;
 reg [127:0] target_hash;
 reg [15:0] num_bytes;
+reg [15:0] str_len;
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -130,6 +136,7 @@ begin
         proc_start <= 0;
         proc_match_char_next <= 0;
         num_bytes <= 0;
+        str_len <= 0;
     end else begin
         case (cmd_state)
             IDLE : begin
@@ -152,6 +159,9 @@ begin
                     end else if (rxd_data == TEST_CMD) begin
                         char_count <= 10;
                         cmd_state <= TEST;
+                    end else if (rxd_data == STR_LEN_CMD) begin
+                        char_count <= 2;
+                        cmd_state <= STR_LEN;
                     end
                 end
             end
@@ -241,7 +251,7 @@ begin
                     txd_start <= 1;
                     char_count <= char_count + 1;
                     // XXX cmd_state <= RET_CHARS2_WAIT;
-                    if (char_count == 19) begin
+                    if (char_count == (str_len>>3)) begin
                         proc_match_char_next <= 0;
                         txd_start <= 0;
                         cmd_state <= IDLE;
@@ -305,6 +315,15 @@ begin
                     cmd_state <= IDLE;
                 end else begin
                     txd_start <= 0;
+                end
+            end
+            STR_LEN : begin
+                if (rxd_data_ready) begin
+                    str_len[15:0] <= {str_len[7:0],rxd_data};
+                    char_count <= char_count - 1;
+                    if (char_count == 1) begin
+                        cmd_state <= ACK;
+                    end
                 end
             end
             default : begin

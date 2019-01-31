@@ -2,15 +2,17 @@
 *****************************
 * MODULE : string_process_match
 *
-* This module buffers characters into 19-char
+* This module buffers characters into STR_LEN char
 * strings that will be sent the md5 hasher module.
 * It also checks to see if one of the hashes
 * match the target hash.
 *
-* Target Board: iCE40HX-8K Breakout Board.
-* Status: In development.
+* Status: Updating...
 *
-* Author : Brandon Bloodget
+* Author : Brandon Blodget
+*
+* Update:
+* 01/30/2019 : Added support for variable length strings.
 *
 *****************************
 */
@@ -30,6 +32,7 @@ module string_process_match
     input wire proc_data_valid,
     input wire proc_match_char_next,
     input wire [127:0] proc_target_hash,
+    input wire [15:0] proc_str_len,     // len in bits, big endian
     output wire proc_done,
     output wire proc_match,
     output wire [15:0] proc_byte_pos,
@@ -37,9 +40,10 @@ module string_process_match
 
     // MD5 core
     input wire [31:0] a_ret, b_ret, c_ret, d_ret,
-    input wire [151:0] md5_msg_ret,
+    input wire [511:0] md5_msg_ret,
     input wire md5_msg_ret_valid,
-    output reg  [151:0] md5_msg,
+    output reg  [447:0] md5_msg,
+    output reg [15:0] md5_length,  // big endian
     output reg md5_msg_valid
 
 );
@@ -59,7 +63,7 @@ assign d_target = proc_target_hash[31:0];
 assign proc_done = match_check_done;
 assign proc_match = match;
 assign proc_byte_pos = match_byte_count;
-assign proc_match_char = match_msg[151:144];
+assign proc_match_char = match_msg[511:504];
 
 
 /*
@@ -74,10 +78,17 @@ always @(posedge clk)
 begin
     if (reset) begin
         md5_msg <= 0;
+        md5_length <= 0;
         md5_msg_valid <= 0;
     end else begin
         if (proc_data_valid) begin
-            md5_msg[151:0] <= {md5_msg[143:0],proc_data[7:0]};
+            // Shift in the message
+            md5_msg[447:(448-proc_str_len)] <= {md5_msg[439:(448-proc_str_len)],proc_data[7:0]};
+            // Add the 1 bit to the end
+            md5_msg[447-proc_str_len] <= 1;
+            // Fill the rest of the messages with zeros.
+            md5_msg[(446-proc_str_len):0] <= 0;
+            md5_length[15:0] <= proc_str_len[15:0];
             md5_msg_valid <= 1;
         end else begin
             md5_msg_valid <= 0;
@@ -91,7 +102,7 @@ reg [15:0] byte_count;
 reg [15:0] num_bytes;
 reg match;
 reg [15:0] match_byte_count;
-reg [151:0] match_msg;
+reg [511:0] match_msg;
 reg match_check_done;
 always @(posedge clk)
 begin
@@ -117,7 +128,7 @@ begin
         end
         // Shift the matched string out
         if (proc_match_char_next) begin
-            match_msg[151:0] <= {match_msg[143:0], 8'h0};
+            match_msg[511:0] <= {match_msg[503:0], 8'h0};
         end
         // Check if we have processed the specified
         // number of bytes.
