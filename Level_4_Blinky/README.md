@@ -20,4 +20,5 @@ from an 8-bit bus to a 16-bit bus.
 * Add a dedicated Done and Match signals to the 8-bit bus.
 * Experiment with the -Os optimization flag.
 * Expand parallel bus to 16-bits.
+* Disregard sending strings that contain newlines.
 
