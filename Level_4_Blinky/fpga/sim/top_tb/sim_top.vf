@@ -4,4 +4,4 @@ sim_top_tb.v
 ../../hdl/md5_lib/string_process_match.v
 ../../hdl/md5_lib/md5core.v
 ../../hdl/md5_lib/hash_op.v
-../../hdl/md5_lib/async.v
+../../hdl/md5_lib/parallel_bus.v

@@ -33,10 +33,19 @@ module sim_top_tb;
 reg clk_100mhz;
 reg reset;
 
-// async_transmitter
-reg txd_start;
-reg [7:0] txd_data;
+// par8 bus
+reg [7:0] bus_data_in;
+reg bus_clk;
+reg bus_rnw;
+/*
+*****************************
+* inout (wires)
+*****************************
+*/
 
+wire [7:0] bus_data;
+
+assign bus_data = (bus_rnw) ? 8'bz : bus_data_in;
 
 /*
 *****************************
@@ -48,16 +57,6 @@ reg [7:0] txd_data;
 wire serial_out;
 wire match_led;
 wire [3:0] led;
-
-// async_transmitter
-wire txd_busy;
-wire serial_in;
-
-// async_receiver
-wire data_out_ready;
-wire [7:0] data_out;
-wire data_out_idle;
-wire data_out_endofpacket;
 
 /*
 *****************************
@@ -84,14 +83,14 @@ reg match;
 reg[15:0] match_pos;
 reg[19*8:0] match_str;
 
+reg [7:0] rchar;
+
 /*
 *****************************
 * Parameters
 *****************************
 */
 
-parameter CLK_FREQUENCY = 100_000_000;
-parameter BAUD = 12_000_000;
 parameter NUM_LEDS = 4;
 parameter FILE_SIZE_IN_BYTES = 163_185;  // +1 (alice30.txt)
 // XXX parameter FILE_SIZE_IN_BYTES = 254;  // +1 (test.txt)
@@ -140,44 +139,24 @@ reg [(BUFFER_SIZE*8)-1:0] text_str;
 *****************************
 */
 
+
 top_md5 #
 (
-    .CLK_FREQUENCY(CLK_FREQUENCY),
-    .BAUD(BAUD),
     .NUM_LEDS(NUM_LEDS)
 ) top_md5_inst
 (
     .clk(clk_100mhz),
     .reset(reset),
-    .rxd(serial_in),
 
-    .txd(serial_out),
+    // rpi parallel bus
+    .bus_clk(bus_clk),
+    .bus_data(bus_data),
+    .bus_rnw(bus_rnw),         // rpi/master perspective
+
     .match_led(match_led),
     .led(led)
 );
 
-async_transmitter # (
-    .ClkFrequency(CLK_FREQUENCY),
-    .Baud(BAUD)
-) async_transmitter_inst (
-    .clk(clk_100mhz),
-    .TxD_start(txd_start),
-    .TxD_data(txd_data),
-    .TxD(serial_in),
-    .TxD_busy(txd_busy)
-);
-
-async_receiver # (
-    .ClkFrequency(CLK_FREQUENCY),
-    .Baud(BAUD)
-) async_receiver_inst (
-    .clk(clk_100mhz),
-    .RxD(serial_out),
-    .RxD_data_ready(data_out_ready),
-    .RxD_data(data_out),
-    .RxD_idle(data_out_idle),
-    .RxD_endofpacket(data_out_endofpacket)
-);
 
 /*
 *****************************
@@ -197,10 +176,6 @@ initial begin
     if (file == `NULL)
     begin
         $display("data_file handle was NULL");
-    while (txd_busy == 1)
-    begin
-        @ (posedge clk_100mhz);
-    end
         $finish;
     end
     r = $fread(tv_mem, file);
@@ -211,12 +186,13 @@ initial begin
     // initialize registers
     clk_100mhz      = 0;
     reset           = 0;
-    txd_start       = 0;
-    txd_data        = 0;
     text_str        = 0;
     match_pos       = 0;
     match_str       = 0;
     match           = 0;
+    bus_data_in     = 0;
+    bus_rnw         = 0;
+    rchar           = 0;
 
     // Wait 100 ns for global reset to finish
     #100;
@@ -229,17 +205,23 @@ initial begin
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
+    sync_bus;
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
     // XXX cmd_test;
     cmd_set_hash(ret);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
     // XXX cmd_send_text(BUFFER_SIZE);
+
     send_file(match);
     @(posedge clk_100mhz);
     if (match == 1)
     begin
         cmd_read_match;
     end
+
 //    @(posedge finished);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
@@ -266,19 +248,29 @@ begin
 end
 */
 
-// Wait for transmitter to not be busy
-task wait_for_transmit_ready;
+// Sync the par8 bus
+task sync_bus;
 begin
+    // make sure the clock is high
+    bus_clk = 1;
     @ (posedge clk_100mhz);
-    done = 0;
-    while(!done)
-    begin
-        @ (posedge clk_100mhz);
-        if (txd_busy == 0)
-        begin
-            done = 1;
-        end
-    end
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
+    // send the first sync word
+    $display("%t: Send 1st sync workd ",$time);
+    bus_data_in = 8'hB8;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
+    // send the 2nd sync word
+    $display("%t: Send 2nd sync workd ",$time);
+    bus_data_in = 8'h8B;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
 end
 endtask
 
@@ -286,12 +278,31 @@ endtask
 task send_char;
     input [7:0] char;
 begin
-    wait_for_transmit_ready;
+    // make sure bus_rnw is in write mode
+    bus_rnw = 0;
     @ (posedge clk_100mhz);
-    txd_start = 1;
-    txd_data = char;
     @ (posedge clk_100mhz);
-    txd_start = 0;
+    @ (posedge clk_100mhz);
+
+    // drive bus_clk low and set data
+    bus_clk = 0;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    bus_data_in = char;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
+    // drive bus_clk high now that data is set
+    bus_clk = 1;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
 end
 endtask
 
@@ -299,24 +310,26 @@ endtask
 task read_char;
     output [7:0] char;
 begin
-    i = 0;
-    done = 0;
-    char = 255;
-    while(!done)
-    begin
-        if (data_out_ready==1)
-        begin
-            char = data_out;
-            done = 1;
-        end
-        @ (posedge clk_100mhz);
-        i = i + 1;
-        if (i == 1000)
-        begin
-            $display("%t: ERROR read_char",$time);
-            done = 1;
-        end
-    end
+    // make sure bus_rnw is in read mode
+    bus_rnw = 1;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
+    // drive the clock low
+    bus_clk = 0;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
+    // drive the clock high
+    bus_clk = 1;
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+    @ (posedge clk_100mhz);
+
+    // read the value
+    char = bus_data;
 end
 endtask
 
@@ -327,27 +340,6 @@ begin
     $display("%t: BEGIN read_ack",$time);
     read_char(ack);
     $display("%t: END read_ack",$time);
-    /*
-    i=0;
-    done = 0;
-    ack = 0;
-    while(!done)
-    begin
-        if (data_out_ready==1)
-        begin
-            $display("%t: ACK value=%d",$time,data_out);
-            ack = data_out;
-            done = 1;
-        end
-        @ (posedge clk_100mhz);
-        i = i + 1;
-        if (i == 1000)
-        begin
-            $display("%t: ERROR no ACK",$time);
-            done = 1;
-        end
-    end
-    */
 end
 endtask
 
@@ -359,22 +351,13 @@ begin
     // Send the command
     send_char(CMD_TEST_OP);
 
-    // Read Back the test data
-    done = 0;
-    i = 0;
-    while(!done)
+    // Read back test data
+    for (i=0; i<10; i++)
     begin
-        @ (posedge clk_100mhz);
-        if (data_out_ready==1)
-        begin
-            $display("%t: %d val=%d",$time,i,data_out);
-            if (data_out==1)
-                done = 1;
-        end
-        i = i + 1;
+        read_char(rchar);
+        $display("%t: %d val=%d",$time,i,rchar);
     end
     $display("\n%t: END cmd_test",$time);
-
 end
 endtask
 
@@ -391,7 +374,7 @@ begin
     for (i=15; i>=0; i=i-1)
     begin
         send_char(target_hash[8*i +: 8]);
-        // XXX $display("%t: %d hash_byte:%2x",$time,i,txd_data);
+        // XXX $display("%t: %d hash_byte:%2x",$time,i,bus_data);
     end
 
     // Read the ack
@@ -418,20 +401,26 @@ begin
     // Send the number of bytes to be sent
     // Send MSB first
     send_char(text_str_len[15:8]);
-    $display("%t: MSB len=%x",$time,txd_data);
+    $display("%t: MSB len=%x",$time,bus_data);
     // Send LSB second
     send_char(text_str_len[7:0]);
-    $display("%t: LSB len=%x",$time,txd_data);
+    $display("%t: LSB len=%x",$time,bus_data);
 
     // Send the characters
     $display("");
     for (i=0; i <text_str_len; i++)
     begin
         send_char(text_str[8*i +: 8]);
-        // XXX $display("%t: %d char=%c",$time,i,txd_data);
-        $write("%c",txd_data);
+        // XXX $display("%t: %d char=%c",$time,i,bus_data);
+        $write("%c",bus_data);
     end
     $display("\n");
+
+    // wait for proc_done to go high
+    while(!top_md5_inst.proc_done)
+    begin
+        @(posedge clk_100mhz);
+    end
 
     // Read the ack
     read_ack(ack);

@@ -83,11 +83,16 @@ begin
     end else begin
         if (proc_data_valid) begin
             // Shift in the message
-            md5_msg[447:(448-proc_str_len)] <= {md5_msg[439:(448-proc_str_len)],proc_data[7:0]};
+            // XXX md5_msg[447:(448-proc_str_len)] <= {md5_msg[439:(448-proc_str_len)],proc_data[7:0]};
+            md5_msg[447:(448-152)] <= {md5_msg[439:(448-152)],proc_data[7:0]};
             // Add the 1 bit to the end
-            md5_msg[447-proc_str_len] <= 1;
+            // XXX md5_msg[447-proc_str_len] <= 1;
+            md5_msg[447-152] <= 1;
             // Fill the rest of the messages with zeros.
-            md5_msg[(446-proc_str_len):0] <= 0;
+            // XXX md5_msg[(446-proc_str_len):0] <= 0;
+            md5_msg[(446-152):0] <= 0;
+
+
             md5_length[15:0] <= proc_str_len[15:0];
             md5_msg_valid <= 1;
         end else begin

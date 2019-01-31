@@ -1,34 +1,34 @@
 [*]
 [*] GTKWave Analyzer v3.3.66 (w)1999-2015 BSI
-[*] Wed Nov 21 16:57:07 2018
+[*] Thu Jan 31 22:41:07 2019
 [*]
-[dumpfile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/fpga/sim/top_tb/sim_top.vcd"
-[dumpfile_mtime] "Wed Nov 21 16:53:08 2018"
-[dumpfile_size] 3561667
-[savefile] "/home/brandonb/projects/ClusterFight/MunchMan/Level_2_Ducky/fpga/sim/top_tb/sim_top.gtkw"
-[timestart] 0
+[dumpfile] "/home/brandonb/Projects/ClusterFights/MunchMan/Level_4_Blinky/fpga/sim/top_tb/sim_top.vcd"
+[dumpfile_mtime] "Thu Jan 31 22:18:25 2019"
+[dumpfile_size] 78742963
+[savefile] "/home/brandonb/Projects/ClusterFights/MunchMan/Level_4_Blinky/fpga/sim/top_tb/sim_top.gtkw"
+[timestart] 32536
 [size] 1855 1056
 [pos] -1 -1
-*-18.000000 34000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-9.000000 33446 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] sim_top_tb.
-[treeopen] sim_top_tb.async_transmitter_inst.tickgen.
-[sst_width] 225
-[signals_width] 368
+[treeopen] sim_top_tb.top_md5_inst.
+[sst_width] 360
+[signals_width] 281
 [sst_expanded] 1
 [sst_vpaned_height] 320
 @28
 sim_top_tb.clk_100mhz
 sim_top_tb.reset
-sim_top_tb.txd_start
-sim_top_tb.txd_busy
-@22
-sim_top_tb.txd_data[7:0]
+sim_top_tb.bus_clk
+sim_top_tb.bus_rnw
+@820
+sim_top_tb.bus_data[7:0]
+@23
+sim_top_tb.top_md5_inst.cmd_parser_inst.cmd_state[7:0]
+@24
+sim_top_tb.top_md5_inst.cmd_parser_inst.num_bytes[15:0]
 @28
-sim_top_tb.serial_in
-sim_top_tb.data_out_ready
-@22
-sim_top_tb.data_out[7:0]
-@29
-sim_top_tb.serial_out
+sim_top_tb.top_md5_inst.cmd_parser_inst.proc_match
+sim_top_tb.top_md5_inst.cmd_parser_inst.proc_done
 [pattern_trace] 1
 [pattern_trace] 0
