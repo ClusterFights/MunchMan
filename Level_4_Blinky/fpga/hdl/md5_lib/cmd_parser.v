@@ -136,7 +136,8 @@ begin
         proc_start <= 0;
         proc_match_char_next <= 0;
         num_bytes <= 0;
-        str_len <= 0;
+        // 8*19=152=0x98. Default 19 chars
+        str_len <= 16'h98;
     end else begin
         case (cmd_state)
             IDLE : begin

@@ -32,7 +32,7 @@ wire [31:0] a_out;
 wire [31:0] b_out;
 wire [31:0] c_out;
 wire [31:0] d_out;
-wire [151:0] m_out;
+wire [511:0] m_out;
 wire valid_out;
 
 // Define the message
@@ -50,7 +50,7 @@ wire [127:0] hash3 = 128'hcaea4868_5020e1b5_11a454f6_60943eaa;
 
 localparam[295:0] msg_pad = 360'h80_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000_00000000;
 
-wire [63:0]  length  = 64'h98000000_00000000;
+wire [15:0]  length  = 16'h98;
 /*
 *****************************
 * Instantiation (DUT)
