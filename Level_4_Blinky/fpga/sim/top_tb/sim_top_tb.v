@@ -100,6 +100,7 @@ parameter CMD_SET_HASH_OP       = 8'h01;
 parameter CMD_SEND_TEXT_OP      = 8'h02;
 parameter CMD_READ_MATCH_OP     = 8'h03;
 parameter CMD_TEST_OP           = 8'h04;
+parameter CMD_STR_LEN           = 8'h05;
 
 parameter BUFFER_SIZE           = 200;
 
@@ -206,6 +207,11 @@ initial begin
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
     sync_bus;
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    @(posedge clk_100mhz);
+    cmd_str_len(19*8,ret);    // set the string length
+    $display("%t: ***cmd_str_len ret %x",$time,ret);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
@@ -526,6 +532,30 @@ begin
     $display("%t: match_str: '%s'",$time,match_str);
 
     $display("%t: END cmd_read_match",$time);
+end
+endtask
+
+// Task to send target hash
+task cmd_str_len;
+    input [15:0] length;
+    output [7:0] ack;
+begin
+    $display("\n%t: BEGIN cmd_str_len",$time);
+
+    // Send the command
+    send_char(CMD_STR_LEN);
+
+    // Send the two length bytes.  MSB first.
+    send_char(length[15:8]);
+    send_char(length[7:0]);
+
+    // Read the ack
+    read_ack(ack);
+
+    // Print value.
+    $display("%t cmd_state=%x",$time,top_md5_inst.cmd_parser_inst.cmd_state);
+    $display("%t target_hash=%x",$time,top_md5_inst.cmd_parser_inst.target_hash);
+    $display("%t: END cmd_set_hash",$time);
 end
 endtask
 
