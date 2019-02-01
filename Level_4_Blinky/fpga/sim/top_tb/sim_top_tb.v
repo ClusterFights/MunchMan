@@ -20,6 +20,7 @@
 
 `define TESTBENCH
 `define NULL    0
+`define STR_LEN 23
 
 module sim_top_tb;
 
@@ -81,7 +82,7 @@ integer sf_k=0;
 
 reg match;
 reg[15:0] match_pos;
-reg[19*8:0] match_str;
+reg[`STR_LEN*8:0] match_str;
 
 reg [7:0] rchar;
 
@@ -124,7 +125,16 @@ reg [7:0] tv_mem [0:FILE_SIZE_IN_BYTES-1];
 // file: alice30.txt
 // byte_offset: 100
 // byte_str: b"ed alice30.txt or a"
-reg [127:0] target_hash = 128'h7e2ba776cc7b346f3592bfedb41b18bd;
+// str_len: 19*8=152 bits
+// XXX reg [15:0] str_len = 19*8;
+// XXX reg [127:0] target_hash = 128'h7e2ba776cc7b346f3592bfedb41b18bd;
+
+// file: alice30.txt
+// byte_offset: 100
+// byte_str: b"ed alice30.txt or alice"
+// str_len: 23*8=184 bits
+reg [15:0] str_len = `STR_LEN*8;
+reg [127:0] target_hash = 128'h0a4db18ed352b277c1292e9ef323d450;
 
 // file: test.txt
 // byte_offset: 233
@@ -210,7 +220,7 @@ initial begin
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
-    cmd_str_len(19*8,ret);    // set the string length
+    cmd_str_len(str_len,ret);    // set the string length
     $display("%t: ***cmd_str_len ret %x",$time,ret);
     @(posedge clk_100mhz);
     @(posedge clk_100mhz);
@@ -519,11 +529,11 @@ begin
     read_char(match_pos[15:8]);
     // Read LSB
     read_char(match_pos[7:0]);
-    match_pos = match_pos - 18;
+    match_pos = match_pos - (`STR_LEN-1);
 
     // Read the match string
     $display("%t: Read match string",$time);
-    for (j=18; j>=0; j=j-1)
+    for (j=(`STR_LEN-1); j>=0; j=j-1)
     begin
         read_char(match_str[j*8 +: 8]);
     end
