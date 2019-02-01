@@ -8,8 +8,6 @@ import random
 import hashlib
 import argparse
 
-STR_LEN = 19
-
 DESC =  \
 """
 
@@ -36,6 +34,8 @@ parser.add_argument("-i", "--index", type=int, help="Use this book index. "
                     "Instead of random.")
 parser.add_argument("-o", "--offset", type=int, help="Use this file byte offset. "
                     "Instead of random.")
+parser.add_argument("-s", "--str_len", type=int, help="Sets the str_len to search. "
+                    "Default is 19.", default=19)
 parser.parse_args()
 args = parser.parse_args()
 
@@ -65,7 +65,7 @@ size = file_list[index][0]
 file_path = file_list[index][1]
 
 # Select random substring
-max_offset = size - STR_LEN -1
+max_offset = size - args.str_len -1
 print("max_offset: {}".format(max_offset))
 if args.offset is None:
     byte_offset = random.randint(0,max_offset)
@@ -76,7 +76,7 @@ else:
 # NOTE : Read file as binary using "rb"
 with open(file_path, mode="rb") as fp:
     fp.seek(byte_offset)
-    byte_str = fp.read(STR_LEN)
+    byte_str = fp.read(args.str_len)
 
 # Compute the hash of byte_str
 md5 = hashlib.md5()
