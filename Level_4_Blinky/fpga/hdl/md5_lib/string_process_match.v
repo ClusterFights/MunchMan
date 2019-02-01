@@ -82,16 +82,22 @@ begin
         md5_msg_valid <= 0;
     end else begin
         if (proc_data_valid) begin
-            // Shift in the message
-            // XXX md5_msg[447:(448-proc_str_len)] <= {md5_msg[439:(448-proc_str_len)],proc_data[7:0]};
-            md5_msg[447:(448-152)] <= {md5_msg[439:(448-152)],proc_data[7:0]};
-            // Add the 1 bit to the end
-            // XXX md5_msg[447-proc_str_len] <= 1;
-            md5_msg[447-152] <= 1;
-            // Fill the rest of the messages with zeros.
-            // XXX md5_msg[(446-proc_str_len):0] <= 0;
-            md5_msg[(446-152):0] <= 0;
+            // XXX $display("\n");
+            // XXX $display("%t: md5_msg     =%x",$time,md5_msg);
 
+            // *** old stuff. ***
+            // Shift in the message (hardcoded for 19 chars)
+            // XXX md5_msg[447:(448-152)] <= {md5_msg[439:(448-152)],proc_data[7:0]};
+            // Add the 1 bit to the end
+            // XXX md5_msg[447-152] <= 1;
+            // Fill the rest of the messages with zeros.
+            // XXX md5_msg[(446-152):0] <= 0;
+            // *** end old stuff. ***
+
+            // *** new stuff. Var str length ***
+            md5_msg <= (md5_msg << 8) | ({proc_data[7:0],8'h80} << (448-(proc_str_len+8)));
+            md5_msg[463-(proc_str_len+8)] <= proc_data[7];
+            // *** end new stuff ***
 
             md5_length[15:0] <= proc_str_len[15:0];
             md5_msg_valid <= 1;
