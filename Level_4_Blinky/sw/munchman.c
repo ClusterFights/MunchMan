@@ -395,7 +395,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                     {
                         // It's a match!
                         match->pos = i;
-                        // XXX strcpy(match->str,buffer_hash);
+                        strcpy(match->str,buffer_hash);
                         byte_offset = (loop*BUFFER_SIZE) + match->pos - STR_LEN;
                         to_byte_str(match->str,match_str);
                         printf("num_hashes = %d \n",*num_hashes);
@@ -403,6 +403,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                         printf("byte_offset = %d \n",byte_offset);
                         printf("match_str = %s \n",match_str);
                         fclose(fp);
+                        printf("GOT HERE1\n");
                         return 1;
                     }
 
@@ -489,7 +490,7 @@ unsigned char cmd_str_len(unsigned char num_chars)
     // Check the num_chars are in range
     if (num_chars <2 || num_chars > 55)
     {
-        printf("ERROR cmd_str_len num_chars out of range: %d",ret);
+        printf("ERROR cmd_str_len num_chars out of range: %d",num_chars);
         return -1;
     }
 

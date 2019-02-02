@@ -112,6 +112,7 @@ int run()
         printf("%i %s\n",i,manifest_list[i].file_path);
         ack = send_file(manifest_list[i].file_path, &match, 
                 lflag, target_hash, &num_hashes);
+        printf("GOT HERE2\n");
         if (ack == 1)
         {
             total_proc_bytes += num_hashes;
@@ -150,20 +151,16 @@ int main(int argc, char *argv[])
     unsigned char ack;
     opterr = 0;
 
-    printf("Got here1\n");
-
     // Parse comand line args.
     while ((c=getopt(argc, argv, "ls:")) != -1)
     {
         switch(c)
         {
             case 'l':
-                printf("Got here2\n");
                 // l = local, don't use FPGA.
                 lflag = 1;
                 break;
             case 's':
-                printf("Got here3\n");
                 // s = set the string length
                 sflag = 1;
                 errno = 0;
@@ -184,9 +181,7 @@ int main(int argc, char *argv[])
     // Get the hash arg
     if (optind < argc)
     {
-        printf("Got here4\n");
         strcpy(md5_hash_arg,argv[optind++]);
-        printf("Got here5\n");
         printf("md5_hash: %s\n",md5_hash_arg);
         printf("lflag: %d\n",lflag);
     } else {
@@ -200,7 +195,6 @@ int main(int argc, char *argv[])
         printf("%s",USEAGE);
         return EXIT_FAILURE;
     }
-    printf("Got here6\n");
 
     // Convert md5_hash_arg hex string to target_hash byte array.
     char tmp_str[2] ="00";
@@ -222,16 +216,12 @@ int main(int argc, char *argv[])
     }
     printf("\n");
 
-    printf("Got here6\n");
-
     // Parse the manifest.txt file
     parse_manifest(manifest_file);
 
     printf("lflag: %d\n",lflag);
     printf("sflag: %d\n",sflag);
     printf("STR_LEN: %d\n",STR_LEN);
-
-    return EXIT_SUCCESS;
 
     if (!lflag)
     {
