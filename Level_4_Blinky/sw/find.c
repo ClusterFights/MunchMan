@@ -33,13 +33,15 @@ struct manifest_info
 };
 
 static char USEAGE[] = 
-    "Usage: find [-l] md5_hash\n"
-    "   -l      local only, no FPGA connection\n";
+    "Usage: find [-l] [-s len] md5_hash\n"
+    "   -l      local only, no FPGA connection\n"
+    "   -s len  length of strings to search 2..55 [default=19]\n";
 static char *manifest_file = "manifest.txt";
 static unsigned char target_hash[16] = {0};
 static struct manifest_info manifest_list[MAX_BOOKS] = {0};
 static int num_of_books = 0;
 static int lflag = 0;   // process locally? No FPGA?
+static int sflag = 0;   // set string length.
 
 /*
  * Parses the manifest file.
@@ -148,14 +150,31 @@ int main(int argc, char *argv[])
     unsigned char ack;
     opterr = 0;
 
+    printf("Got here1\n");
+
     // Parse comand line args.
-    while ((c=getopt(argc, argv, "l")) != -1)
+    while ((c=getopt(argc, argv, "ls:")) != -1)
     {
         switch(c)
         {
             case 'l':
+                printf("Got here2\n");
                 // l = local, don't use FPGA.
                 lflag = 1;
+                break;
+            case 's':
+                printf("Got here3\n");
+                // s = set the string length
+                sflag = 1;
+                errno = 0;
+                // NOTE: STR_LEN is defined in munchman.h
+                STR_LEN = strtol(optarg,NULL,10);
+                if (errno == ERANGE || STR_LEN <2 || STR_LEN >55)
+                {
+                    printf("ERROR with -s flag.\n");
+                    printf("%s",USEAGE);
+                    return EXIT_FAILURE;
+                }
                 break;
             default:
                 printf("%s",USEAGE);
@@ -165,7 +184,9 @@ int main(int argc, char *argv[])
     // Get the hash arg
     if (optind < argc)
     {
+        printf("Got here4\n");
         strcpy(md5_hash_arg,argv[optind++]);
+        printf("Got here5\n");
         printf("md5_hash: %s\n",md5_hash_arg);
         printf("lflag: %d\n",lflag);
     } else {
@@ -179,6 +200,7 @@ int main(int argc, char *argv[])
         printf("%s",USEAGE);
         return EXIT_FAILURE;
     }
+    printf("Got here6\n");
 
     // Convert md5_hash_arg hex string to target_hash byte array.
     char tmp_str[2] ="00";
@@ -200,8 +222,16 @@ int main(int argc, char *argv[])
     }
     printf("\n");
 
+    printf("Got here6\n");
+
     // Parse the manifest.txt file
     parse_manifest(manifest_file);
+
+    printf("lflag: %d\n",lflag);
+    printf("sflag: %d\n",sflag);
+    printf("STR_LEN: %d\n",STR_LEN);
+
+    return EXIT_SUCCESS;
 
     if (!lflag)
     {
@@ -214,6 +244,10 @@ int main(int argc, char *argv[])
         // Send the test command 0x04.
         printf("Sending the test command 0x04.\n");
         cmd_test();
+
+        // Send the set str len cmd 0x05.
+        printf("Sending set str length command 0x05.\n");
+        cmd_str_len(STR_LEN);
 
         // Send the set hash command 0x01.
         printf("Sending the set hash command 0x01.\n");

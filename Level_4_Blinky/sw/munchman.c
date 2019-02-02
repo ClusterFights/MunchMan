@@ -17,8 +17,7 @@
 #define PI_GPIO_ERR  // errno.h
 #include "PI_GPIO.c" // stdio.h, sys/mman.h, fcntl.h, stdlib.h - signal.h
 
-// Size of string to hash. 19 char + 1 `\0`
-#define STR_LEN 20
+#define BUFFER_HASH_SIZE 60
 
 unsigned char ret_buffer[BUFFER_SIZE] = {0};
 
@@ -27,6 +26,9 @@ unsigned int clr_reg = 0;
 
 unsigned int read_pins=0;
 unsigned char read_val=0;
+
+// default string length is 19.
+int STR_LEN=19;
 
 
 void sleep_ms(int ms) 
@@ -299,13 +301,11 @@ void to_byte_str(char *src, char *dst)
  */
 void string_push(unsigned char *buffer, unsigned char ch)
 {
-    for (int i=0; i<(STR_LEN-2); i++)
+    for (int i=0; i<(STR_LEN-1); i++)
     {
         buffer[i] = buffer[i+1];
     }
-    buffer[STR_LEN-2] = ch;
-    // NOTE: last char buffer[STR_LEN-1] is '\0'
-    //
+    buffer[STR_LEN-1] = ch;
 }
 
 
@@ -323,7 +323,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
     int loop=0;
     int byte_offset=0;
     char match_str[50];
-    char buffer_hash[STR_LEN] = {0};
+    char buffer_hash[BUFFER_HASH_SIZE] = {0};
     int bhi = 0;    // buffer_hash_index
     unsigned char hash_str[16];
 
@@ -350,7 +350,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
 
                 printf("\nSent command to read match data, 0x03.\n");
                 cmd_read_match(match);
-                byte_offset = (loop*BUFFER_SIZE) + match->pos - 18;
+                byte_offset = (loop*BUFFER_SIZE) + match->pos - (STR_LEN-1);
                 *num_hashes = byte_offset + 1;
                 to_byte_str(match->str,match_str);
                 printf("num_hashes = %d \n",*num_hashes);
@@ -380,6 +380,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                 else
                 {
                     // buffer_hash is full, so calc MD5 hash
+                    buffer_hash[bhi++] = '\0';
                     (*num_hashes)++;
                     md5(buffer_hash, hash_str);
                     if ( (hash_str[0] == target_hash[0]) && (hash_str[1] == target_hash[1]) &&
@@ -394,8 +395,8 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                     {
                         // It's a match!
                         match->pos = i;
-                        strcpy(match->str,buffer_hash);
-                        byte_offset = (loop*BUFFER_SIZE) + match->pos - 19;
+                        // XXX strcpy(match->str,buffer_hash);
+                        byte_offset = (loop*BUFFER_SIZE) + match->pos - STR_LEN;
                         to_byte_str(match->str,match_str);
                         printf("num_hashes = %d \n",*num_hashes);
                         printf("loop = %d \n",loop);
@@ -474,6 +475,50 @@ unsigned char cmd_set_hash(unsigned char *target_hash)
 }
 
 /*
+ * Sets the string length 0x05.
+ * num_chars: between 2 and 55 inclusive.
+ * Return 1 for ACK, 0 for NACK, -1 for ERROR.
+ */
+unsigned char cmd_str_len(unsigned char num_chars)
+{
+    int ret;
+    unsigned char ack;
+    unsigned int num_bits;
+    unsigned char num_bits_arry[2];
+
+    // Check the num_chars are in range
+    if (num_chars <2 || num_chars > 55)
+    {
+        printf("ERROR cmd_str_len num_chars out of range: %d",ret);
+        return -1;
+    }
+
+    // compute number of bits and write to array in big endian
+    num_bits = num_chars*8;
+    num_bits_arry[0] = num_bits & 0xFF;
+    num_bits_arry[1] = (num_bits & 0xFF00) >> 8;
+
+
+    // Send the set str length cmd 0x05.
+    bus_write(0x05);
+
+    // Send the target hash.
+    ret = bus_write_data(num_bits_arry, 2); //data
+    if (ret != 2)
+    {
+        printf("ERROR cmd_str_len during bus_write_data: %d != %d\n",ret,2);
+        return -1;
+    }
+
+    // Return the ack
+    bus_read_config();
+    ack = bus_read();
+    bus_write_config();
+
+    return ack;
+}
+
+/*
  * Sends the send_text cmd, 0x02.
  * Return 1 for ACK, 0 for NACK, -1 for ERROR.
  *
@@ -534,7 +579,7 @@ unsigned char cmd_read_match(struct match_result *result)
     ret = bus_read_data(ret_buffer, 21);
     if (ret == 21) {
         result->pos = (int)((ret_buffer[0]<<8) + (ret_buffer[1]&0xFF));
-        strncpy(result->str,&ret_buffer[2],19);
+        strncpy(result->str,&ret_buffer[2],STR_LEN);
     } else {
         printf("ERROR cmd_read_match, wrong length of data ret=%d != 21\n",ret);
         return -1;
