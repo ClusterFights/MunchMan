@@ -372,7 +372,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
             // Process locally.
             for (int i=0; i<nread; i++)
             {
-                if (bhi < (STR_LEN-1))
+                if (bhi < STR_LEN)
                 {
                     // buffer not full yet.
                     buffer_hash[bhi++] = buffer[i];
@@ -380,7 +380,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                 else
                 {
                     // buffer_hash is full, so calc MD5 hash
-                    buffer_hash[bhi++] = '\0';
+                    buffer_hash[bhi] = '\0';
                     (*num_hashes)++;
                     md5(buffer_hash, hash_str);
                     if ( (hash_str[0] == target_hash[0]) && (hash_str[1] == target_hash[1]) &&
@@ -403,7 +403,6 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                         printf("byte_offset = %d \n",byte_offset);
                         printf("match_str = %s \n",match_str);
                         fclose(fp);
-                        printf("GOT HERE1\n");
                         return 1;
                     }
 

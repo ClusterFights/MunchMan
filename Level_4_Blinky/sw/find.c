@@ -112,7 +112,6 @@ int run()
         printf("%i %s\n",i,manifest_list[i].file_path);
         ack = send_file(manifest_list[i].file_path, &match, 
                 lflag, target_hash, &num_hashes);
-        printf("GOT HERE2\n");
         if (ack == 1)
         {
             total_proc_bytes += num_hashes;
