@@ -269,14 +269,14 @@ unsigned char bus_read()
  * like newline into `\n` so match
  * string can be printed on one line.
  */
-void to_byte_str(char *src, char *dst)
+void to_byte_str(unsigned char *src, unsigned char *dst)
 {
     int i,j;
 
     dst[0] = 'b';
     dst[1] = 0x27;  // '
 
-    for (i=0,j=2; i<strlen(src); i++)
+    for (i=0,j=2; i<strlen((char *)src); i++)
     {
         if (src[i] == '\n')
         {
@@ -318,12 +318,12 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
 {
     char buffer[BUFFER_SIZE];
     size_t nread;
-    unsigned char ack=0;
+    char ack=0;
     FILE *fp;
     int loop=0;
     int byte_offset=0;
-    char match_str[50];
-    char buffer_hash[BUFFER_HASH_SIZE] = {0};
+    unsigned char match_str[50];
+    unsigned char buffer_hash[BUFFER_HASH_SIZE] = {0};
     int bhi = 0;    // buffer_hash_index
     unsigned char hash_str[16];
 
@@ -343,7 +343,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
         if (lflag == 0)
         {
             // Process on FPGA board
-            ack = cmd_send_text(buffer, nread);
+            ack = cmd_send_text((unsigned char *)buffer, nread);
             if (ack==1)
             {
                 printf("FOUND! md5_hash found.\n");
@@ -395,7 +395,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
                     {
                         // It's a match!
                         match->pos = i;
-                        strcpy(match->str,buffer_hash);
+                        strcpy((char *)match->str,(char *)buffer_hash);
                         byte_offset = (loop*BUFFER_SIZE) + match->pos - STR_LEN;
                         to_byte_str(match->str,match_str);
                         printf("num_hashes = %d \n",*num_hashes);
@@ -450,10 +450,10 @@ void cmd_test()
  * Sends the set hash cmd 0x01.
  * Return 1 for ACK, 0 for NACK, -1 for ERROR.
  */
-unsigned char cmd_set_hash(unsigned char *target_hash)
+char cmd_set_hash(unsigned char *target_hash)
 {
     int ret;
-    unsigned char ack;
+    char ack;
 
     // Send the set hash command 0x01.
     bus_write(0x01);
@@ -479,10 +479,10 @@ unsigned char cmd_set_hash(unsigned char *target_hash)
  * num_chars: between 2 and 55 inclusive.
  * Return 1 for ACK, 0 for NACK, -1 for ERROR.
  */
-unsigned char cmd_str_len(unsigned char num_chars)
+char cmd_str_len(unsigned char num_chars)
 {
     int ret;
-    unsigned char ack;
+    char ack;
     unsigned int num_bits;
     unsigned char num_bits_arry[2];
 
@@ -525,10 +525,10 @@ unsigned char cmd_str_len(unsigned char num_chars)
  * ACK indicates that a string was found that matches
  * the target hash.
  */
-unsigned char cmd_send_text(unsigned char *text_str, int text_str_len)
+char cmd_send_text(unsigned char *text_str, int text_str_len)
 {
     int ret;
-    unsigned char ack;
+    char ack;
     unsigned char len_bytes[2];
 
     // Send the send text command 0x02.
@@ -566,7 +566,7 @@ unsigned char cmd_send_text(unsigned char *text_str, int text_str_len)
  * Assumes that result has a str that has been allocated
  * Return 1 for success.
  */
-unsigned char cmd_read_match(struct match_result *result)
+char cmd_read_match(struct match_result *result)
 {
     int ret;
 
@@ -579,7 +579,7 @@ unsigned char cmd_read_match(struct match_result *result)
     ret = bus_read_data(ret_buffer, 21);
     if (ret == 21) {
         result->pos = (int)((ret_buffer[0]<<8) + (ret_buffer[1]&0xFF));
-        strncpy(result->str,&ret_buffer[2],STR_LEN);
+        strncpy((char *)result->str,(char *)&ret_buffer[2],STR_LEN);
     } else {
         printf("ERROR cmd_read_match, wrong length of data ret=%d != 21\n",ret);
         return -1;

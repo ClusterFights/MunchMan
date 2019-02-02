@@ -97,7 +97,7 @@ int parse_manifest(char *mfile)
  */
 int run()
 {
-    unsigned char ack;
+    char ack;
     struct match_result match;
     struct timeval tv1, tv2;
     int num_hashes=0;
@@ -144,10 +144,8 @@ int run()
 int main(int argc, char *argv[])
 {
     char md5_hash_arg[32];
-    int num;
-    int ret;
     int c;
-    unsigned char ack;
+    char ack;
     opterr = 0;
 
     // Parse comand line args.

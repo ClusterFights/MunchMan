@@ -87,10 +87,10 @@ int bus_read_data(unsigned char *buffer, int num_to_read);
 int bus_write_data(unsigned char *buffer, int num_to_write);
 
 void cmd_test();
-unsigned char cmd_set_hash(unsigned char *target_hash);
-unsigned char cmd_send_text(unsigned char *text_str, int text_str_len);
-unsigned char cmd_read_match(struct match_result *result);
-unsigned char cmd_str_len(unsigned char num_chars);
+char cmd_set_hash(unsigned char *target_hash);
+char cmd_send_text(unsigned char *text_str, int text_str_len);
+char cmd_read_match(struct match_result *result);
+char cmd_str_len(unsigned char num_chars);
 
 unsigned char send_file(char *filename, struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes);
