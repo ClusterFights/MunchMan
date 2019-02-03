@@ -21,6 +21,7 @@ from an 8-bit bus to a 16-bit bus.
 * Experiment with the -Os optimization flag.
 * Switch from RPI 3 Model B to RPI Model B+
 * Expand parallel bus to 16-bits.
+* Switch to shielded cable between RPI and FPGA.
 * Disregard sending strings that contain newlines.
 * Sort manifest by files size in ascending order.
 
