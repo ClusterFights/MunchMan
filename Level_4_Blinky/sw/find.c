@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
         cmd_test();
 
         // Send the set str len cmd 0x05.
-        printf("Sending set str length command 0x05.\n");
+        printf("Sending set str length command 0x05. STR_LEN=%d\n",STR_LEN);
         cmd_str_len(STR_LEN);
 
         // Send the set hash command 0x01.

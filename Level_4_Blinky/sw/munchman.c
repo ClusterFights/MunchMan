@@ -495,8 +495,10 @@ char cmd_str_len(unsigned char num_chars)
 
     // compute number of bits and write to array in big endian
     num_bits = num_chars*8;
-    num_bits_arry[0] = num_bits & 0xFF;
-    num_bits_arry[1] = (num_bits & 0xFF00) >> 8;
+    num_bits_arry[0] = (num_bits & 0xFF00) >> 8;
+    num_bits_arry[1] = num_bits & 0xFF;
+    printf("num_bits_arry[0] : %x \n",num_bits_arry[0]);
+    printf("num_bits_arry[1] : %x \n",num_bits_arry[1]);
 
 
     // Send the set str length cmd 0x05.
