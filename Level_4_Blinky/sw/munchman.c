@@ -84,7 +84,7 @@ void bus_write_config()
     GPIO_CLR_N(RNW);
 
     // FIXME : This is a test
-    sleep_us(2000);
+    // XXX sleep_us(2000);
 }
 
 /*
@@ -109,7 +109,7 @@ void bus_read_config()
     GPIO_SET_N(RNW);
 
     // FIXME : This is a test
-    sleep_us(2000);
+    // XXX sleep_us(2000);
 }
 
 /*
@@ -215,8 +215,14 @@ int bus_read_data(unsigned char *buffer, int num_to_read)
         // drive the clock low
         GPIO_CLR_N(CLK);
         GPIO_CLR_N(CLK);
+        GPIO_CLR_N(CLK);
+        GPIO_CLR_N(CLK);
 
         // drive the clock high
+        GPIO_SET_N(CLK);
+        GPIO_SET_N(CLK);
+        GPIO_SET_N(CLK);
+        GPIO_SET_N(CLK);
         GPIO_SET_N(CLK);
         GPIO_SET_N(CLK);
 
@@ -600,10 +606,11 @@ char cmd_read_match(struct match_result *result)
         return -1;
     }
 
-    bus_write_config();
-
     // Wait for command to complete
     wait_bus_done();
+
+    bus_write_config();
+
 
     return 1; // success
 }
