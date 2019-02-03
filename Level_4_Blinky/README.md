@@ -16,7 +16,7 @@ from an 8-bit bus to a 16-bit bus.
 
 ## TODO
 
-* Add support for variable length strings to md5core.
+* Add support for variable length strings to md5core.  **Done**
 * Add a dedicated Done and Match signals to the 8-bit bus.
 * Experiment with the -Os optimization flag.
 * Expand parallel bus to 16-bits.
