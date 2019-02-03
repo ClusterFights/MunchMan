@@ -16,9 +16,10 @@ from an 8-bit bus to a 16-bit bus.
 
 ## TODO
 
-* Add support for variable length strings to md5core.  **Done**
+* **[DONE]** Add support for variable length strings to md5core.
 * Add a dedicated Done and Match signals to the 8-bit bus.
 * Experiment with the -Os optimization flag.
+* Switch from RPI 3 Model B to RPI Model B+
 * Expand parallel bus to 16-bits.
 * Disregard sending strings that contain newlines.
 * Sort manifest by files size in ascending order.
