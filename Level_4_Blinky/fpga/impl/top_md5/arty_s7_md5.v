@@ -32,6 +32,8 @@ module arty_s7_md5 #
     inout wire [7:0] bus_data,
     input wire bus_rnw,         // rpi/master perspective
 
+    output wire bus_done,
+    output wire bus_match,
     output wire led0_g,
     output wire led0_r,         // indicates reset pressed
     output wire [NUM_LEDS-1:0] led
@@ -66,6 +68,8 @@ top_md5 #
     .bus_data(bus_data),
     .bus_rnw(bus_rnw),         // rpi/master perspective
 
+    .bus_done(bus_done),
+    .bus_match(bus_match),
     .match_led(led0_g),
     .led(led)
 );

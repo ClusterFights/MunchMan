@@ -61,6 +61,9 @@ module cmd_parser #
     output wire [127:0] proc_target_hash,
     output wire [15:0] proc_str_len,    // big endian
 
+    output reg cmd_done,
+    output reg cmd_match,
+
     // feedback/debug
     output wire [NUM_LEDS-1:0] led
 );
@@ -96,8 +99,7 @@ localparam RET_CHARS2       = 6;
 localparam TEST             = 7;
 localparam TEST2            = 8;
 localparam ACK              = 9;
-localparam NACK             = 10;
-localparam STR_LEN          = 11;
+localparam STR_LEN          = 10;
 
 // Character constants
 localparam SET_CMD      = 8'h01;
@@ -105,10 +107,6 @@ localparam PROC_CMD     = 8'h02;
 localparam RET_CMD      = 8'h03;
 localparam TEST_CMD     = 8'h04;
 localparam STR_LEN_CMD  = 8'h05;
-
-// Character constants
-localparam NACK_CHAR    = 8'h00;
-localparam ACK_CHAR     = 8'h01;
 
 /*
 *****************************
@@ -128,7 +126,7 @@ begin
             proc_data <= 0;
             proc_data_valid <= 0;
         char_count  <= 0;
-        txd_data <= NACK_CHAR;
+        txd_data <= 0;
         txd_start <= 0;
         target_hash <= 0;
         proc_data <= 0;
@@ -138,11 +136,12 @@ begin
         num_bytes <= 0;
         // 8*19=152=0x98. Default 19 chars
         str_len <= 16'h98;
+        cmd_done <= 0;
     end else begin
         case (cmd_state)
             IDLE : begin
                 char_count <= 0;
-                txd_data <= NACK_CHAR;
+                txd_data <= 0;
                 txd_start <= 0;
                 proc_data <= 0;
                 proc_data_valid <= 0;
@@ -167,6 +166,7 @@ begin
                 end
             end
             SET_HASH : begin
+                cmd_done <= 0;
                 if (rxd_data_ready) begin
                     target_hash[127:0] <= {target_hash[119:0],rxd_data};
                     char_count <= char_count + 1;
@@ -176,6 +176,7 @@ begin
                 end
             end
             PROC_CHARS1 : begin
+                cmd_done <= 0;
                 // Read the number of bytes
                 if (rxd_data_ready) begin
                     num_bytes[15:0] <= {num_bytes[7:0],rxd_data};
@@ -205,14 +206,12 @@ begin
             PROC_CHARS3 : begin
                 // Wait for hash to complete.
                 if (proc_done) begin
-                    if (proc_match) begin
-                        cmd_state <= ACK;
-                    end else begin
-                        cmd_state <= NACK;
-                    end
+                    cmd_match <= proc_match;
+                    cmd_state <= ACK;
                 end
             end
             RET_CHARS1 : begin
+                cmd_done <= 0;
                 // Return match byte position
                 if (txd_ready_next) begin
                     txd_data <= (char_count==0) ? proc_byte_pos[15:8] :
@@ -228,22 +227,6 @@ begin
                     txd_start <= 0;
                 end
             end
-            /*
-            RET_CHARS1_WAIT : begin
-                // Wait for the txd_busy to go high
-                txd_start <= 0;
-                if (txd_busy) begin
-                    cmd_state <= RET_CHARS1;
-                end
-            end
-            RET_CHARS1_WAIT2 : begin
-                // Wait for the txd_busy to go high
-                txd_start <= 0;
-                if (txd_busy) begin
-                    cmd_state <= RET_CHARS2;
-                end
-            end
-            */
             RET_CHARS2 : begin
                 // Return the matched string
                 if (txd_ready_next) begin
@@ -255,23 +238,13 @@ begin
                     if (char_count == (str_len>>3)) begin
                         proc_match_char_next <= 0;
                         txd_start <= 0;
-                        cmd_state <= IDLE;
+                        cmd_state <= ACK;
                     end
                 end else begin
                     proc_match_char_next <= 0;
                     txd_start <= 0;
                 end
             end
-            /*
-            RET_CHARS2_WAIT : begin
-                // Wait for the txd_busy to go high
-                proc_match_char_next <= 0;
-                txd_start <= 0;
-                if (txd_busy) begin
-                    cmd_state <= RET_CHARS2;
-                end
-            end
-            */
             TEST : begin
                 // Return test countdown 10..1
                 if (txd_ready_next) begin
@@ -288,35 +261,12 @@ begin
             end
             TEST2 : begin
                 txd_start <= 0;
-                cmd_state <= IDLE;
+                cmd_state <= ACK;
                 $display("TEST2: done.");
-                /*
-                if (txd_busy) begin
-                    cmd_state <= TEST;
-                    if (char_count == 0) begin
-                        $display("TEST done, go IDLE");
-                        cmd_state <= IDLE;
-                    end
-                end
-                */
             end
             ACK : begin
-                if (txd_ready_next) begin
-                    txd_data <= ACK_CHAR;
-                    txd_start <= 1;
-                    cmd_state <= IDLE;
-                end else begin
-                    txd_start <= 0;
-                end
-            end
-            NACK : begin
-                if (txd_ready_next) begin
-                    txd_data <= NACK_CHAR;
-                    txd_start <= 1;
-                    cmd_state <= IDLE;
-                end else begin
-                    txd_start <= 0;
-                end
+                cmd_done <= 1;
+                cmd_state <= IDLE;
             end
             STR_LEN : begin
                 if (rxd_data_ready) begin

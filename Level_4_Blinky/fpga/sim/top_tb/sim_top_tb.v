@@ -59,6 +59,9 @@ wire serial_out;
 wire match_led;
 wire [3:0] led;
 
+wire bus_done;
+wire bus_match;
+
 /*
 *****************************
 * Internal (wires)
@@ -163,6 +166,9 @@ top_md5 #
     .bus_clk(bus_clk),
     .bus_data(bus_data),
     .bus_rnw(bus_rnw),         // rpi/master perspective
+
+    .bus_done(bus_done),
+    .bus_match(bus_match),
 
     .match_led(match_led),
     .led(led)
@@ -349,16 +355,6 @@ begin
 end
 endtask
 
-// Read the ack
-task read_ack;
-    output [7:0] ack;
-begin
-    $display("%t: BEGIN read_ack",$time);
-    read_char(ack);
-    $display("%t: END read_ack",$time);
-end
-endtask
-
 
 // Task to send test cmd.
 task cmd_test;
@@ -373,6 +369,13 @@ begin
         read_char(rchar);
         $display("%t: %d val=%d",$time,i,rchar);
     end
+
+    // wait for bus_done go high
+    while(!bus_done)
+    begin
+        @(posedge clk_100mhz);
+    end
+
     $display("\n%t: END cmd_test",$time);
 end
 endtask
@@ -393,8 +396,11 @@ begin
         // XXX $display("%t: %d hash_byte:%2x",$time,i,bus_data);
     end
 
-    // Read the ack
-    read_ack(ack);
+    // wait for bus_done go high
+    while(!bus_done)
+    begin
+        @(posedge clk_100mhz);
+    end
 
     // Print value.
     $display("%t cmd_state=%x",$time,top_md5_inst.cmd_parser_inst.cmd_state);
@@ -432,14 +438,13 @@ begin
     end
     $display("\n");
 
-    // wait for proc_done to go high
-    while(!top_md5_inst.proc_done)
+    // wait for bus_done go high
+    while(!bus_done)
     begin
         @(posedge clk_100mhz);
     end
 
-    // Read the ack
-    read_ack(ack);
+    ack = bus_match;
 
     $display("%t: END cmd_send_text",$time);
 end
@@ -538,6 +543,12 @@ begin
         read_char(match_str[j*8 +: 8]);
     end
 
+    // wait for bus_done go high
+    while(!bus_done)
+    begin
+        @(posedge clk_100mhz);
+    end
+
     $display("%t: match_pos: %d",$time,match_pos);
     $display("%t: match_str: '%s'",$time,match_str);
 
@@ -559,8 +570,11 @@ begin
     send_char(length[15:8]);
     send_char(length[7:0]);
 
-    // Read the ack
-    read_ack(ack);
+    // wait for bus_done go high
+    while(!bus_done)
+    begin
+        @(posedge clk_100mhz);
+    end
 
     // Print value.
     $display("%t cmd_state=%x",$time,top_md5_inst.cmd_parser_inst.cmd_state);
@@ -568,7 +582,6 @@ begin
     $display("%t: END cmd_set_hash",$time);
 end
 endtask
-
 
 // Generate a 100mhz clk
 always begin

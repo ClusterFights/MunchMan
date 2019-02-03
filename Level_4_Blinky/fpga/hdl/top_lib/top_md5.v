@@ -33,6 +33,8 @@ module top_md5 #
     inout wire [7:0] bus_data,
     input wire bus_rnw,         // rpi/master perspective
 
+    output wire bus_done,
+    output wire bus_match,
     output reg  match_led,
     output wire [NUM_LEDS-1:0] led
 );
@@ -81,6 +83,9 @@ wire txd_start;
 wire [7:0] txd_data;
 wire [7:0] bus_data_out;
 
+wire cmd_done;
+wire cmd_match;
+
 /*
 *****************************
 * Assignments
@@ -88,6 +93,9 @@ wire [7:0] bus_data_out;
 */
 
 assign bus_data = (bus_rnw==1) ? bus_data_out : 8'bz;
+
+assign bus_done = cmd_done;
+assign bus_match = cmd_match;
 
 /*
 *****************************
@@ -157,6 +165,9 @@ cmd_parser # (
     .proc_match_char_next(proc_match_char_next),
     .proc_target_hash(proc_target_hash), // [127:0] 
     .proc_str_len(proc_str_len),    // [15:0]
+
+    .cmd_done(cmd_done),
+    .cmd_match(cmd_match),
 
     // feedback/debug
     .led(led)    //   

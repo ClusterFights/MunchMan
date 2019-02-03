@@ -58,6 +58,8 @@ set_property -dict { PACKAGE_PIN N18   IOSTANDARD LVCMOS33 } [get_ports { bus_da
 ## PMOD Header JB
 set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports { bus_rnw }]; #IO_L9P_T1_DQS_14 Sch=jb_p[1]
 set_property -dict { PACKAGE_PIN P18   IOSTANDARD LVCMOS33 } [get_ports { bus_clk }]; #IO_L9N_T1_DQS_D13_14 Sch=jb_n[1]
+set_property -dict { PACKAGE_PIN P14   IOSTANDARD LVCMOS33 } [get_ports { bus_done }]; #IO_L11P_T1_SRCC_14 Sch=jb_p[3]
+set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports { bus_match }]; #IO_L11N_T1_SRCC_14 Sch=jb_n[3]
 #set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports { jb[0] }]; #IO_L9P_T1_DQS_14 Sch=jb_p[1]
 #set_property -dict { PACKAGE_PIN P18   IOSTANDARD LVCMOS33 } [get_ports { jb[1] }]; #IO_L9N_T1_DQS_D13_14 Sch=jb_n[1]
 #set_property -dict { PACKAGE_PIN R18   IOSTANDARD LVCMOS33 } [get_ports { jb[2] }]; #IO_L10P_T1_D14_14 Sch=jb_p[2]
