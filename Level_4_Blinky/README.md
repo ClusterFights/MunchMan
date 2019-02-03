@@ -44,11 +44,19 @@ The following table shows the connections between the RPI and the ArtyS7 board.
 ## TODO
 
 * **[DONE]** Add support for variable length strings to md5core.
+
+Supports hashing variables length strings from 2 to 55 characters.
+
 * **[DONE]** Add a dedicated Done and Match signals to the 8-bit bus.
+
+This change really improved the throughput on the bus. It
+used to run at about 5MB/sec now it is about 20MB/sec!
+
+* Sort manifest by files size in ascending order.
+* Disregard sending strings that contain newlines.
+* Add **close** command to disconnect from parallel bus
 * Expand parallel bus to 16-bits.
 * Switch to shielded cable between RPI and FPGA.
 * Experiment with the -Os optimization flag.
 * Switch from RPI 3 Model B to RPI Model B+
-* Disregard sending strings that contain newlines.
-* Sort manifest by files size in ascending order.
 
