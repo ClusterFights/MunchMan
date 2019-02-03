@@ -42,6 +42,8 @@ extern "C" {
 #define DATA7   (18)
 #define RNW     (26)
 #define CLK     (19)
+#define DONE    (13)
+#define MATCH   (6)
 
 /*
 ***************************
@@ -79,6 +81,7 @@ extern int STR_LEN;
 void sleep_ms(int ms);
 void sleep_us(int us);
 void sync_bus();
+unsigned char wait_bus_done();
 void bus_write_config();
 void bus_read_config();
 void bus_write(unsigned char byte);

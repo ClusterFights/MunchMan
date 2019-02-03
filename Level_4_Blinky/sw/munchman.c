@@ -77,6 +77,8 @@ void bus_write_config()
     PI_GPIO_config(DATA7, BCM_GPIO_OUT);
     PI_GPIO_config(RNW, BCM_GPIO_OUT);
     PI_GPIO_config(CLK, BCM_GPIO_OUT);
+    PI_GPIO_config(DONE, BCM_GPIO_IN);
+    PI_GPIO_config(MATCH, BCM_GPIO_IN);
 
     // Set RNW to write mode (0).
     GPIO_CLR_N(RNW);
@@ -100,6 +102,8 @@ void bus_read_config()
     PI_GPIO_config(DATA7, BCM_GPIO_IN);
     PI_GPIO_config(RNW, BCM_GPIO_OUT);
     PI_GPIO_config(CLK, BCM_GPIO_OUT);
+    PI_GPIO_config(DONE, BCM_GPIO_IN);
+    PI_GPIO_config(MATCH, BCM_GPIO_IN);
 
     // Set RNW to read mode (1).
     GPIO_SET_N(RNW);
@@ -258,6 +262,26 @@ unsigned char bus_read()
                 ((read_pins >> (DATA7-7))&0x80);
 
     return read_val;
+}
+
+/*
+ * Wait for the bus_done signal to go high.
+ * Returns the value of bus_match.
+ */
+unsigned char wait_bus_done()
+{
+    unsigned char done=0;
+    unsigned char match=0;
+
+    while (!done)
+    {
+        // Read the data off of the bus
+        read_pins = GPIO_LEV;
+
+        done =  ((read_pins >> DONE) & 0x01);
+        match = ((read_pins >> MATCH) & 0x01);
+    }
+    return match;
 }
 
 
@@ -442,6 +466,8 @@ void cmd_test()
         printf("%d: %d\n",i,ret_buffer[i]);
     }
 
+    wait_bus_done();
+
     bus_write_config();
 }
 
@@ -453,7 +479,6 @@ void cmd_test()
 char cmd_set_hash(unsigned char *target_hash)
 {
     int ret;
-    char ack;
 
     // Send the set hash command 0x01.
     bus_write(0x01);
@@ -466,12 +491,9 @@ char cmd_set_hash(unsigned char *target_hash)
         return -1;
     }
 
-    // Return the ack
-    bus_read_config();
-    ack = bus_read();
-    bus_write_config();
-
-    return ack;
+    // Wait for command to complete
+    wait_bus_done();
+    return 1;
 }
 
 /*
@@ -482,7 +504,6 @@ char cmd_set_hash(unsigned char *target_hash)
 char cmd_str_len(unsigned char num_chars)
 {
     int ret;
-    char ack;
     unsigned int num_bits;
     unsigned char num_bits_arry[2];
 
@@ -512,12 +533,9 @@ char cmd_str_len(unsigned char num_chars)
         return -1;
     }
 
-    // Return the ack
-    bus_read_config();
-    ack = bus_read();
-    bus_write_config();
-
-    return ack;
+    // Wait for command to complete
+    wait_bus_done();
+    return 1;
 }
 
 /*
@@ -530,7 +548,6 @@ char cmd_str_len(unsigned char num_chars)
 char cmd_send_text(unsigned char *text_str, int text_str_len)
 {
     int ret;
-    char ack;
     unsigned char len_bytes[2];
 
     // Send the send text command 0x02.
@@ -554,12 +571,8 @@ char cmd_send_text(unsigned char *text_str, int text_str_len)
         return -1;
     }
 
-    // Return the ack
-    bus_read_config();
-    ack = bus_read();
-    bus_write_config();
-
-    return ack;
+    // Wait for command to complete
+    return wait_bus_done();
 }
 
 /*
@@ -588,6 +601,9 @@ char cmd_read_match(struct match_result *result)
     }
 
     bus_write_config();
+
+    // Wait for command to complete
+    wait_bus_done();
 
     return 1; // success
 }
