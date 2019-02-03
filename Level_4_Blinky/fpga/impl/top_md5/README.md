@@ -7,7 +7,9 @@ FPGA implementation.
 
 ## Status
 
-In development
+Completed the following:
+* Added support for variable length strings
+* Added support for bus_done and bus_match signals
 
 
 ## Block Diagram
@@ -34,4 +36,8 @@ Asserts match if match found.**
 **Asserts done when complete.**
 
 
+## Implementation Report Summary
+
+
+![Report Summary](images/report_summary.png)
 

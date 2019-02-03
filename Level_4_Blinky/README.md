@@ -44,11 +44,11 @@ The following table shows the connections between the RPI and the ArtyS7 board.
 ## TODO
 
 * **[DONE]** Add support for variable length strings to md5core.
-* Add a dedicated Done and Match signals to the 8-bit bus.
-* Experiment with the -Os optimization flag.
-* Switch from RPI 3 Model B to RPI Model B+
+* **[DONE]** Add a dedicated Done and Match signals to the 8-bit bus.
 * Expand parallel bus to 16-bits.
 * Switch to shielded cable between RPI and FPGA.
+* Experiment with the -Os optimization flag.
+* Switch from RPI 3 Model B to RPI Model B+
 * Disregard sending strings that contain newlines.
 * Sort manifest by files size in ascending order.
 
