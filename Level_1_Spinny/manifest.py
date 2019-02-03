@@ -18,6 +18,10 @@ Usage: manifest.py <dataset_dir>
  as "manifest.txt"
 """
 
+# Function to sort books by size
+def sortBySize(item):
+    return item[0]
+
 # Print USAGE if not one argument
 if len(sys.argv) == 2:
     dataset_dir = sys.argv[1]
@@ -46,7 +50,7 @@ for root ,dirs ,files in os.walk(dataset_dir):
 # Print the manifest
 print("total_size: ",total_size)
 print("num_files: ",num_files)
-for finfo in file_list:
+for finfo in sorted(file_list,key=sortBySize):
     print(finfo[0], finfo[1])
 
 
