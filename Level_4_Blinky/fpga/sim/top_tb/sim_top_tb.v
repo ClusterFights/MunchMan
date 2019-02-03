@@ -562,6 +562,8 @@ task cmd_str_len;
     output [7:0] ack;
 begin
     $display("\n%t: BEGIN cmd_str_len",$time);
+    $display("%t: set str char length=%d",$time,(length>>3));
+    $display("%t: set str bit length=0x%x",$time,length);
 
     // Send the command
     send_char(CMD_STR_LEN);
@@ -579,7 +581,7 @@ begin
     // Print value.
     $display("%t cmd_state=%x",$time,top_md5_inst.cmd_parser_inst.cmd_state);
     $display("%t target_hash=%x",$time,top_md5_inst.cmd_parser_inst.target_hash);
-    $display("%t: END cmd_set_hash",$time);
+    $display("%t: END cmd_str_len",$time);
 end
 endtask
 
