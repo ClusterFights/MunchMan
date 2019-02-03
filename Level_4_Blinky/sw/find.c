@@ -229,8 +229,8 @@ int main(int argc, char *argv[])
         sleep_ms(100);
 
         // Send the test command 0x04.
-        printf("Sending the test command 0x04.\n");
-        cmd_test();
+        // XXX printf("Sending the test command 0x04.\n");
+        // XXX cmd_test();
 
         // Send the set str len cmd 0x05.
         printf("Sending set str length command 0x05. STR_LEN=%d\n",STR_LEN);
