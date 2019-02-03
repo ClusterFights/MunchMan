@@ -578,8 +578,8 @@ char cmd_read_match(struct match_result *result)
     bus_read_config();
 
     // Read the match data
-    ret = bus_read_data(ret_buffer, 21);
-    if (ret == 21) {
+    ret = bus_read_data(ret_buffer, STR_LEN + 2);
+    if (ret == STR_LEN + 2) {
         result->pos = (int)((ret_buffer[0]<<8) + (ret_buffer[1]&0xFF));
         strncpy((char *)result->str,(char *)&ret_buffer[2],STR_LEN);
     } else {

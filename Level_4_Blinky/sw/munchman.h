@@ -52,7 +52,7 @@ extern "C" {
 struct match_result
 {
     int pos;
-    unsigned char str[19];
+    unsigned char str[56];
 };
 
 /*
