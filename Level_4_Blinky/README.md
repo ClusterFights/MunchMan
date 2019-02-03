@@ -52,7 +52,10 @@ Supports hashing variables length strings from 2 to 55 characters.
 This change really improved the throughput on the bus. It
 used to run at about 5MB/sec now it is about 20MB/sec!
 
-* Sort manifest by files size in ascending order.
+* **[DONE]** Add quite mode to disable printing book titles.
+
+Saves about a second over the whole dataset
+
 * Disregard sending strings that contain newlines.
 * Add **close** command to disconnect from parallel bus
 * Expand parallel bus to 16-bits.
