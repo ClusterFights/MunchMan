@@ -86,6 +86,7 @@ md5.update(byte_str)
 print("file_index: {} out of {}".format(index,num_files))
 print("file_path: ",file_path)
 print("byte_offset: ",byte_offset)
+print('str_len: {}'.format(args.str_len))
 print('byte_str: {}'.format(byte_str))
 print('hash: {}'.format(md5.hexdigest()))
 
