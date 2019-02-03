@@ -14,6 +14,33 @@ strings. Another goal is to increase the communication speed between the raspber
 and the ArtyS7 fpga board.  I have a few ideas on how to do this, including upgrading
 from an 8-bit bus to a 16-bit bus.
 
+## Parallel Interface Update
+
+This interface is an 8-bit parallel, synchronous, master interface.
+The RPI is the master and controls the clock.  Data must be valid on the
+rising edge of the clock.  In this update we add two more wires, a
+**done** signal and a **match** signal.  These signals are outputs from
+the FPGA and inputs to the RPI.  This way we do not have to change
+the direction of the data bus to get an acknowledge.
+
+The following table shows the connections between the RPI and the ArtyS7 board.
+
+| Signal Name   | RPI GPIO  | ArtyS7     |
+| ------------- |:---------:| ----------:|
+| data0         | 21        | JA(1) L17  |
+| data1         | 20        | JA(2) L18  |
+| data2         | 16        | JA(3) M14  |
+| data3         | 12        | JA(4) N14  |
+| data4         | 25        | JA(7) M16  |
+| data5         | 24        | JA(8) M17  |
+| data6         | 23        | JA(9) M18  |
+| data7         | 18        | JA(10) N18 |
+| r/w           | 26        | JB(1) P17  |
+| clk           | 19        | JB(2) P18  |
+| done          | 13        | JB(7) P14  |
+| match         | 6         | JB(8) P15  |
+
+
 ## TODO
 
 * **[DONE]** Add support for variable length strings to md5core.
