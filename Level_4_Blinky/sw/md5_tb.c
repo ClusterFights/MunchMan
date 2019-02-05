@@ -55,8 +55,9 @@ int main(int argc, char *argv[])
     }
 
     // Send the send text command 0x02.
+    int nflag=0;    // don't skip newlines
     printf("Sending the send text command 0x02.\n");
-    ack = cmd_send_text(test_str, test_str_len);
+    ack = cmd_send_text(nflag, test_str, test_str_len);
     if (!ack) {
         printf("ERROR, during send text command. ack=%d\n",ack);
         return EXIT_FAILURE;

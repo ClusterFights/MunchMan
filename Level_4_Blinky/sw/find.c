@@ -36,6 +36,7 @@ static char USEAGE[] =
     "Usage: find [-l] [-s len] md5_hash\n"
     "   -l      local only, no FPGA connection\n"
     "   -q      quite mode.  Don't print book titles\n"
+    "   -n      no_eol.  Skip strings with newlines\n"
     "   -s len  length of strings to search 2..55 [default=19]\n";
 static char *manifest_file = "manifest.txt";
 static unsigned char target_hash[16] = {0};
@@ -44,6 +45,7 @@ static int num_of_books = 0;
 static int lflag = 0;   // process locally? No FPGA?
 static int sflag = 0;   // set string length.
 static int qflag = 0;   // quite mode
+static int nflag = 0;   // no_eol.  Skip strings with newlines.
 
 /*
  * Parses the manifest file.
@@ -115,7 +117,7 @@ int run()
             printf("%i %s\n",i,manifest_list[i].file_path);
         }
         ack = send_file(manifest_list[i].file_path, &match, 
-                lflag, target_hash, &num_hashes);
+                lflag, nflag, target_hash, &num_hashes);
         if (ack == 1)
         {
             total_proc_bytes += num_hashes;
@@ -153,7 +155,7 @@ int main(int argc, char *argv[])
     opterr = 0;
 
     // Parse comand line args.
-    while ((c=getopt(argc, argv, "ls:q")) != -1)
+    while ((c=getopt(argc, argv, "ls:qn")) != -1)
     {
         switch(c)
         {
@@ -176,6 +178,9 @@ int main(int argc, char *argv[])
                 break;
             case 'q':
                 qflag = 1;
+                break;
+            case 'n':
+                nflag = 1;
                 break;
             default:
                 printf("%s",USEAGE);
