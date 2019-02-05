@@ -344,7 +344,7 @@ void string_push(unsigned char *buffer, unsigned char ch)
  * search for md5_match.
  */
 unsigned char send_file(char *filename, struct match_result *match, int lflag,
-        int nflag, unsigned char *target_hash, int *num_hashes)
+        unsigned char *target_hash, int *num_hashes)
 {
     char buffer[BUFFER_SIZE];
     size_t nread;
@@ -373,7 +373,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
         if (lflag == 0)
         {
             // Process on FPGA board
-            ack = cmd_send_text(nflag, (unsigned char *)buffer, nread);
+            ack = cmd_send_text((unsigned char *)buffer, nread);
             if (ack==1)
             {
                 printf("FOUND! md5_hash found.\n");
@@ -545,47 +545,16 @@ char cmd_str_len(unsigned char num_chars)
 }
 
 /*
- * Remove new lines from the text_str.
- * Skip the newline (\n or \r) and the next STR_LEN - 1 chars.
- * Returns length of the modified string.
- */
-int remove_newlines(unsigned char *text_str, int text_str_len)
-{
-    int s,d;
-    for (s=0,d=0; s <text_str_len; )
-    {
-        if (text_str[s] == '\n' || text_str[s] == '\r')
-        {
-            d = d - STR_LEN;
-        } 
-        d++;
-        s++;
-        if (d != s)
-        {
-            text_str[d] = text_str[s];
-        }
-    }
-    return d+1;
-}
-
-/*
  * Sends the send_text cmd, 0x02.
- * nflag : -no_eol, 1 means skip strings with newlines.
  * Return 1 for ACK, 0 for NACK, -1 for ERROR.
  *
  * ACK indicates that a string was found that matches
  * the target hash.
  */
-char cmd_send_text(int nflag, unsigned char *text_str, int text_str_len)
+char cmd_send_text(unsigned char *text_str, int text_str_len)
 {
     int ret;
     unsigned char len_bytes[2];
-
-    if (nflag)
-    {
-        // Remove newlines from potential strings
-        text_str_len = remove_newlines(text_str, text_str_len);
-    }
 
     // Send the send text command 0x02.
     bus_write(0x02);

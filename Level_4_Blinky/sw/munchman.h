@@ -91,14 +91,12 @@ int bus_write_data(unsigned char *buffer, int num_to_write);
 
 void cmd_test();
 char cmd_set_hash(unsigned char *target_hash);
-char cmd_send_text(int nflag, unsigned char *text_str, int text_str_len);
+char cmd_send_text(unsigned char *text_str, int text_str_len);
 char cmd_read_match(struct match_result *result);
 char cmd_str_len(unsigned char num_chars);
 
 unsigned char send_file(char *filename, struct match_result *match, int lflag,
-        int nflag, unsigned char *target_hash, int *num_hashes);
-
-int remove_newlines(unsigned char *text_str, int text_str_len);
+        unsigned char *target_hash, int *num_hashes);
 
 
 #ifdef __cplusplus
