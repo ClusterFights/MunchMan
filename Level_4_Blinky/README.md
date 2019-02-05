@@ -27,18 +27,18 @@ The following table shows the connections between the RPI and the ArtyS7 board.
 
 | Signal Name   | RPI GPIO  | ArtyS7     |
 | ------------- |:---------:| ----------:|
-| data0         | 21        | JA(1) L17  |
-| data1         | 20        | JA(2) L18  |
-| data2         | 16        | JA(3) M14  |
-| data3         | 12        | JA(4) N14  |
-| data4         | 25        | JA(7) M16  |
-| data5         | 24        | JA(8) M17  |
-| data6         | 23        | JA(9) M18  |
-| data7         | 18        | JA(10) N18 |
-| r/w           | 26        | JB(1) P17  |
-| clk           | 19        | JB(2) P18  |
-| done          | 13        | JB(7) P14  |
-| match         | 6         | JB(8) P15  |
+| data0         | 21        | JC(1) U15  |
+| data1         | 20        | JC(2) V16  |
+| data2         | 16        | JC(3) U17  |
+| data3         | 12        | JC(4) U18  |
+| data4         | 25        | JC(7) U16  |
+| data5         | 24        | JC(8) P13  |
+| data6         | 23        | JC(9) R13  |
+| data7         | 18        | JC(10) V14 |
+| r/w           | 26        | JD(1) V15  |
+| clk           | 19        | JD(2) U12  |
+| done          | 13        | JD(7) T13  |
+| match         | 6         | JD(8) R11  |
 
 
 ## TODO
