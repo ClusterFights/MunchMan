@@ -56,7 +56,12 @@ used to run at about 5MB/sec now it is about 20MB/sec!
 
 Saves about a second over the whole dataset
 
-* Disregard sending strings that contain newlines.
+* **[SKIPPED]** Disregard sending strings that contain newlines.
+
+Experimented with removing newlines on the fly but it actually
+made the execution time slower.  It takes more time to remove
+the newlines than to just process them.
+
 * Add **close** command to disconnect from parallel bus
 * Expand parallel bus to 16-bits.
 * Switch to shielded cable between RPI and FPGA.
