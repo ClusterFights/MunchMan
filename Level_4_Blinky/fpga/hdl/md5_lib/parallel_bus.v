@@ -29,6 +29,7 @@ module par8_receiver
 (
     input wire clk,     // fast, like 100mhz
     input wire reset,
+    input wire desync,
 
     // parallel bus
     input wire bus_clk,
@@ -130,7 +131,10 @@ begin
             end
             DONE : begin
                 synced <= 1;
-                sync_state <= DONE;
+                if (desync) begin
+                    synced <= 0;
+                    sync_state <= SYNC1;
+                end
             end
             default : begin
                 sync_state <= SYNC1;

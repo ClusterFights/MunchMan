@@ -64,6 +64,8 @@ module cmd_parser #
     output reg cmd_done,
     output reg cmd_match,
 
+    output reg desync,
+
     // feedback/debug
     output wire [NUM_LEDS-1:0] led
 );
@@ -107,6 +109,7 @@ localparam PROC_CMD     = 8'h02;
 localparam RET_CMD      = 8'h03;
 localparam TEST_CMD     = 8'h04;
 localparam STR_LEN_CMD  = 8'h05;
+localparam CLOSE_CMD    = 8'h06;
 
 /*
 *****************************
@@ -137,6 +140,7 @@ begin
         // 8*19=152=0x98. Default 19 chars
         str_len <= 16'h98;
         cmd_done <= 0;
+        desync <= 0;
     end else begin
         case (cmd_state)
             IDLE : begin
@@ -148,6 +152,7 @@ begin
                 proc_start <= 0;
                 proc_match_char_next <= 0;
                 num_bytes <= 0;
+                desync <= 0;
                 // Waiting for a command byte
                 if (rxd_data_ready) begin
                     if (rxd_data == SET_CMD) begin
@@ -162,6 +167,10 @@ begin
                     end else if (rxd_data == STR_LEN_CMD) begin
                         char_count <= 2;
                         cmd_state <= STR_LEN;
+                    end else if (rxd_data == CLOSE_CMD) begin
+                        desync <= 1;
+                        cmd_done <= 0;
+                        cmd_state <= ACK;
                     end
                 end
             end

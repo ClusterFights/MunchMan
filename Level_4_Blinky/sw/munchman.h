@@ -94,6 +94,7 @@ char cmd_set_hash(unsigned char *target_hash);
 char cmd_send_text(unsigned char *text_str, int text_str_len);
 char cmd_read_match(struct match_result *result);
 char cmd_str_len(unsigned char num_chars);
+char cmd_close();
 
 unsigned char send_file(char *filename, struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes);

@@ -104,6 +104,8 @@ int run()
     struct timeval tv1, tv2;
     int num_hashes=0;
     long long total_proc_bytes=0;
+    double total_time;
+    double hashes_per_sec;
 
     // Start the timer.
     gettimeofday(&tv1, NULL);
@@ -123,12 +125,12 @@ int run()
 
             // Stop the timer
             gettimeofday(&tv2, NULL);
-            double total_time = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+            total_time = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                  (double) (tv2.tv_sec - tv1.tv_sec);
             printf ("Total time = %f seconds\n", total_time);
             printf ("Total bytes processed = %lld \n", total_proc_bytes);
             // double hashes_per_sec = num_hashes / total_time;
-            double hashes_per_sec = total_proc_bytes / total_time;
+            hashes_per_sec = total_proc_bytes / total_time;
             printf("hashes_per_sec: %f\n",hashes_per_sec);
 
 
@@ -140,6 +142,17 @@ int run()
         }
         total_proc_bytes += manifest_list[i].size;
     }
+
+    // Stop the timer
+    gettimeofday(&tv2, NULL);
+    total_time = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec);
+    printf ("!!! HASH NOT FOUND !!!!\n");
+    printf ("Total time = %f seconds\n", total_time);
+    printf ("Total bytes processed = %lld \n", total_proc_bytes);
+    // double hashes_per_sec = num_hashes / total_time;
+    hashes_per_sec = total_proc_bytes / total_time;
+    printf("hashes_per_sec: %f\n",hashes_per_sec);
 
     return 0;
 }
@@ -253,6 +266,9 @@ int main(int argc, char *argv[])
 
         // Run the search
         run();
+
+        // close the bus. Desync
+        cmd_close();
 
     } else
     {

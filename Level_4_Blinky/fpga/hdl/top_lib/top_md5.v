@@ -86,6 +86,8 @@ wire [7:0] bus_data_out;
 wire cmd_done;
 wire cmd_match;
 
+wire desync;
+
 /*
 *****************************
 * Assignments
@@ -107,6 +109,7 @@ par8_receiver par8_receiver_inst
 (
     .clk(clk),     // fast, like 100mhz
     .reset(reset),
+    .desync(desync),
 
     // parallel bus
     .bus_clk(bus_clk),
@@ -168,6 +171,8 @@ cmd_parser # (
 
     .cmd_done(cmd_done),
     .cmd_match(cmd_match),
+
+    .desync(desync),
 
     // feedback/debug
     .led(led)    //   

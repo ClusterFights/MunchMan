@@ -503,6 +503,22 @@ char cmd_set_hash(unsigned char *target_hash)
 }
 
 /*
+ * Closes the parallel bus connection.
+ * Desyncs the bus.
+ * After this call will need to call sync_bus()
+ * to talk on the bus.
+ */
+char cmd_close()
+{
+    // Send the set close bus command 0x06.
+    bus_write(0x06);
+
+    // Wait for command to complete
+    wait_bus_done();
+    return 1;
+}
+
+/*
  * Sets the string length 0x05.
  * num_chars: between 2 and 55 inclusive.
  * Return 1 for ACK, 0 for NACK, -1 for ERROR.
