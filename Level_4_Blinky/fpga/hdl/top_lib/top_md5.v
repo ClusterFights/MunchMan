@@ -35,7 +35,7 @@ module top_md5 #
 
     output wire bus_done,
     output wire bus_match,
-    output reg  match_led,
+    output wire  match_led,
     output wire [NUM_LEDS-1:0] led
 );
 
@@ -98,6 +98,7 @@ assign bus_data = (bus_rnw==1) ? bus_data_out : 8'bz;
 
 assign bus_done = cmd_done;
 assign bus_match = cmd_match;
+assign match_led = cmd_match;
 
 /*
 *****************************
@@ -249,24 +250,6 @@ begin
         end
     end
 end
-
-// Drive the match_led
-reg proc_match_latch;
-always @ (posedge clk)
-begin
-    if (reset) begin
-        proc_match_latch <= 0;
-        match_led <= 0;
-    end else begin
-        if (proc_match) begin
-            proc_match_latch <= 1;
-        end
-        if (proc_match_latch) begin
-            match_led <= pwm;
-        end
-    end
-end
-
 
 endmodule
 
