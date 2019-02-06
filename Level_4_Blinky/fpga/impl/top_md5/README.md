@@ -18,6 +18,17 @@ Here is a block diagram of the FPGA architecture.
 
 ![FPGA_Architecture](images/MiniWheat_FPGA_Architecture.png)
 
+## Sync the bus
+
+The RPI acts as the master on the bus, controlling the clock.  The first act
+to use the bus is two send two sync words on the data bus. The sync words are
+# 0xB8
+# 0X8B
+
+This lets the FPGA board know that the master is ready to start sending
+and receiving data.  When the program is done the RPI should send
+a "close command" which will desync the bus.
+
 ## Commands
 
 The cmd_parser module receives 1 byte commands from the
@@ -34,6 +45,7 @@ Asserts match if match found.**
 * 0x04 : Test command.  Returns ten bytes 10, 9, 8, 7, ... 1. **Asserts done when complete.**
 * 0x05 : Set STR_LEN command.  Send 2 bytes.  Set the string length in bits.
 **Asserts done when complete.**
+* 0x06 : close command.  Desync the bus.  Requires the RPI to send the sync words again before talking to the FPGA.
 
 
 ## Implementation Report Summary
