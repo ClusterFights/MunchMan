@@ -46,6 +46,7 @@ Asserts match if match found.**
 * 0x05 : Set STR_LEN command.  Send 2 bytes.  Set the string length in bits.
 **Asserts done when complete.**
 * 0x06 : close command.  Desync the bus.  Requires the RPI to send the sync words again before talking to the FPGA.
+**Asserts  done when complete.**
 
 
 ## Implementation Report Summary
