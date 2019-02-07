@@ -62,9 +62,18 @@ Experimented with removing newlines on the fly but it actually
 made the execution time slower.  It takes more time to remove
 the newlines than to just process them.
 
-* Add **close** command to disconnect from parallel bus
+* **[DONE]** Add **close** command to disconnect from parallel bus
+
 * Expand parallel bus to 16-bits.
-* Switch to shielded cable between RPI and FPGA.
-* Experiment with the -Os optimization flag.
+
+* **[SKIPPED]** Switch to shielded cable between RPI and FPGA.
+
+Looked at this with Jeff.  We made the cables shorter and looked
+at them on the scope.  They are looking pretty good.
+
+* **[DONE]** Experiment with the -Os optimization flag.
+
+Looks like -O3 is working better than -Os.
+
 * Switch from RPI 3 Model B to RPI Model B+
 
