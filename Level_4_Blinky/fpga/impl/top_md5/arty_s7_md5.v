@@ -29,7 +29,7 @@ module arty_s7_md5 #
 
     // rpi parallel bus
     input wire bus_clk,
-    inout wire [7:0] bus_data,
+    inout wire [15:0] bus_data,
     input wire bus_rnw,         // rpi/master perspective
 
     output wire bus_done,

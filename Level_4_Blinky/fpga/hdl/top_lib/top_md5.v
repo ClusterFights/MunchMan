@@ -13,6 +13,7 @@
 * Updates:
 * 01/25/2019 - Add 8-bit parallel interface.
 * 01/30/2019 - Update to support variable length strings.
+* 02/08/2019 - Update par8_receiver to par16_receiver
 *
 *****************************
 */
@@ -30,7 +31,7 @@ module top_md5 #
 
     // rpi parallel bus
     input wire bus_clk,
-    inout wire [7:0] bus_data,
+    inout wire [15:0] bus_data,
     input wire bus_rnw,         // rpi/master perspective
 
     output wire bus_done,
@@ -94,7 +95,7 @@ wire desync;
 *****************************
 */
 
-assign bus_data = (bus_rnw==1) ? bus_data_out : 8'bz;
+assign bus_data = (bus_rnw==1) ? {8'h0,bus_data_out[7:0]} : 16'bz;
 
 assign bus_done = cmd_done;
 assign bus_match = cmd_match;
@@ -106,7 +107,7 @@ assign match_led = cmd_match;
 *****************************
 */
 
-par8_receiver par8_receiver_inst
+par16_receiver par16_receiver_inst
 (
     .clk(clk),     // fast, like 100mhz
     .reset(reset),

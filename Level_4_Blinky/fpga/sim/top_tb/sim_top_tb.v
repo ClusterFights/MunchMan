@@ -35,7 +35,7 @@ reg clk_100mhz;
 reg reset;
 
 // par8 bus
-reg [7:0] bus_data_in;
+reg [15:0] bus_data_in;
 reg bus_clk;
 reg bus_rnw;
 /*
@@ -44,9 +44,9 @@ reg bus_rnw;
 *****************************
 */
 
-wire [7:0] bus_data;
+wire [15:0] bus_data;
 
-assign bus_data = (bus_rnw) ? 8'bz : bus_data_in;
+assign bus_data = (bus_rnw) ? 16'bz : bus_data_in[15:0];
 
 /*
 *****************************
@@ -281,14 +281,14 @@ begin
 
     // send the first sync word
     $display("%t: Send 1st sync workd ",$time);
-    bus_data_in = 8'hB8;
+    bus_data_in = 16'hB8_B8;
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
 
     // send the 2nd sync word
     $display("%t: Send 2nd sync workd ",$time);
-    bus_data_in = 8'h8B;
+    bus_data_in = 16'h8B_8B;
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
@@ -298,7 +298,8 @@ endtask
 
 // Task to send a character
 task send_char;
-    input [7:0] char;
+    input [7:0] msb_char;
+    input [7:0] lsb_char;
 begin
     // make sure bus_rnw is in write mode
     bus_rnw = 0;
@@ -311,7 +312,7 @@ begin
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
-    bus_data_in = char;
+    bus_data_in = {msb_char, lsb_char};
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
@@ -361,7 +362,7 @@ task cmd_test;
 begin
     $display("\n%t: BEGIN cmd_test",$time);
     // Send the command
-    send_char(CMD_TEST_OP);
+    send_char(8'h0, CMD_TEST_OP);
 
     // Read back test data
     for (i=0; i<10; i++)
@@ -387,12 +388,12 @@ begin
     $display("\n%t: BEGIN cmd_set_hash",$time);
 
     // Send the command
-    send_char(CMD_SET_HASH_OP);
+    send_char(8'h0, CMD_SET_HASH_OP);
 
     // Send the 16 target hash bytes
-    for (i=15; i>=0; i=i-1)
+    for (i=15; i>=0; i=i-2)
     begin
-        send_char(target_hash[8*i +: 8]);
+        send_char(target_hash[8*i +: 8],target_hash[8*(i-1) +: 8]);
         // XXX $display("%t: %d hash_byte:%2x",$time,i,bus_data);
     end
 
@@ -418,21 +419,22 @@ begin
     $display("\n%t: BEGIN cmd_send_text",$time);
 
     // Send the command
-    send_char(CMD_SEND_TEXT_OP);
+    send_char(8'h0,CMD_SEND_TEXT_OP);
 
     // Send the number of bytes to be sent
-    // Send MSB first
-    send_char(text_str_len[15:8]);
-    $display("%t: MSB len=%x",$time,bus_data);
-    // Send LSB second
-    send_char(text_str_len[7:0]);
-    $display("%t: LSB len=%x",$time,bus_data);
+    send_char(text_str_len[15:8],text_str_len[7:0]);
+    $display("%t: text_str_len=%x",$time,text_str_len);
 
     // Send the characters
     $display("");
-    for (i=0; i <text_str_len; i++)
+    for (i=0; i <text_str_len; )
     begin
-        send_char(text_str[8*i +: 8]);
+        if (i == (text_str_len-1)) begin
+            send_char(text_str[8*i +: 8],8'h0);
+        end else begin
+            send_char(text_str[8*i +: 8],text_str[8*(i+1) +: 8]);
+            i = i + 2;
+        end
         // XXX $display("%t: %d char=%c",$time,i,bus_data);
         $write("%c",bus_data);
     end

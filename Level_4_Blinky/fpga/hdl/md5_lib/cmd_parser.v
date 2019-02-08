@@ -24,6 +24,7 @@
 * 01/25/2019 : changed port txd_busy to txd_ready_next, to be compatible with
 *               par8_transmitter.
 * 01/30/2019 : Added set STR_LEN command.
+* 02/08/2019 : Updated to support the par16_recv.
 *
 *****************************
 */
@@ -89,19 +90,17 @@ assign proc_str_len[15:0] = str_len[15:0];
 
 // States
 localparam IDLE             = 0;
-localparam SET_HASH         = 1;
-localparam PROC_CHARS1      = 2;
-localparam PROC_CHARS2      = 3;
-localparam PROC_CHARS3      = 4;
-localparam RET_CHARS1       = 5;
-// XXX localparam RET_CHARS1_WAIT  = 6;
-// XXX localparam RET_CHARS1_WAIT2 = 7;
-localparam RET_CHARS2       = 6;
-// XXX localparam RET_CHARS2_WAIT  = 9;
-localparam TEST             = 7;
-localparam TEST2            = 8;
-localparam ACK              = 9;
-localparam STR_LEN          = 10;
+localparam BURN_MSB         = 1;
+localparam SET_HASH         = 2;
+localparam PROC_CHARS1      = 3;
+localparam PROC_CHARS2      = 4;
+localparam PROC_CHARS3      = 5;
+localparam RET_CHARS1       = 6;
+localparam RET_CHARS2       = 7;
+localparam TEST             = 8;
+localparam TEST2            = 9;
+localparam ACK              = 10;
+localparam STR_LEN          = 11;
 
 // Character constants
 localparam SET_CMD      = 8'h01;
@@ -155,6 +154,14 @@ begin
                 desync <= 0;
                 // Waiting for a command byte
                 if (rxd_data_ready) begin
+                    cmd_state <= BURN_MSB;
+                end
+            end
+            // Added for the par16_recv version.
+            // Need to discard the MSB of the command.
+            // All cmd data in LSB.
+            BURN_MSB : begin
+                if (rxd_data_ready) begin
                     if (rxd_data == SET_CMD) begin
                         cmd_state <= SET_HASH;
                     end else if (rxd_data == PROC_CMD) begin
@@ -171,6 +178,8 @@ begin
                         desync <= 1;
                         cmd_done <= 0;
                         cmd_state <= ACK;
+                    end else begin
+                        cmd_state <= IDLE;
                     end
                 end
             end

@@ -21,9 +21,14 @@ Here is a block diagram of the FPGA architecture.
 ## Sync the bus
 
 The RPI acts as the master on the bus, controlling the clock.  The first act
-to use the bus is two send two sync words on the data bus. The sync words are
-1. 0xB8
-2. 0X8B
+to use the bus is two send two sync words on the data bus. For the 8-bit parallel
+bus the sync words are:
+1. 8'hB8 
+2. 8'h8B
+
+For the 16-bit parallel bus the sync words are:
+1. 16'hB8_B8 
+2. 16'h8B_8B
 
 This lets the FPGA board know that the master is ready to start sending
 and receiving data.  When the program is done the RPI should send
