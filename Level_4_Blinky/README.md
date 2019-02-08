@@ -35,10 +35,23 @@ The following table shows the connections between the RPI and the ArtyS7 board.
 | data5         | 24        | JC(8) P13  |
 | data6         | 23        | JC(9) R13  |
 | data7         | 18        | JC(10) V14 |
+| data8         | 5         | JD(3) V13 |
+| data9         | 11        | JD(4) T12 |
+| data10        | 9         | JD(9) T11 |
+| data11        | 10        | JD(10) U11 |
+| data12        | 22        | JB(1) P17 |
+| data13        | 27        | JB(3) R18 |
+| data14        | 17        | JB(7) P14 |
+| data15        | 4         | JB(9) N15 |
 | r/w           | 26        | JD(1) V15  |
 | clk           | 19        | JD(2) U12  |
 | done          | 13        | JD(7) T13  |
 | match         | 6         | JD(8) R11  |
+
+
+**NOTE**: Port JB is a "high speed" port and has differential routing for pin pairs.
+Since we are using single ended signals we skip every other port connection. Also
+connected a GND between every FPGA Pmod port and the RPI.
 
 
 ## TODO
