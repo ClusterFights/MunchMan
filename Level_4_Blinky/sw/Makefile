@@ -8,17 +8,17 @@ test_toggle: test_toggle.c
 	sudo chown root $@
 	sudo chmod +s $@
 
-data_test: data_test.c munchman.c md5.c
+data_test: data_test.c munchman8.c md5.c
 	$(CC) $(GPIO_BASE) -Wall -O3 -o $@ $^
 	sudo chown root $@
 	sudo chmod +s $@
 
-md5_tb: md5_tb.c munchman.c md5.c
+md5_tb: md5_tb.c munchman8.c md5.c
 	$(CC) $(GPIO_BASE) -Wall -O3 -o $@ $^
 	sudo chown root $@
 	sudo chmod +s $@
 
-find: find.c munchman.c md5.c
+find: find.c munchman8.c md5.c
 	$(CC) $(GPIO_BASE) -Wall -O3 -o $@ $^
 	sudo chown root $@
 	sudo chmod +s $@

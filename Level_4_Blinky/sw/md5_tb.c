@@ -13,7 +13,7 @@
  * 01/25/2019 : Updated to work with the new 8-bit parallel interface
  */
 
-#include "munchman.h"
+#include "munchman8.h"
 
 // target md5 hash for "The quick brown fox"
 static unsigned char target_hash[] = {

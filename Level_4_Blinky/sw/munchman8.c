@@ -1,7 +1,8 @@
 /*
- * FILE : munchman.c
+ * FILE : munchman8.c
  *
  * Library of functions for the Munchman project.
+ * Talks to the 8-bit parallel bus.
  *
  * AUTHOR : Brandon Blodget
  * CREATE DATE: 11/04/2018
@@ -10,7 +11,7 @@
  * 01/25/2019 : Updates for new parallel bus
  */
 
-#include "munchman.h"
+#include "munchman8.h"
 #include "md5.h"
 #include <string.h>
 
