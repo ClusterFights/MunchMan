@@ -8,7 +8,10 @@
 *
 * Author : Brandon Bloodget
 * Create Date : 10/25/2018
-* Status : Developoment
+* Status : Works
+*
+* Updates:
+* 02/10/2019 : Updated to use par16_receiver.
 *
 *****************************
 */
@@ -280,14 +283,14 @@ begin
     @ (posedge clk_100mhz);
 
     // send the first sync word
-    $display("%t: Send 1st sync workd ",$time);
+    $display("%t: Send 1st sync word ",$time);
     bus_data_in = 16'hB8_B8;
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
 
     // send the 2nd sync word
-    $display("%t: Send 2nd sync workd ",$time);
+    $display("%t: Send 2nd sync word ",$time);
     bus_data_in = 16'h8B_8B;
     @ (posedge clk_100mhz);
     @ (posedge clk_100mhz);
@@ -427,16 +430,18 @@ begin
 
     // Send the characters
     $display("");
-    for (i=0; i <text_str_len; )
+    i=0;
+    while(i<text_str_len)
     begin
         if (i == (text_str_len-1)) begin
             send_char(text_str[8*i +: 8],8'h0);
+            i = i + 1;
         end else begin
             send_char(text_str[8*i +: 8],text_str[8*(i+1) +: 8]);
             i = i + 2;
         end
         // XXX $display("%t: %d char=%c",$time,i,bus_data);
-        $write("%c",bus_data);
+        $write("%c%c",bus_data[15:8],bus_data[7:0]);
     end
     $display("\n");
 
@@ -528,7 +533,7 @@ begin
     $display("\n%t: BEGIN cmd_read_match",$time);
 
     // Send the command
-    send_char(CMD_READ_MATCH_OP);
+    send_char(8'h0, CMD_READ_MATCH_OP);
 
     // Read the the match byte position
     // Read MSB
@@ -568,11 +573,10 @@ begin
     $display("%t: set str bit length=0x%x",$time,length);
 
     // Send the command
-    send_char(CMD_STR_LEN);
+    send_char(8'h0, CMD_STR_LEN);
 
     // Send the two length bytes.  MSB first.
-    send_char(length[15:8]);
-    send_char(length[7:0]);
+    send_char(length[15:8],length[7:0]);
 
     // wait for bus_done go high
     while(!bus_done)
