@@ -18,7 +18,7 @@ md5_tb: md5_tb.c munchman8.c md5.c
 	sudo chown root $@
 	sudo chmod +s $@
 
-find: find.c munchman8.c md5.c
+find: find.c munchman16.c md5.c
 	$(CC) $(GPIO_BASE) -Wall -O3 -o $@ $^
 	sudo chown root $@
 	sudo chmod +s $@

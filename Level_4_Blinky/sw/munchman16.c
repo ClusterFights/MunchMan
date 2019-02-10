@@ -1,17 +1,18 @@
 /*
- * FILE : munchman8.c
+ * FILE : munchman16.c
  *
  * Library of functions for the Munchman project.
- * Talks to the 8-bit parallel bus.
+ * Talks to the 16-bit parallel bus.
  *
  * AUTHOR : Brandon Blodget
  * CREATE DATE: 11/04/2018
  *
  * Updates:
  * 01/25/2019 : Updates for new parallel bus
+ * 02/10/2019 : Updated for the 16-bit parallel bus.
  */
 
-#include "munchman8.h"
+#include "munchman16.h"
 #include "md5.h"
 #include <string.h>
 
@@ -45,23 +46,27 @@ void sleep_ms(int ms)
  */
 void sync_bus()
 {
-    if (BUS_WIDTH != 8)
+    if (BUS_WIDTH != 16)
     {
-        printf("ERROR: BUS_WIDTH is not 8!\n");
+        printf("ERROR: BUS_WIDTH is not 16!\n");
         exit(EXIT_FAILURE);
     }
 
     GPIO_SET_N(CLK);
 
-    // First sync work 0xB8 8'b1011_1000
-    GPIO_CLR = (1<<RNW) | (1<<DATA0) | (1<<DATA1) | (1<<DATA2) | (1<<DATA6);
-    GPIO_SET = (1<<CLK) | (1<<DATA3) | (1<<DATA4) | (1<<DATA5) | (1<<DATA7);
+    // First sync work 0xB8_B8 16'b1011_1000_1011_1000
+    GPIO_CLR = (1<<RNW) | (1<<DATA0) | (1<<DATA1) | (1<<DATA2) | (1<<DATA6) |
+                          (1<<DATA8) | (1<<DATA9) | (1<<DATA10) | (1<<DATA14);
+    GPIO_SET = (1<<CLK) | (1<<DATA3) | (1<<DATA4) | (1<<DATA5) | (1<<DATA7) |
+                          (1<<DATA11) | (1<<DATA12) | (1<<DATA13) | (1<<DATA15);
 
     sleep_ms(10);
 
-    // Second sync work 0x8B 8'b1000_1011
-    GPIO_CLR = (1<<RNW) | (1<<DATA2) | (1<<DATA4) | (1<<DATA5) | (1<<DATA6);
-    GPIO_SET = (1<<CLK) | (1<<DATA0) | (1<<DATA1) | (1<<DATA3) | (1<<DATA7);
+    // Second sync work 0x8B_8B 16'b1000_1011_1000_1011
+    GPIO_CLR = (1<<RNW) | (1<<DATA2) | (1<<DATA4) | (1<<DATA5) | (1<<DATA6) |
+                          (1<<DATA10) | (1<<DATA12) | (1<<DATA13) | (1<<DATA14);
+    GPIO_SET = (1<<CLK) | (1<<DATA0) | (1<<DATA1) | (1<<DATA3) | (1<<DATA7) |
+                          (1<<DATA8) | (1<<DATA9) | (1<<DATA11) | (1<<DATA15);
 
     sleep_ms(10);
 
@@ -82,6 +87,14 @@ void bus_write_config()
     PI_GPIO_config(DATA5, BCM_GPIO_OUT);
     PI_GPIO_config(DATA6, BCM_GPIO_OUT);
     PI_GPIO_config(DATA7, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA8, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA9, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA10, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA11, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA12, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA13, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA14, BCM_GPIO_OUT);
+    PI_GPIO_config(DATA15, BCM_GPIO_OUT);
     PI_GPIO_config(RNW, BCM_GPIO_OUT);
     PI_GPIO_config(CLK, BCM_GPIO_OUT);
     PI_GPIO_config(DONE, BCM_GPIO_IN);
@@ -120,24 +133,34 @@ void bus_read_config()
 }
 
 /*
- * Write a byte of data of the parallel interface.
+ * Write two bytes of data of the parallel interface.
  */
-void bus_write(unsigned char byte)
+void bus_write16(unsigned char msb, unsigned char lsb)
 {
     // Clear the set and clr variables
     set_reg = 0;
     clr_reg = 0;
 
     // Setup data
-    if (byte & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
-    if (byte & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
-    if (byte & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
-    if (byte & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
+    if (lsb & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
+    if (lsb & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
+    if (lsb & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
+    if (lsb & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
 
-    if (byte & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
-    if (byte & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
-    if (byte & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
-    if (byte & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+    if (lsb & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
+    if (lsb & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
+    if (lsb & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
+    if (lsb & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+
+    if (msb & 0x01) set_reg |= (1<<DATA8); else clr_reg |= (1<<DATA8);
+    if (msb & 0x02) set_reg |= (1<<DATA9); else clr_reg |= (1<<DATA9);
+    if (msb & 0x04) set_reg |= (1<<DATA10); else clr_reg |= (1<<DATA10);
+    if (msb & 0x08) set_reg |= (1<<DATA11); else clr_reg |= (1<<DATA11);
+
+    if (msb & 0x10) set_reg |= (1<<DATA12); else clr_reg |= (1<<DATA12);
+    if (msb & 0x20) set_reg |= (1<<DATA13); else clr_reg |= (1<<DATA13);
+    if (msb & 0x40) set_reg |= (1<<DATA14); else clr_reg |= (1<<DATA14);
+    if (msb & 0x80) set_reg |= (1<<DATA15); else clr_reg |= (1<<DATA15);
 
     // Clear the clock
     clr_reg |= (1<<CLK);
@@ -156,7 +179,7 @@ void bus_write(unsigned char byte)
  * Read a byte of data from the parallel interface.
  * Returns the number of bytes read.
  */
-int bus_write_data(unsigned char *buffer, int num_to_write)
+int bus_write_data16(unsigned char *buffer, int num_to_write)
 {
     int i;
 
@@ -167,22 +190,52 @@ int bus_write_data(unsigned char *buffer, int num_to_write)
         return -1;
     }
 
-    for (i=0; i< num_to_write; i++)
+    for (i=0; i< num_to_write;)
     {
         // Clear the set and clr variables
         set_reg = 0;
         clr_reg = 0;
 
         // Setup data
-        if (buffer[i] & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
-        if (buffer[i] & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
-        if (buffer[i] & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
-        if (buffer[i] & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
+        // First character is MSB
+        if (buffer[i] & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA8);
+        if (buffer[i] & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA9);
+        if (buffer[i] & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA10);
+        if (buffer[i] & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA11);
 
-        if (buffer[i] & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
-        if (buffer[i] & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
-        if (buffer[i] & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
-        if (buffer[i] & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+        if (buffer[i] & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA12);
+        if (buffer[i] & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA13);
+        if (buffer[i] & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA14);
+        if (buffer[i] & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA15);
+        i++;
+
+        // Next character is LSB
+        if (i < num_to_write)
+        {
+            if (buffer[i] & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
+            if (buffer[i] & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
+            if (buffer[i] & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
+            if (buffer[i] & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
+
+            if (buffer[i] & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
+            if (buffer[i] & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
+            if (buffer[i] & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
+            if (buffer[i] & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+            i++;
+        } else 
+        {
+            // No more chars left. Set LSB to zero.
+            // This should only happen at end of a file.
+            clr_reg |= (1<<DATA0);
+            clr_reg |= (1<<DATA1);
+            clr_reg |= (1<<DATA2);
+            clr_reg |= (1<<DATA3);
+
+            clr_reg |= (1<<DATA4);
+            clr_reg |= (1<<DATA5);
+            clr_reg |= (1<<DATA6);
+            clr_reg |= (1<<DATA7);
+        }
 
         // Clear the clock
         clr_reg |= (1<<CLK);
@@ -466,7 +519,7 @@ void cmd_test()
 {
     int ret;
 
-    bus_write(0x04);
+    bus_write16(0x00, 0x04);
 
     bus_read_config();
 
@@ -494,10 +547,10 @@ char cmd_set_hash(unsigned char *target_hash)
     int ret;
 
     // Send the set hash command 0x01.
-    bus_write(0x01);
+    bus_write16(0x00, 0x01);
 
     // Send the target hash.
-    ret = bus_write_data(target_hash, 16); //data
+    ret = bus_write_data16(target_hash, 16); //data
     if (ret != 16)
     {
         printf("ERROR cmd_set_hash during hash write: %d != %d\n",ret,16);
@@ -518,7 +571,7 @@ char cmd_set_hash(unsigned char *target_hash)
 char cmd_close()
 {
     // Send the set close bus command 0x06.
-    bus_write(0x06);
+    bus_write16(0x00, 0x06);
 
     // Wait for command to complete
     wait_bus_done();
@@ -552,10 +605,10 @@ char cmd_str_len(unsigned char num_chars)
 
 
     // Send the set str length cmd 0x05.
-    bus_write(0x05);
+    bus_write16(0x00, 0x05);
 
-    // Send the target hash.
-    ret = bus_write_data(num_bits_arry, 2); //data
+    // Send the string length.
+    ret = bus_write_data16(num_bits_arry, 2); //data
     if (ret != 2)
     {
         printf("ERROR cmd_str_len during bus_write_data: %d != %d\n",ret,2);
@@ -580,12 +633,12 @@ char cmd_send_text(unsigned char *text_str, int text_str_len)
     unsigned char len_bytes[2];
 
     // Send the send text command 0x02.
-    bus_write(0x02);
+    bus_write16(0x00, 0x02);
 
     // Send the number of bytes to be sent.
     len_bytes[0] = (unsigned char)(text_str_len>>8);
     len_bytes[1] = (unsigned char)(text_str_len & 0xFF);
-    ret = bus_write_data(len_bytes, 2);
+    ret = bus_write_data16(len_bytes, 2);
     if (ret != 2)
     {
         printf("ERROR cmd_send during send length: %d != %d\n",ret,2);
@@ -593,7 +646,7 @@ char cmd_send_text(unsigned char *text_str, int text_str_len)
     }
 
     // Send the string.
-    ret = bus_write_data(text_str, text_str_len);
+    ret = bus_write_data16(text_str, text_str_len);
     if (ret != text_str_len)
     {
         printf("ERROR cmd_send_text during send text: %d != %d\n",ret,text_str_len);
@@ -615,7 +668,7 @@ char cmd_read_match(struct match_result *result)
     int ret;
 
     // Send the read match command 0x03.
-    bus_write(0x03);
+    bus_write16(0x00, 0x03);
 
     bus_read_config();
 

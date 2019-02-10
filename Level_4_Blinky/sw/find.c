@@ -16,7 +16,7 @@
  * 01/26/2019 : Updated to use the parallel interface.
  */
 
-#include "munchman8.h"
+#include "munchman16.h"
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
