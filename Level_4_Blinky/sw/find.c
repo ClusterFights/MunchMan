@@ -45,6 +45,8 @@ static int lflag = 0;   // process locally? No FPGA?
 static int sflag = 0;   // set string length.
 static int qflag = 0;   // quite mode
 
+unsigned char *block_text=NULL;
+
 /*
  * Parses the manifest file.
  */
@@ -235,6 +237,20 @@ int main(int argc, char *argv[])
 
     // Parse the manifest.txt file
     parse_manifest(manifest_file);
+
+    // **** This is a test
+    block_text = malloc(426138189*sizeof(unsigned char));
+    if (block_text)
+    {
+        printf("Yay! block_text malloc'd OK!\n");
+    } else
+    {
+        printf("Bummer! block_text malloc failed!\n");
+    }
+
+    free(block_text);
+
+
 
     printf("lflag: %d\n",lflag);
     printf("sflag: %d\n",sflag);
