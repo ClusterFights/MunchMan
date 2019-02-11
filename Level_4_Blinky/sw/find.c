@@ -261,6 +261,7 @@ int main(int argc, char *argv[])
                 printf("  ERROR: nread(%ld) != size(%d)\n", nread,manifest_list[i].size);
             }
             block_text += nread;
+            fclose(fp);
         }
         printf("DONE loading books.\n");
     } else
@@ -269,6 +270,7 @@ int main(int argc, char *argv[])
     }
 
 
+    free(block_text);
 
 
     printf("lflag: %d\n",lflag);
@@ -313,7 +315,6 @@ int main(int argc, char *argv[])
         run();
     }
 
-    free(block_text);
 
     return EXIT_SUCCESS;
 }
