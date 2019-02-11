@@ -164,6 +164,7 @@ void bus_write16(unsigned char msb, unsigned char lsb)
 
     // Clear the clock
     clr_reg |= (1<<CLK);
+    clr_reg |= (1<<CLK);
 
     // Clear first, setting clock low
     // Then set, setting clock high
@@ -172,6 +173,7 @@ void bus_write16(unsigned char msb, unsigned char lsb)
 
     // After the other IOs are set
     // Assert the clock last.
+    GPIO_SET_N(CLK);
     GPIO_SET_N(CLK);
 }
 
@@ -230,6 +232,7 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
 
         // Clear the clock
         clr_reg |= (1<<CLK);
+        clr_reg |= (1<<CLK);
 
         // Clear first, setting clock low
         // Then set, setting clock high
@@ -238,6 +241,7 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
 
         // After the other IOs are set
         // Assert the clock last.
+        GPIO_SET_N(CLK);
         GPIO_SET_N(CLK);
     }
 
