@@ -241,7 +241,9 @@ int main(int argc, char *argv[])
     // **** This is a test
     FILE *fp;
     size_t nread;
+    unsigned char *block_text_start;
     block_text = malloc(426138189*sizeof(unsigned char));
+    block_text_start = block_text;
     if (block_text)
     {
         printf("Yay! block_text malloc'd OK!\n");
@@ -263,6 +265,7 @@ int main(int argc, char *argv[])
             block_text += nread;
             fclose(fp);
         }
+        block_text = block_text_start;
         printf("DONE loading books.\n");
     } else
     {
