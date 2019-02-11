@@ -182,6 +182,8 @@ void bus_write16(unsigned char msb, unsigned char lsb)
 int bus_write_data16(unsigned char *buffer, int num_to_write)
 {
     int i;
+    unsigned char msb;
+    unsigned char lsb;
 
     //TODO : Make check better
     if (num_to_write > BUFFER_SIZE)
@@ -190,52 +192,41 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
         return -1;
     }
 
-    for (i=0; i< num_to_write;)
+    i=0;
+    while (i<num_to_write)
     {
         // Clear the set and clr variables
         set_reg = 0;
         clr_reg = 0;
 
-        // Setup data
-        // First character is MSB
-        if (buffer[i] & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA8);
-        if (buffer[i] & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA9);
-        if (buffer[i] & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA10);
-        if (buffer[i] & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA11);
-
-        if (buffer[i] & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA12);
-        if (buffer[i] & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA13);
-        if (buffer[i] & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA14);
-        if (buffer[i] & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA15);
-        i++;
-
-        // Next character is LSB
-        if (i < num_to_write)
-        {
-            if (buffer[i] & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
-            if (buffer[i] & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
-            if (buffer[i] & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
-            if (buffer[i] & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
-
-            if (buffer[i] & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
-            if (buffer[i] & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
-            if (buffer[i] & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
-            if (buffer[i] & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+        // Setup data. MSB first. LSB if more data.
+        msb = buffer[i];
+        if (i==num_to_write-1) {
+            lsb = 0;
             i++;
-        } else 
-        {
-            // No more chars left. Set LSB to zero.
-            // This should only happen at end of a file.
-            clr_reg |= (1<<DATA0);
-            clr_reg |= (1<<DATA1);
-            clr_reg |= (1<<DATA2);
-            clr_reg |= (1<<DATA3);
-
-            clr_reg |= (1<<DATA4);
-            clr_reg |= (1<<DATA5);
-            clr_reg |= (1<<DATA6);
-            clr_reg |= (1<<DATA7);
+        } else {
+            lsb = buffer[i+1];
+            i+=2;
         }
+        if (lsb & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
+        if (lsb & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
+        if (lsb & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
+        if (lsb & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
+
+        if (lsb & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
+        if (lsb & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
+        if (lsb & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
+        if (lsb & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
+
+        if (msb & 0x01) set_reg |= (1<<DATA8); else clr_reg |= (1<<DATA8);
+        if (msb & 0x02) set_reg |= (1<<DATA9); else clr_reg |= (1<<DATA9);
+        if (msb & 0x04) set_reg |= (1<<DATA10); else clr_reg |= (1<<DATA10);
+        if (msb & 0x08) set_reg |= (1<<DATA11); else clr_reg |= (1<<DATA11);
+
+        if (msb & 0x10) set_reg |= (1<<DATA12); else clr_reg |= (1<<DATA12);
+        if (msb & 0x20) set_reg |= (1<<DATA13); else clr_reg |= (1<<DATA13);
+        if (msb & 0x40) set_reg |= (1<<DATA14); else clr_reg |= (1<<DATA14);
+        if (msb & 0x80) set_reg |= (1<<DATA15); else clr_reg |= (1<<DATA15);
 
         // Clear the clock
         clr_reg |= (1<<CLK);
@@ -249,6 +240,7 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
         // Assert the clock last.
         GPIO_SET_N(CLK);
     }
+
     return num_to_write;
 }
 
@@ -631,13 +623,22 @@ char cmd_send_text(unsigned char *text_str, int text_str_len)
 {
     int ret;
     unsigned char len_bytes[2];
+    int char_sent_to_fpga = text_str_len;
+
+    // If text_str_len is odd, update
+    // char_sent_to_fpga to be even.  16-bit
+    // bus means we always send two character.
+    if ((text_str_len % 2) == 1)
+    {
+        char_sent_to_fpga++;
+    }
 
     // Send the send text command 0x02.
     bus_write16(0x00, 0x02);
 
     // Send the number of bytes to be sent.
-    len_bytes[0] = (unsigned char)(text_str_len>>8);
-    len_bytes[1] = (unsigned char)(text_str_len & 0xFF);
+    len_bytes[0] = (unsigned char)(char_sent_to_fpga>>8);
+    len_bytes[1] = (unsigned char)(char_sent_to_fpga & 0xFF);
     ret = bus_write_data16(len_bytes, 2);
     if (ret != 2)
     {
@@ -646,6 +647,7 @@ char cmd_send_text(unsigned char *text_str, int text_str_len)
     }
 
     // Send the string.
+    // Send the real string length to bus_write_data16.
     ret = bus_write_data16(text_str, text_str_len);
     if (ret != text_str_len)
     {
