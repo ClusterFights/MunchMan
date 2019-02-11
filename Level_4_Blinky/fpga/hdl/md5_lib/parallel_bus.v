@@ -298,6 +298,10 @@ reg bus_clk_reg2;
 reg bus_rnw_reg2;
 reg [15:0] bus_data_reg2;
 
+reg bus_clk_reg3;
+reg bus_rnw_reg3;
+reg [15:0] bus_data_reg3;
+
 always @ (posedge clk)
 begin
     if (reset) begin
@@ -308,6 +312,10 @@ begin
         bus_clk_reg2 <= 0;
         bus_rnw_reg2 <= 0;
         bus_data_reg2 <= 0;
+
+        bus_clk_reg3 <= 0;
+        bus_rnw_reg3 <= 0;
+        bus_data_reg3 <= 0;
     end else begin
         bus_clk_reg1 <= bus_clk;
         bus_rnw_reg1 <= bus_rnw;
@@ -316,6 +324,10 @@ begin
         bus_clk_reg2 <= bus_clk_reg1;
         bus_rnw_reg2 <= bus_rnw_reg1;
         bus_data_reg2 <= bus_data_reg1;
+
+        bus_clk_reg3 <= bus_clk_reg2;
+        bus_rnw_reg3 <= bus_rnw_reg2;
+        bus_data_reg3 <= bus_data_reg2;
     end
 end
 
@@ -325,25 +337,28 @@ reg state;
 localparam SEND_MSB                 = 0;
 localparam SEND_LSB                 = 1;
 
+reg [7:0] lsb;
 always @ (posedge clk)
 begin
     if (reset) begin
         state <= SEND_MSB;
         rxd_data <= 0;
         rxd_data_ready <= 0;
+        lsb <= 0;
     end else begin
         case (state)
             SEND_MSB : begin
                 rxd_data_ready <= 0;
                 // Check for positive edge on bus_clk and write direction
-                if (bus_clk_reg1 && !bus_clk_reg2 && !bus_rnw_reg1 && synced) begin
+                if (bus_clk_reg2 && !bus_clk_reg3 && !bus_rnw_reg1 && synced) begin
                     rxd_data <= bus_data_reg1[15:8];
+                    lsb <= bus_data_reg1[7:0];
                     rxd_data_ready <= 1;
                     state <= SEND_LSB;
                 end 
             end
             SEND_LSB : begin
-                rxd_data <= bus_data_reg1[7:0];
+                rxd_data <= lsb;
                 rxd_data_ready <= 1;
                 state <= SEND_MSB;
             end

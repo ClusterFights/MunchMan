@@ -51,7 +51,8 @@ The following table shows the connections between the RPI and the ArtyS7 board.
 
 **NOTE**: Port JB is a "high speed" port and has differential routing for pin pairs.
 Since we are using single ended signals we skip every other port connection. Also
-connected a GND between every FPGA Pmod port and the RPI.
+connected a GND between every FPGA Pmod port and the RPI. We also changed
+out the series 0 Ohm resisters and replaced them with 200 Ohm resistors on JB.
 
 
 ## TODO
