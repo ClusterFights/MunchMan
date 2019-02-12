@@ -27,7 +27,7 @@ int kbinput_read_block(time_t timeout_sec)
 	unsigned char ch;
 	static struct termios ios;
 	static struct termios ios_save;
-	tcflag_t save_clflags;
+	// XXX tcflag_t save_clflags;
 
 	// Disable buffering on stdin.
 	tcgetattr(STDIN_FILENO, &ios);

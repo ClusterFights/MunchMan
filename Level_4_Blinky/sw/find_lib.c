@@ -20,7 +20,7 @@
  * Parses the manifest file.
  * mfile : The manifest to parse
  * minfo:  A structure that has the parsed manifiest info.
- * returns: 1 for success, or -1 for fail.
+ * returns: 1 for success, or 0 for fail.
  *
  * Remember to free(minfo->book).
  *
@@ -41,7 +41,7 @@ int parse_manifest(char *mfile, struct manifest_info *minfo)
     fp = fopen(mfile, "r");
     if (fp == NULL) {
         printf("ERROR parse_manifest: can't open %s\n", mfile);
-        return -1;
+        return 0;
     }
 
     while ((read = getline (&line, &len, fp)) != -1 ) {
@@ -52,14 +52,14 @@ int parse_manifest(char *mfile, struct manifest_info *minfo)
             minfo->book[line_num-2].size = byte_count;
             strcpy(minfo->book[line_num-2].file_path,str);
 
-            printf("%d, line length %d, %s\n",(line_num-2),minfo->book[line_num-2].size,minfo->book[line_num-2].file_path);
+            // XXX printf("%d, line length %d, %s\n",(line_num-2),minfo->book[line_num-2].size,minfo->book[line_num-2].file_path);
 
         } else if (line_num == 1)
         {
             // Parse num of files
             sscanf(line, "%s %d",str, &num_files);
             minfo->num_files = num_files;
-            printf("num_files: %d \n",minfo->num_files);
+            // XXX printf("num_files: %d \n",minfo->num_files);
 
             // malloc space for the array of book_info
             minfo->book = malloc(num_files*sizeof(struct book_info));
@@ -67,14 +67,14 @@ int parse_manifest(char *mfile, struct manifest_info *minfo)
             if (minfo->book == NULL)
             {
                 printf("ERROR: Could not malloc space for book_info.\n");
-                return -1;
+                return 0;
             }
         } else if (line_num == 0)
         {
             // Parse total_size of dataset
             sscanf(line, "%s %d",str, &total_size);
             minfo->total_size = total_size;
-            printf("total_size: %ld \n",minfo->total_size);
+            // XXX printf("total_size: %ld \n",minfo->total_size);
         }
         line_num++;
     }
@@ -85,6 +85,42 @@ int parse_manifest(char *mfile, struct manifest_info *minfo)
 
     return 1;
 }
+
+/*
+ * Convert a 32 char ascii hex string (md5_hash) into
+ * a 16 byte binary hash.
+ * Returns : 1 for success, 0 for failure.
+ */
+int convert_hash(char *md5_hash, unsigned char *target_hash)
+{
+    // Check that md5_hash is 16 bytes or 32 chars.
+    if (strlen(md5_hash) != 32) {
+        printf("ERROR: md5_hash must be 16 bytes or 32 hex chars.\n");
+        return 0;
+    }
+
+    // Convert md5_hash hex string to target_hash byte array.
+    char tmp_str[2] ="00";
+    // XXX printf("md5_hash_bytes: ");
+    for (int i=0, j=0; i<32; i+=2,j++)
+    {
+        tmp_str[0] = md5_hash[i];
+        tmp_str[1] = md5_hash[i+1];
+        // XXX printf("%d %x \n",i,md5_hash[i]);
+        // XXX printf("%d %x \n",i+1,md5_hash[i+1]);
+        errno = 0;      // reset errno before strtol call
+        target_hash[j] = (unsigned char)strtol(tmp_str,NULL,16);
+        if (errno != 0)
+        {
+            printf("ERROR: with md5_hash during strtol\n");
+            return 0;
+        }
+        // XXX printf("%.2x ",target_hash[j]);
+    }
+    // XXX printf("\n");
+    return 1;
+}
+
 
 /*
  * Loads books into ram

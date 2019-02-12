@@ -59,6 +59,7 @@ struct manifest_info
 */
 
 int parse_manifest(char *mfile, struct manifest_info *minfo);
+int convert_hash(char *md5_hash, unsigned char *target_hash);
 
 #ifdef __cplusplus
 }
