@@ -24,10 +24,11 @@ void menu(char *md5_hash, int str_len)
 {
     printf("\nMenu\n");
     printf("   1. (M)enu (also Enter Key)\n");
-    printf("   2. Change hash: %s\n",md5_hash);
-    printf("   3. Change string length: %d\n",str_len);
-    printf("   4. (S)tart Search\n");
-    printf("   5. (Q)uit\n");
+    printf("   2. (H)ash: %s\n",md5_hash);
+    printf("   3. (L)ength: %d\n",str_len);
+    printf("   4. (R)esync bus\n");
+    printf("   5. (S)tart Search\n");
+    printf("   6. (Q)uit\n");
 }
 
 
@@ -90,6 +91,8 @@ int main(int argc, char *argv[])
             case '1' : // Print Menu
                 menu(md5_hash, str_len);
                 break;
+            case 'h' : // Change Hash
+            case 'H' : // Change Hash
             case '2' : // Change Hash
                 printf("\nEnter Hash: \n");
                 ret = scanf("%s",in_md5_hash);
@@ -119,6 +122,8 @@ int main(int argc, char *argv[])
                     printf("ERROR: convert_hash() failed.\n");
                 }
                 break;
+            case 'L' : // Change String Length
+            case 'l' : // Change String Length
             case '3' : // Change String Length
                 printf("\nEnter String Length: \n");
                 ret = scanf("%d",&in_str_len);
@@ -135,22 +140,24 @@ int main(int argc, char *argv[])
                     printf("ERROR: cmd_str_len() failed.\n");
                 }
                 break;
-                /*
-            case '3' : // Resync the bus
+            case 'r' : // Resync the bus
+            case 'R' : // Resync the bus
+            case '4' : // Resync the bus
                 bus_write_config();
+                /*
                 sleep_ms(100);
                 cmd_close();
                 sleep_ms(100);
                 printf("\nClosed the bus...\n");
+                */
                 sleep_ms(100);
                 sync_bus();
                 sleep_ms(100);
                 printf("Resynced the bus\n");
                 break;
-                */
             case 's' : // Begin Search
             case 'S' : // Begin Search
-            case '4' : // Begin Search
+            case '5' : // Begin Search
                 printf("\nStarting Search...\n");
                 ret = send_block(block_text, minfo.total_size);
                 if (ret != 1)
@@ -160,7 +167,7 @@ int main(int argc, char *argv[])
                 break;
             case 'Q' : // Quit
             case 'q' : // Quit
-            case '5' : // Quit
+            case '6' : // Quit
                 printf("\nQuit. Bye.\n");
                 done = 1;
                 break;
