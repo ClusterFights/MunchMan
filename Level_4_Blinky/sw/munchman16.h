@@ -21,7 +21,6 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdlib.h>
-// XXX #include <ftdi.h>
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
@@ -110,6 +109,7 @@ char cmd_close();
 unsigned char send_file(char *filename, struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes);
 
+char send_block(unsigned char *block_text, unsigned long block_text_len);
 
 #ifdef __cplusplus
 }

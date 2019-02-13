@@ -8,8 +8,8 @@
  * CREATE DATE: 02/11/2019
  */
 
-#ifndef _MUNCHMAN_H_
-#define _MUNCHMAN_H_
+#ifndef _FIND_LIB_H_
+#define _FIND_LIB_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,6 +60,8 @@ struct manifest_info
 
 int parse_manifest(char *mfile, struct manifest_info *minfo);
 int convert_hash(char *md5_hash, unsigned char *target_hash);
+double elapsed_time(struct timeval *tv1, struct timeval *tv2);
+int load_books(struct manifest_info *minfo, unsigned char *block_text);
 
 #ifdef __cplusplus
 }

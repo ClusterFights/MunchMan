@@ -50,7 +50,7 @@ unsigned char *block_text=NULL;
 /*
  * Parses the manifest file.
  */
-int parse_manifest(char *mfile)
+static int parse_manifest(char *mfile)
 {
     FILE *fp;
     char *line = NULL;
@@ -99,7 +99,7 @@ int parse_manifest(char *mfile)
 /*
  * Search the dataset for md5_hash
  */
-int run()
+static int run()
 {
     char ack;
     struct match_result match;

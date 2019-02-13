@@ -12,6 +12,7 @@
  * 02/10/2019 : Updated for the 16-bit parallel bus.
  */
 
+#include "find_lib.h"
 #include "munchman16.h"
 #include "md5.h"
 #include <string.h>
@@ -394,6 +395,60 @@ void string_push(unsigned char *buffer, unsigned char ch)
     buffer[STR_LEN-1] = ch;
 }
 
+/*
+ * Send a very large block of text to the FPGA.
+ * Returns: 1 if match found, else 0.
+ */
+char send_block(unsigned char *block_text, unsigned long block_text_len)
+{
+    char ack;
+    unsigned char *bt = block_text;
+    struct timeval tv1, tv2;
+    double total_time;
+
+    // Figure out how many full size blocks we can send
+    int num_blocks = block_text_len / BUFFER_SIZE;
+    int remainder = block_text_len % BUFFER_SIZE;
+
+    // Start the timer.
+    gettimeofday(&tv1, NULL);
+
+    // Send the full size blocks
+    for (int i=0; i<num_blocks; i++, bt +=BUFFER_SIZE)
+    {
+        ack = cmd_send_text(bt, BUFFER_SIZE);
+        if (ack == 1)
+        {
+            // Stop the timer
+            gettimeofday(&tv2, NULL);
+            total_time = elapsed_time(&tv1, &tv2);
+            printf("!!! MATCH FOUND !!! \n");
+            printf ("Total time = %f seconds\n", total_time);
+            return 1;
+        }
+    }
+
+    // Send the remainder of characters
+    ack = cmd_send_text(bt, remainder);
+
+    // Stop the timer
+    gettimeofday(&tv2, NULL);
+    total_time = elapsed_time(&tv1, &tv2);
+
+    if (ack == 1)
+    {
+        printf("!!! MATCH FOUND !!! \n");
+        printf ("Total time = %f seconds\n", total_time);
+        return 1;
+    } else
+    {
+        printf("*** NOT FOUND ***\n");
+        printf ("Total time = %f seconds\n", total_time);
+        return 0;
+    }
+    return 0;
+}
+
 
 /*
  * Sends a file block by block to the FPGA to
@@ -615,6 +670,7 @@ char cmd_str_len(unsigned char num_chars)
     wait_bus_done();
     return 1;
 }
+
 
 /*
  * Sends the send_text cmd, 0x02.

@@ -121,46 +121,73 @@ int convert_hash(char *md5_hash, unsigned char *target_hash)
     return 1;
 }
 
+/*
+ * Compute elapsed time in seconds.
+ */
+double elapsed_time(struct timeval *tv1, struct timeval *tv2)
+{
+    return (double) (tv2->tv_usec - tv1->tv_usec) / 1000000 +
+         (double) (tv2->tv_sec - tv1->tv_sec);
+}
 
 /*
- * Loads books into ram
+ * Loads books into ram.
+ * Returns : 1 for success, 0 for fail.
+ *
+ * Don't forget to free block_text
  */
-/*
-void load_books()
+int load_books(struct manifest_info *minfo, unsigned char *block_text)
 {
     FILE *fp;
     size_t nread;
     unsigned char *block_text_start;
-    block_text = malloc(426138189*sizeof(unsigned char));
+    int ret=1;
+    struct timeval tv1, tv2;
+    double total_time;
+
+
+    block_text = malloc(minfo->total_size*sizeof(unsigned char));
     block_text_start = block_text;
     if (block_text)
     {
-        printf("Yay! block_text malloc'd OK!\n");
+        // XXX printf("Yay! block_text malloc'd OK!\n");
         printf("Loading books...\n");
+
+        // Start the timer.
+        gettimeofday(&tv1, NULL);
+
         // Load the books
-        for (int i=0; i<num_of_books; i++)
+        for (int i=0; i<minfo->num_files; i++)
         {
-            printf("%d: %s\n",i,manifest_list[i].file_path);
-            fp = fopen(manifest_list[i].file_path,"rb");
+            // XXX printf("%d: %s\n",i,minfo->book[i].file_path);
+            fp = fopen(minfo->book[i].file_path,"rb");
             if (fp == NULL) {
-                printf("  ERROR: send_file can't open %s\n", manifest_list[i].file_path);
+                printf("  ERROR: send_file can't open %s\n", minfo->book[i].file_path);
+                ret = 0;
                 continue;
             }
-            nread = fread(block_text, sizeof(char), manifest_list[i].size, fp);
-            if (nread != manifest_list[i].size)
+            nread = fread(block_text, sizeof(char), minfo->book[i].size, fp);
+            if (nread != minfo->book[i].size)
             {
-                printf("  ERROR: nread(%ld) != size(%d)\n", nread,manifest_list[i].size);
+                printf("  ERROR: nread(%ld) != size(%d)\n", nread,minfo->book[i].size);
+                ret = 0;
             }
             block_text += nread;
             fclose(fp);
         }
         block_text = block_text_start;
+
+        // Stop the timer
+        gettimeofday(&tv2, NULL);
+        total_time = elapsed_time(&tv1, &tv2);
         printf("DONE loading books.\n");
+        printf ("Total time = %f seconds\n", total_time);
     } else
     {
-        printf("Bummer! block_text malloc failed!\n");
+        printf("ERROR: Bummer! block_text malloc failed!\n");
+        ret = 0;
     }
+    return ret;
 }
-*/
 
 
