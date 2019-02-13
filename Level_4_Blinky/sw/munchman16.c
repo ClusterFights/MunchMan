@@ -30,9 +30,59 @@ unsigned int clr_reg = 0;
 unsigned int read_pins=0;
 unsigned char read_val=0;
 
+static unsigned int lsb_clr[256];
+static unsigned int lsb_set[256];
+static unsigned int msb_clr[256];
+static unsigned int msb_set[256];
+
+
 // default string length is 19.
 int STR_LEN=19;
 
+/*
+ * Initialize the lsb_clr, lsb_set
+ * msb_clr and msb_set lookup tables
+ * which are used by the bus_write commands
+ * for speed.
+ */
+void init_set_clr_lookups()
+{
+    unsigned int lsb_set_r;
+    unsigned int lsb_clr_r;
+    unsigned int msb_set_r;
+    unsigned int msb_clr_r;
+
+    for (int i=0; i<256; i++)
+    {
+        // Calc lsb set and clr values
+        lsb_set_r = 0;
+        lsb_clr_r = 0;
+        if (i & 0x01) lsb_set_r |= (1<<DATA0); else lsb_clr_r |= (1<<DATA0);
+        if (i & 0x02) lsb_set_r |= (1<<DATA1); else lsb_clr_r |= (1<<DATA1);
+        if (i & 0x04) lsb_set_r |= (1<<DATA2); else lsb_clr_r |= (1<<DATA2);
+        if (i & 0x08) lsb_set_r |= (1<<DATA3); else lsb_clr_r |= (1<<DATA3);
+        if (i & 0x10) lsb_set_r |= (1<<DATA4); else lsb_clr_r |= (1<<DATA4);
+        if (i & 0x20) lsb_set_r |= (1<<DATA5); else lsb_clr_r |= (1<<DATA5);
+        if (i & 0x40) lsb_set_r |= (1<<DATA6); else lsb_clr_r |= (1<<DATA6);
+        if (i & 0x80) lsb_set_r |= (1<<DATA7); else lsb_clr_r |= (1<<DATA7);
+        lsb_set[i] = lsb_set_r;
+        lsb_clr[i] = lsb_clr_r;
+
+        // Calc msb set and clr values
+        msb_set_r = 0;
+        msb_clr_r = 0;
+        if (i & 0x01) msb_set_r |= (1<<DATA8); else msb_clr_r |= (1<<DATA8);
+        if (i & 0x02) msb_set_r |= (1<<DATA9); else msb_clr_r |= (1<<DATA9);
+        if (i & 0x04) msb_set_r |= (1<<DATA10); else msb_clr_r |= (1<<DATA10);
+        if (i & 0x08) msb_set_r |= (1<<DATA11); else msb_clr_r |= (1<<DATA11);
+        if (i & 0x10) msb_set_r |= (1<<DATA12); else msb_clr_r |= (1<<DATA12);
+        if (i & 0x20) msb_set_r |= (1<<DATA13); else msb_clr_r |= (1<<DATA13);
+        if (i & 0x40) msb_set_r |= (1<<DATA14); else msb_clr_r |= (1<<DATA14);
+        if (i & 0x80) msb_set_r |= (1<<DATA15); else msb_clr_r |= (1<<DATA15);
+        msb_set[i] = msb_set_r;
+        msb_clr[i] = msb_clr_r;
+    }
+}
 
 void sleep_ms(int ms) 
 {
@@ -52,6 +102,9 @@ void sync_bus()
         printf("ERROR: BUS_WIDTH is not 16!\n");
         exit(EXIT_FAILURE);
     }
+
+    // Initialize the set clr lookups
+    init_set_clr_lookups();
 
     GPIO_SET_N(CLK);
 
@@ -197,9 +250,6 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
     i=0;
     while (i<num_to_write)
     {
-        // Clear the set and clr variables
-        set_reg = 0;
-        clr_reg = 0;
 
         // Setup data. MSB first. LSB if more data.
         msb = buffer[i];
@@ -211,6 +261,11 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
             i+=2;
         }
 
+        // Setup the set and clr registers
+        set_reg = lsb_set[lsb] | msb_set[msb];
+        clr_reg = lsb_clr[lsb] | msb_clr[msb];
+
+        /*
         if (lsb & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
         if (lsb & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
         if (lsb & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
@@ -230,6 +285,7 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
         if (msb & 0x20) set_reg |= (1<<DATA13); else clr_reg |= (1<<DATA13);
         if (msb & 0x40) set_reg |= (1<<DATA14); else clr_reg |= (1<<DATA14);
         if (msb & 0x80) set_reg |= (1<<DATA15); else clr_reg |= (1<<DATA15);
+        */
 
         // Clear the clock
         clr_reg |= (1<<CLK);

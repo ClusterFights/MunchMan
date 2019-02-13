@@ -111,6 +111,8 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
 
 char send_block(unsigned char *block_text, unsigned long block_text_len);
 
+void init_set_clr_lookups();
+
 #ifdef __cplusplus
 }
 #endif
