@@ -211,6 +211,7 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
             lsb = buffer[i+1];
             i+=2;
         }
+
         if (lsb & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
         if (lsb & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
         if (lsb & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);

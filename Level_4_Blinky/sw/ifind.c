@@ -23,12 +23,11 @@
 void menu(char *md5_hash, int str_len)
 {
     printf("\nMenu\n");
-    printf("   1. Change hash: %s\n",md5_hash);
-    printf("   2. Change string length: %d\n",str_len);
-    printf("   3. Resync the bus\n");
+    printf("   1. (M)enu (also Enter Key)\n");
+    printf("   2. Change hash: %s\n",md5_hash);
+    printf("   3. Change string length: %d\n",str_len);
     printf("   4. Start Search\n");
-    printf("   5. Menu (also Enter Key)\n");
-    printf("   6. Quit\n");
+    printf("   5. (Q)uit\n");
 }
 
 
@@ -62,15 +61,20 @@ int main(int argc, char *argv[])
     printf("total_size: %ld\n",minfo.total_size);
 
     // Load the books into memory
-    ok = load_books(&minfo, block_text);
-    if (!ok)
+    block_text = load_books(&minfo);
+    if (block_text == NULL)
     {
         printf("ERROR: load_books did not return cleanly.\n");
     }
 
-    // Sync the bus
+    // Init and sync bus
+    printf("Sync the bus.\n");
+    bus_write_config();
+    sleep_ms(100);
     sync_bus();
+    sleep_ms(100);
     printf("The 16-bit bus is synced.\n");
+
 
     // Display a menu
     done = 0;
@@ -80,7 +84,13 @@ int main(int argc, char *argv[])
         // Was a keyboard button pressed?
         switch(kbinput_read())
         {
-            case '1' : // Change Hash
+            case '\n' : // Print Menu
+            case 'm' : // Print Menu
+            case 'M' : // Print Menu
+            case '1' : // Print Menu
+                menu(md5_hash, str_len);
+                break;
+            case '2' : // Change Hash
                 printf("\nEnter Hash: \n");
                 ret = scanf("%s",in_md5_hash);
                 if (ret == EOF)
@@ -109,7 +119,7 @@ int main(int argc, char *argv[])
                     printf("ERROR: convert_hash() failed.\n");
                 }
                 break;
-            case '2' : // Change String Length
+            case '3' : // Change String Length
                 printf("\nEnter String Length: \n");
                 ret = scanf("%d",&in_str_len);
                 if (ret == EOF)
@@ -125,12 +135,19 @@ int main(int argc, char *argv[])
                     printf("ERROR: cmd_str_len() failed.\n");
                 }
                 break;
+                /*
             case '3' : // Resync the bus
+                bus_write_config();
+                sleep_ms(100);
                 cmd_close();
+                sleep_ms(100);
                 printf("\nClosed the bus...\n");
+                sleep_ms(100);
                 sync_bus();
+                sleep_ms(100);
                 printf("Resynced the bus\n");
                 break;
+                */
             case '4' : // Begin Search
                 printf("\nStarting Search...\n");
                 ret = send_block(block_text, minfo.total_size);
@@ -139,13 +156,9 @@ int main(int argc, char *argv[])
                     printf("ERROR: string search failed.\n");
                 }
                 break;
-            case '\n' : // Print Menu
-                menu(md5_hash, str_len);
-                break;
-            case '5' : // Print Menu
-                menu(md5_hash, str_len);
-                break;
-            case '6' : // Quit
+            case 'Q' : // Quit
+            case 'q' : // Quit
+            case '5' : // Quit
                 printf("\nQuit. Bye.\n");
                 done = 1;
                 break;

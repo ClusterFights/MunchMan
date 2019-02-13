@@ -132,23 +132,24 @@ double elapsed_time(struct timeval *tv1, struct timeval *tv2)
 
 /*
  * Loads books into ram.
- * Returns : 1 for success, 0 for fail.
+ * Returns : Pointer to allocated memory.
  *
  * Don't forget to free block_text
  */
-int load_books(struct manifest_info *minfo, unsigned char *block_text)
+unsigned char* load_books(struct manifest_info *minfo)
 {
     FILE *fp;
     size_t nread;
-    unsigned char *block_text_start;
-    int ret=1;
+    unsigned char *block_text_ptr=NULL;
+    // XXX int ret=1;
     struct timeval tv1, tv2;
     double total_time;
+    unsigned char *block_text=NULL;
 
 
     block_text = malloc(minfo->total_size*sizeof(unsigned char));
-    block_text_start = block_text;
-    if (block_text)
+    block_text_ptr = block_text;
+    if (block_text_ptr)
     {
         // XXX printf("Yay! block_text malloc'd OK!\n");
         printf("Loading books...\n");
@@ -163,19 +164,18 @@ int load_books(struct manifest_info *minfo, unsigned char *block_text)
             fp = fopen(minfo->book[i].file_path,"rb");
             if (fp == NULL) {
                 printf("  ERROR: send_file can't open %s\n", minfo->book[i].file_path);
-                ret = 0;
+                // XXX ret = 0;
                 continue;
             }
-            nread = fread(block_text, sizeof(char), minfo->book[i].size, fp);
+            nread = fread(block_text_ptr, sizeof(char), minfo->book[i].size, fp);
             if (nread != minfo->book[i].size)
             {
-                printf("  ERROR: nread(%ld) != size(%d)\n", nread,minfo->book[i].size);
-                ret = 0;
+                printf("  ERROR: nread(%d) != size(%d)\n", nread,minfo->book[i].size);
+                // XXX ret = 0;
             }
-            block_text += nread;
+            block_text_ptr += nread;
             fclose(fp);
         }
-        block_text = block_text_start;
 
         // Stop the timer
         gettimeofday(&tv2, NULL);
@@ -185,9 +185,9 @@ int load_books(struct manifest_info *minfo, unsigned char *block_text)
     } else
     {
         printf("ERROR: Bummer! block_text malloc failed!\n");
-        ret = 0;
+        // XXX ret = 0;
     }
-    return ret;
+    return block_text;
 }
 
 

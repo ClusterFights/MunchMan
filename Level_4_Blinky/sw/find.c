@@ -238,44 +238,6 @@ int main(int argc, char *argv[])
     // Parse the manifest.txt file
     parse_manifest(manifest_file);
 
-    // **** This is a test
-    FILE *fp;
-    size_t nread;
-    unsigned char *block_text_start;
-    block_text = malloc(426138189*sizeof(unsigned char));
-    block_text_start = block_text;
-    if (block_text)
-    {
-        printf("Yay! block_text malloc'd OK!\n");
-        printf("Loading books...\n");
-        // Load the books
-        for (int i=0; i<num_of_books; i++)
-        {
-            printf("%d: %s\n",i,manifest_list[i].file_path);
-            fp = fopen(manifest_list[i].file_path,"rb");
-            if (fp == NULL) {
-                printf("  ERROR: send_file can't open %s\n", manifest_list[i].file_path);
-                continue;
-            }
-            nread = fread(block_text, sizeof(char), manifest_list[i].size, fp);
-            if (nread != manifest_list[i].size)
-            {
-                printf("  ERROR: nread(%ld) != size(%d)\n", nread,manifest_list[i].size);
-            }
-            block_text += nread;
-            fclose(fp);
-        }
-        block_text = block_text_start;
-        printf("DONE loading books.\n");
-    } else
-    {
-        printf("Bummer! block_text malloc failed!\n");
-    }
-
-
-    free(block_text);
-
-
     printf("lflag: %d\n",lflag);
     printf("sflag: %d\n",sflag);
     printf("STR_LEN: %d\n",STR_LEN);
