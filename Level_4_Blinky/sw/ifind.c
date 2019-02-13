@@ -26,7 +26,7 @@ void menu(char *md5_hash, int str_len)
     printf("   1. (M)enu (also Enter Key)\n");
     printf("   2. Change hash: %s\n",md5_hash);
     printf("   3. Change string length: %d\n",str_len);
-    printf("   4. Start Search\n");
+    printf("   4. (S)tart Search\n");
     printf("   5. (Q)uit\n");
 }
 
@@ -148,6 +148,8 @@ int main(int argc, char *argv[])
                 printf("Resynced the bus\n");
                 break;
                 */
+            case 's' : // Begin Search
+            case 'S' : // Begin Search
             case '4' : // Begin Search
                 printf("\nStarting Search...\n");
                 ret = send_block(block_text, minfo.total_size);

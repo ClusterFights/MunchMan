@@ -165,7 +165,6 @@ void bus_write16(unsigned char msb, unsigned char lsb)
 
     // Clear the clock
     clr_reg |= (1<<CLK);
-    clr_reg |= (1<<CLK);
 
     // Clear first, setting clock low
     // Then set, setting clock high
@@ -233,7 +232,6 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
         if (msb & 0x80) set_reg |= (1<<DATA15); else clr_reg |= (1<<DATA15);
 
         // Clear the clock
-        clr_reg |= (1<<CLK);
         clr_reg |= (1<<CLK);
 
         // Clear first, setting clock low
