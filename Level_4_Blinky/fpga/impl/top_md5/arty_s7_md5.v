@@ -36,6 +36,7 @@ module arty_s7_md5 #
     output wire bus_match,
     output wire led0_g,
     output wire led0_r,         // indicates reset pressed
+    output wire led0_b,         // not locked
     output wire [NUM_LEDS-1:0] led
 );
 
@@ -50,6 +51,11 @@ wire reset;
 assign reset = ~reset_n;
 assign led0_r = reset;
 
+wire clk_150mhz;
+wire locked;
+
+assign led0_b = ~locked;
+
 
 /*
 *****************************
@@ -57,12 +63,19 @@ assign led0_r = reset;
 *****************************
 */
 
+clk_wiz_1 clk_wiz_1_inst
+(
+    .clk_in1(clk_100mhz),
+    .clk_out1(clk_150mhz),
+    .locked(locked)
+);
+
 top_md5 #
 (
     .NUM_LEDS(NUM_LEDS)
 ) top_md5_inst
 (
-    .clk(clk_100mhz),
+    .clk(clk_150mhz),
     .reset(reset),
     .bus_clk(bus_clk),
     .bus_data(bus_data),
