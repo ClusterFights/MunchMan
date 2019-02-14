@@ -191,43 +191,13 @@ void bus_read_config()
  */
 void bus_write16(unsigned char msb, unsigned char lsb)
 {
-    // Clear the set and clr variables
-    set_reg = 0;
-    clr_reg = 0;
-
-    // Setup data
-    if (lsb & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
-    if (lsb & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
-    if (lsb & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
-    if (lsb & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
-
-    if (lsb & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
-    if (lsb & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
-    if (lsb & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
-    if (lsb & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
-
-    if (msb & 0x01) set_reg |= (1<<DATA8); else clr_reg |= (1<<DATA8);
-    if (msb & 0x02) set_reg |= (1<<DATA9); else clr_reg |= (1<<DATA9);
-    if (msb & 0x04) set_reg |= (1<<DATA10); else clr_reg |= (1<<DATA10);
-    if (msb & 0x08) set_reg |= (1<<DATA11); else clr_reg |= (1<<DATA11);
-
-    if (msb & 0x10) set_reg |= (1<<DATA12); else clr_reg |= (1<<DATA12);
-    if (msb & 0x20) set_reg |= (1<<DATA13); else clr_reg |= (1<<DATA13);
-    if (msb & 0x40) set_reg |= (1<<DATA14); else clr_reg |= (1<<DATA14);
-    if (msb & 0x80) set_reg |= (1<<DATA15); else clr_reg |= (1<<DATA15);
-
-    // Clear the clock
-    clr_reg |= (1<<CLK);
-
-    // Clear first, setting clock low
-    // Then set, setting clock high
-    GPIO_CLR = clr_reg;
-    GPIO_SET = set_reg;
+    GPIO_CLR = lsb_clr[lsb] | msb_clr[msb];
+    GPIO_SET = lsb_set[lsb] | msb_set[msb];
 
     // After the other IOs are set
     // Assert the clock last.
     GPIO_SET_N(CLK);
-    GPIO_SET_N(CLK);
+    GPIO_SET_N(CLK); // bummer we need this extra one.
 }
 
 /*
@@ -261,47 +231,13 @@ int bus_write_data16(unsigned char *buffer, int num_to_write)
             i+=2;
         }
 
-        // Setup the set and clr registers
-        // XXX set_reg = lsb_set[lsb] | msb_set[msb];
-        // XXX clr_reg = lsb_clr[lsb] | msb_clr[msb];
-
-        /*
-        if (lsb & 0x01) set_reg |= (1<<DATA0); else clr_reg |= (1<<DATA0);
-        if (lsb & 0x02) set_reg |= (1<<DATA1); else clr_reg |= (1<<DATA1);
-        if (lsb & 0x04) set_reg |= (1<<DATA2); else clr_reg |= (1<<DATA2);
-        if (lsb & 0x08) set_reg |= (1<<DATA3); else clr_reg |= (1<<DATA3);
-
-        if (lsb & 0x10) set_reg |= (1<<DATA4); else clr_reg |= (1<<DATA4);
-        if (lsb & 0x20) set_reg |= (1<<DATA5); else clr_reg |= (1<<DATA5);
-        if (lsb & 0x40) set_reg |= (1<<DATA6); else clr_reg |= (1<<DATA6);
-        if (lsb & 0x80) set_reg |= (1<<DATA7); else clr_reg |= (1<<DATA7);
-
-        if (msb & 0x01) set_reg |= (1<<DATA8); else clr_reg |= (1<<DATA8);
-        if (msb & 0x02) set_reg |= (1<<DATA9); else clr_reg |= (1<<DATA9);
-        if (msb & 0x04) set_reg |= (1<<DATA10); else clr_reg |= (1<<DATA10);
-        if (msb & 0x08) set_reg |= (1<<DATA11); else clr_reg |= (1<<DATA11);
-
-        if (msb & 0x10) set_reg |= (1<<DATA12); else clr_reg |= (1<<DATA12);
-        if (msb & 0x20) set_reg |= (1<<DATA13); else clr_reg |= (1<<DATA13);
-        if (msb & 0x40) set_reg |= (1<<DATA14); else clr_reg |= (1<<DATA14);
-        if (msb & 0x80) set_reg |= (1<<DATA15); else clr_reg |= (1<<DATA15);
-        */
-
-        // Clear the clock
-        // XXX clr_reg |= (1<<CLK);
-        // XXX GPIO_CLR_N(CLK);
-
-        // Clear first, setting clock low
-        // Then set, setting clock high
-        // XXX GPIO_CLR = clr_reg;
-        // XXX GPIO_SET = set_reg;
         GPIO_CLR = lsb_clr[lsb] | msb_clr[msb];
         GPIO_SET = lsb_set[lsb] | msb_set[msb];
 
         // After the other IOs are set
         // Assert the clock last.
         GPIO_SET_N(CLK);
-        GPIO_SET_N(CLK);
+        GPIO_SET_N(CLK); // bummer we need this extra one.
     }
 
     return num_to_write;
