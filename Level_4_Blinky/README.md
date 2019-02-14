@@ -111,7 +111,11 @@ at them on the scope.  They are looking pretty good.
 
 Looks like -O3 is working better than -Os.
 
-* Switch from RPI 3 Model B to RPI Model B+
+* **[DONE]** Switch from RPI 3 Model B to RPI Model B+
+
+Overall time for processing the whole dataset improved
+from 11.2 seconds to 7.2 seconds.  Wow!  Just from moving
+from the B's 1.2Ghz processor to the B+'s 1.4Ghz.
 
 * Develop microSD card interface for the ARTYS7 board.
 
