@@ -78,7 +78,29 @@ the newlines than to just process them.
 
 * **[DONE]** Add **close** command to disconnect from parallel bus
 
-* Expand parallel bus to 16-bits.
+* **[DONE]** Expand parallel bus to 16-bits.
+
+I was able to clock the 8-bit bus at ~28Mhz.  The 16-bit bus experiences
+data corruption at that rate.  I had to slow it down to about ~20Mhz.
+So a little less than 40M hashes/sec.  The whole 430MB dataset
+is taking about 11.14 seconds.
+
+The data transfer rate between the RPI and the FPGA board
+is thus 20Mhz * 2 Bytes * 8 bits = 320Mbits/sec.
+This is faster than the ethernet interface which tops
+out at 300MBits/sec on the RPI.
+
+I was able to get the clock to clock at 40Mhz but the data
+can't transition fast enough.  Maybe if a replaced the 200Ohm
+series resistors with smaller values.  At that rate it could
+process the dataset at 5.9 seconds but the data was always corrupted.
+
+* **[DONE]** Increase FPGA clock from 100mhz to 150mhz.
+
+The FPGA is now capable of processing 150M hashes/sec.
+The purpose of this change was to give me more time
+to sample the inputs from the raspberry pi.
+But it did not help the overall system performance.
 
 * **[SKIPPED]** Switch to shielded cable between RPI and FPGA.
 
@@ -90,4 +112,6 @@ at them on the scope.  They are looking pretty good.
 Looks like -O3 is working better than -Os.
 
 * Switch from RPI 3 Model B to RPI Model B+
+
+* Develop microSD card interface for the ARTYS7 board.
 
