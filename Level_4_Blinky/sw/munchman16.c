@@ -425,7 +425,7 @@ char send_block(unsigned char *block_text, unsigned long block_text_len, int str
             byte_offset = (i*BUFFER_SIZE) + match.pos - (str_len-1);
             hashes_per_sec = (byte_offset+1) / total_time;
             to_byte_str(match.str,match_str);
-            printf("byte_offset = %d \n",byte_offset);
+            printf("byte_offset = %ld \n",byte_offset);
             printf("match_str = %s \n",match_str);
             printf ("Total time = %f seconds\n", total_time);
             printf("hashes_per_sec: %f\n",hashes_per_sec);
@@ -447,7 +447,7 @@ char send_block(unsigned char *block_text, unsigned long block_text_len, int str
         byte_offset = (num_blocks*BUFFER_SIZE) + match.pos - (str_len-1);
         hashes_per_sec = (byte_offset+1) / total_time;
         to_byte_str(match.str,match_str);
-        printf("byte_offset = %d \n",byte_offset);
+        printf("byte_offset = %ld \n",byte_offset);
         printf("match_str = %s \n",match_str);
         printf ("Total time = %f seconds\n", total_time);
         printf("hashes_per_sec: %f\n",hashes_per_sec);
