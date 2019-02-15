@@ -47,8 +47,8 @@ int main(int argc, char *argv[])
     unsigned char target_hash[16] = {0};
     unsigned char in_target_hash[16] = {0};
     unsigned char *block_text=NULL;
-    int str_len = 19;
-    int in_str_len = 19;
+    int str_len = STR_LEN;  // 19?
+    int in_str_len = STR_LEN;
 
     // Parse the manifest.txt file
     printf("Parsing manifiest ... \n");
@@ -133,6 +133,8 @@ int main(int argc, char *argv[])
                     break;
                 }
                 str_len = in_str_len;
+                // TODO : get rid of the STR_LEN global var
+                STR_LEN = str_len;          // STR_LEN is munchman16 global
                 // Sent new str_len to board
                 ret = cmd_str_len(str_len);
                 if (ret != 1)
