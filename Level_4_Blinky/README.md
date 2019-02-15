@@ -113,9 +113,35 @@ Looks like -O3 is working better than -Os.
 
 * **[DONE]** Switch from RPI 3 Model B to RPI Model B+
 
-Overall time for processing the whole dataset improved
-from 11.2 seconds to 7.2 seconds.  Wow!  Just from moving
-from the B's 1.2Ghz processor to the B+'s 1.4Ghz.
+Moving from the B to the B+ seemed to improved
+the the processing time of the whole 430MB dataset
+from 11.2 seconds to 11.1 seconds.  Not a big improvement.
 
-* Develop microSD card interface for the ARTYS7 board.
+But I discovered that turning off the serial console
+improved the performance from 11.1 seconds to 7.2 seconds!
+The theory of the improvement is that enabling the serial
+port causes the clock rate to change for the external ports
+causing the slow down.  Don't know this for sure however.
+
+* **[Skipped]** Develop microSD card interface for the ARTYS7 board.
+
+I looked at this a little bit.  High speed (50MB/sec or greater)
+microSD card access requires changing the voltage levels from 3.3V
+to 1.8V.  It has to start at 3.3V logic and then negotate 1.8V
+for the high speed.  Changing the voltage levels is not possible
+via the Pmod from digilent.  Also to get the 104MB/sec we would
+have to read the 4-bit data at 208MHz.  Without having delayed
+match lines on the PCB it might not be possible.  Currently
+with the 16-bit parallel bus I am transfering data at 66MB/sec
+so anything slower is not worthwhile.
+
+* Experiment with overclocking the RPI 3 B+.
+
+* Increase length of stream characters from 16-bits to 32-bits.
+Add "bus_kill" signal between RPI and FPGA to stop current operation early.
+Separate process to monitor "bus_match" and send signal back to ifind
+to stop sending data and assert "bus_kill".
+
+* Add flag to ifind to remove eol characters from being loaded into ram.
+
 
