@@ -391,14 +391,18 @@ void string_push(unsigned char *buffer, unsigned char ch)
 
 /*
  * Send a very large block of text to the FPGA.
- * Returns: 1 if match found, else 0.
+ * Returns: 1 for match, or 0 for no match
  */
-char send_block(unsigned char *block_text, unsigned long block_text_len)
+char send_block(unsigned char *block_text, unsigned long block_text_len, int str_len)
 {
     char ack;
     unsigned char *bt = block_text;
     struct timeval tv1, tv2;
     double total_time;
+    unsigned long byte_offset=0;
+    struct match_result match;
+    unsigned char match_str[56];
+    double hashes_per_sec;
 
     // Figure out how many full size blocks we can send
     int num_blocks = block_text_len / BUFFER_SIZE;
@@ -417,7 +421,14 @@ char send_block(unsigned char *block_text, unsigned long block_text_len)
             gettimeofday(&tv2, NULL);
             total_time = elapsed_time(&tv1, &tv2);
             printf("!!! MATCH FOUND !!! \n");
+            cmd_read_match(&match);
+            byte_offset = (i*BUFFER_SIZE) + match.pos - (str_len-1);
+            hashes_per_sec = (byte_offset+1) / total_time;
+            to_byte_str(match.str,match_str);
+            printf("byte_offset = %d \n",byte_offset);
+            printf("match_str = %s \n",match_str);
             printf ("Total time = %f seconds\n", total_time);
+            printf("hashes_per_sec: %f\n",hashes_per_sec);
             return 1;
         }
     }
@@ -432,12 +443,22 @@ char send_block(unsigned char *block_text, unsigned long block_text_len)
     if (ack == 1)
     {
         printf("!!! MATCH FOUND !!! \n");
+        cmd_read_match(&match);
+        byte_offset = (num_blocks*BUFFER_SIZE) + match.pos - (str_len-1);
+        hashes_per_sec = (byte_offset+1) / total_time;
+        to_byte_str(match.str,match_str);
+        printf("byte_offset = %d \n",byte_offset);
+        printf("match_str = %s \n",match_str);
         printf ("Total time = %f seconds\n", total_time);
+        printf("hashes_per_sec: %f\n",hashes_per_sec);
         return 1;
     } else
     {
         printf("*** NOT FOUND ***\n");
+        byte_offset = block_text_len;
+        hashes_per_sec = (byte_offset+1) / total_time;
         printf ("Total time = %f seconds\n", total_time);
+        printf("hashes_per_sec: %f\n",hashes_per_sec);
         return 0;
     }
     return 0;
@@ -457,7 +478,7 @@ unsigned char send_file(char *filename, struct match_result *match, int lflag,
     FILE *fp;
     int loop=0;
     int byte_offset=0;
-    unsigned char match_str[50];
+    unsigned char match_str[56];
     unsigned char buffer_hash[BUFFER_HASH_SIZE] = {0};
     int bhi = 0;    // buffer_hash_index
     unsigned char hash_str[16];

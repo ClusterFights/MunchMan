@@ -159,11 +159,11 @@ int main(int argc, char *argv[])
             case 'S' : // Begin Search
             case '5' : // Begin Search
                 printf("\nStarting Search...\n");
-                ret = send_block(block_text, minfo.total_size);
-                if (ret != 1)
+                ret = send_block(block_text, minfo.total_size, str_len);
+                if (ret == 0)
                 {
                     printf("ERROR: string search failed.\n");
-                }
+                } 
                 break;
             case 'Q' : // Quit
             case 'q' : // Quit

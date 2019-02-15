@@ -109,7 +109,7 @@ char cmd_close();
 unsigned char send_file(char *filename, struct match_result *match, int lflag,
         unsigned char *target_hash, int *num_hashes);
 
-char send_block(unsigned char *block_text, unsigned long block_text_len);
+char send_block(unsigned char *block_text, unsigned long block_text_len, int str_len);
 
 void init_set_clr_lookups();
 
