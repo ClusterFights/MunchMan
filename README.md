@@ -41,5 +41,5 @@ done and match signals. Capable of almost 60M hashes
 per second.  Over 10x improvement of level3.
 
 ![level5_Owl](images/level5_Owl.png)
-__Level_5_Owl : In development ...
+__Level_5_Owl__ : In development ...
 
