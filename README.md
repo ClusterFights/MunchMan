@@ -34,5 +34,12 @@ good enough to win 2 out of 3 rounds at the ClusterFight
 held on 01/26/2019.
 
 ![level4_Blinky](images/level4_Blinky.png)
-__Level_4_Blinky__ : In development ...
+__Level_4_Blinky__ : Updated the md5 hash algorithm to
+support hashing strings of length 2 to 55 characters.
+Developed a 16-bit parallel interface with dedicated
+done and match signals. Capable of almost 60M hashes
+per second.  Over 10x improvement of level3.
+
+![level5_Owl](images/level5_Owl.png)
+__Level_5_Owl : In development ...
 
