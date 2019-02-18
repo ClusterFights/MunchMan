@@ -33,7 +33,10 @@
 #*****************************************************************************************
 
 # Set the reference directory for source file relative paths (by default the value is script directory path)
-set origin_dir "."
+#set origin_dir "."
+
+# Set the reference directory to where the script is
+set origin_dir [file dirname [info script]]
 
 # Use origin directory path location variable, if specified in the tcl shell
 if { [info exists ::origin_dir_loc] } {
@@ -140,26 +143,26 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 }
 
 # Set 'sources_1' fileset object
-set obj [get_filesets sources_1]
-# Add local files from the original project (-no_copy_sources specified)
-set files [list \
- [file normalize "${origin_dir}/project_1/project_1.srcs/sources_1/bd/design_1/design_1.bd" ]\
- [file normalize "${origin_dir}/project_1/project_1.srcs/sources_1/bd/design_1/hdl/design_1_wrapper.v" ]\
-]
-set added_files [add_files -fileset sources_1 $files]
-
-# Set 'sources_1' fileset file properties for remote files
-# None
-
-# Set 'sources_1' fileset file properties for local files
-set file "design_1/design_1.bd"
-set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
-set_property -name "registered_with_manager" -value "1" -objects $file_obj
-
-
-# Set 'sources_1' fileset properties
-set obj [get_filesets sources_1]
-set_property -name "top" -value "design_1_wrapper" -objects $obj
+#set obj [get_filesets sources_1]
+## Add local files from the original project (-no_copy_sources specified)
+#set files [list \
+# [file normalize "${origin_dir}/project_1/project_1.srcs/sources_1/bd/design_1/design_1.bd" ]\
+# [file normalize "${origin_dir}/project_1/project_1.srcs/sources_1/bd/design_1/hdl/design_1_wrapper.v" ]\
+#]
+#set added_files [add_files -fileset sources_1 $files]
+#
+## Set 'sources_1' fileset file properties for remote files
+## None
+#
+## Set 'sources_1' fileset file properties for local files
+#set file "design_1/design_1.bd"
+#set file_obj [get_files -of_objects [get_filesets sources_1] [list "*$file"]]
+#set_property -name "registered_with_manager" -value "1" -objects $file_obj
+#
+#
+## Set 'sources_1' fileset properties
+#set obj [get_filesets sources_1]
+#set_property -name "top" -value "design_1_wrapper" -objects $obj
 
 # Create 'constrs_1' fileset (if not found)
 if {[string equal [get_filesets -quiet constrs_1] ""]} {
@@ -501,3 +504,12 @@ move_dashboard_gadget -name {utilization_2} -row 1 -col 1
 move_dashboard_gadget -name {methodology_1} -row 2 -col 1
 # Set current dashboard to 'default_dashboard' 
 current_dashboard default_dashboard 
+
+# Create block design
+source $origin_dir/../src/bd/top.tcl
+
+# Generate the wrapper
+set design_name [get_bd_designs]
+make_wrapper -files [get_files $design_name.bd] -top -import
+
+puts "INFO: Project created:artyz7_md5_hasher"
