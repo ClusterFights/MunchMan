@@ -1,0 +1,10 @@
+
+
+OPTION psf_version = 2.1;
+
+BEGIN DRIVER md5_hasher
+	OPTION supported_peripherals = (md5_hasher);
+	OPTION copyfiles = all;
+	OPTION VERSION = 1.0;
+	OPTION NAME = md5_hasher;
+END DRIVER
