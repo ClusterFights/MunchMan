@@ -3,4 +3,6 @@ RemoteSystemsTempFiles
 SDK.log
 ps7_cortexa9_0
 webtalk
+.metadata
+.sdk
 
