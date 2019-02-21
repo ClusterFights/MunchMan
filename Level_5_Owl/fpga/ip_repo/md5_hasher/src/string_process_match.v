@@ -34,7 +34,7 @@ module string_process_match
     input wire proc_match_char_next,
     input wire [127:0] proc_target_hash,
     input wire [15:0] proc_str_len,     // len in bits, big endian
-    input wire proc_last;
+    input wire proc_last,
 
     output wire proc_done,
     output wire proc_match,

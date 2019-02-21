@@ -14,11 +14,8 @@
 		parameter integer C_S_CTRL_AXI_LITE_ADDR_WIDTH	= 5,
 
 		// Parameters of Axi Slave Bus Interface S_CHAR_AXIS
-		parameter integer C_S_CHAR_AXIS_TDATA_WIDTH	= 8,
+		parameter integer C_S_CHAR_AXIS_TDATA_WIDTH	= 8
 
-		// Parameters of Axi Master Bus Interface M_OUT_AXIS
-		parameter integer C_M_OUT_AXIS_TDATA_WIDTH	= 8,
-		parameter integer C_M_OUT_AXIS_START_COUNT	= 32
 	)
 	(
 		// Users to add ports here
