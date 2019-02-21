@@ -50,13 +50,15 @@ proc create_ipi_design { offsetfile design_name } {
 	connect_bd_net [get_bd_pins axi_peri_interconnect/M00_ARESETN] [get_bd_pins sys_reset_0/peripheral_aresetn]
 
 	# Connect all clock & reset of md5_hasher_0 slave interfaces..
-	connect_bd_intf_net [get_bd_intf_pins axi_peri_interconnect/M00_AXI] [get_bd_intf_pins md5_hasher_0/S_CTRL_AXI]
-	connect_bd_net [get_bd_pins md5_hasher_0/s_ctrl_axi_aclk] [get_bd_pins sys_clk_0/clk_out1]
-	connect_bd_net [get_bd_pins md5_hasher_0/s_ctrl_axi_aresetn] [get_bd_pins sys_reset_0/peripheral_aresetn]
+	connect_bd_intf_net [get_bd_intf_pins axi_peri_interconnect/M00_AXI] [get_bd_intf_pins md5_hasher_0/S_CTRL_AXI_LITE]
+	connect_bd_net [get_bd_pins md5_hasher_0/s_ctrl_axi_lite_aclk] [get_bd_pins sys_clk_0/clk_out1]
+	connect_bd_net [get_bd_pins md5_hasher_0/s_ctrl_axi_lite_aresetn] [get_bd_pins sys_reset_0/peripheral_aresetn]
 
 	# Connect all clock & reset of md5_hasher_0 streaming interfaces..
 	connect_bd_net [get_bd_pins md5_hasher_0/s_char_axis_aclk] [get_bd_pins sys_clk_0/clk_out1]
 	connect_bd_net [get_bd_pins md5_hasher_0/s_char_axis_aresetn] [get_bd_pins sys_reset_0/peripheral_aresetn]
+	connect_bd_net [get_bd_pins md5_hasher_0/m_out_axis_aclk] [get_bd_pins sys_clk_0/clk_out1]
+	connect_bd_net [get_bd_pins md5_hasher_0/m_out_axis_aresetn] [get_bd_pins sys_reset_0/peripheral_aresetn]
 
 
 	# Auto assign address
@@ -69,8 +71,8 @@ proc create_ipi_design { offsetfile design_name } {
 	set fp [open $offset_file "w"]
 	puts $fp "# Configuration address parameters"
 
-	set offset [get_property OFFSET [get_bd_addr_segs /jtag_axi_0/Data/SEG_md5_hasher_0_S_CTRL_AXI_* ]]
-	puts $fp "set s_ctrl_axi_addr ${offset}"
+	set offset [get_property OFFSET [get_bd_addr_segs /jtag_axi_0/Data/SEG_md5_hasher_0_S_CTRL_AXI_LITE_* ]]
+	puts $fp "set s_ctrl_axi_lite_addr ${offset}"
 
 	close $fp
 }

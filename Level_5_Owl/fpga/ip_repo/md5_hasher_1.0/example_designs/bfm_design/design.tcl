@@ -17,15 +17,19 @@ proc create_ipi_design { offsetfile design_name } {
 	set_property -dict [ list CONFIG.PROTOCOL {AXI4LITE} CONFIG.INTERFACE_MODE {MASTER} ] $master_0
 
 	# Create interface connections
-	connect_bd_intf_net [get_bd_intf_pins master_0/M_AXI ] [get_bd_intf_pins md5_hasher_0/S_CTRL_AXI]
+	connect_bd_intf_net [get_bd_intf_pins master_0/M_AXI ] [get_bd_intf_pins md5_hasher_0/S_CTRL_AXI_LITE]
 
 	# Create port connections
-	connect_bd_net -net aclk_net [get_bd_ports ACLK] [get_bd_pins master_0/ACLK] [get_bd_pins md5_hasher_0/S_CTRL_AXI_ACLK]
-	connect_bd_net -net aresetn_net [get_bd_ports ARESETN] [get_bd_pins master_0/ARESETN] [get_bd_pins md5_hasher_0/S_CTRL_AXI_ARESETN]
+	connect_bd_net -net aclk_net [get_bd_ports ACLK] [get_bd_pins master_0/ACLK] [get_bd_pins md5_hasher_0/S_CTRL_AXI_LITE_ACLK]
+	connect_bd_net -net aresetn_net [get_bd_ports ARESETN] [get_bd_pins master_0/ARESETN] [get_bd_pins md5_hasher_0/S_CTRL_AXI_LITE_ARESETN]
 	make_bd_intf_pins_external  [get_bd_intf_pins md5_hasher_0/S_CHAR_AXIS]
 	# Create port connections
 	connect_bd_net -net aclk_net [get_bd_ports ACLK] [get_bd_pins md5_hasher_0/S_CHAR_AXIS_ACLK]
 	connect_bd_net -net aresetn_net [get_bd_ports ARESETN] [get_bd_pins md5_hasher_0/S_CHAR_AXIS_ARESETN]
+	make_bd_intf_pins_external  [get_bd_intf_pins md5_hasher_0/M_OUT_AXIS]
+	# Create port connections
+	connect_bd_net -net aclk_net [get_bd_ports ACLK] [get_bd_pins md5_hasher_0/M_OUT_AXIS_ACLK]
+	connect_bd_net -net aresetn_net [get_bd_ports ARESETN] [get_bd_pins md5_hasher_0/M_OUT_AXIS_ARESETN]
 set_property target_simulator XSim [current_project]
 set_property -name {xsim.simulate.runtime} -value {100ms} -objects [get_filesets sim_1]
 

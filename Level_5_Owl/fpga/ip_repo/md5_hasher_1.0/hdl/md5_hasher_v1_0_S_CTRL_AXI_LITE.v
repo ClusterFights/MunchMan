@@ -1,7 +1,27 @@
+/*
+ ******************************************
+ * MODULE: md5_hasher_v1_0_S_CTRL_LITE.v 
+ *
+ * This module implements a register bank that can
+ * be controlled over an AXI4-Lite interface.
+ * Initial version of this file created by the Vivado
+ * IP wizard.
+ *
+ * The register interface is defined in the README.md
+ *
+ * Author: Brandon Blodget
+ * Create Date: 02/20/2019
+ *
+ ******************************************
+ */
+
 
 `timescale 1 ns / 1 ps
 
-	module md5_hasher_v1_0_S_CTRL_AXI #
+// Force error when implicit net has no type.
+`default_nettype none
+
+	module md5_hasher_v1_0_S_CTRL_AXI_LITE #
 	(
 		// Users to add parameters here
 
@@ -15,6 +35,30 @@
 	)
 	(
 		// Users to add ports here
+
+        // NOTE (brandon) : slv_reg0 is control reg
+        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg0,
+
+        // NOTE (brandon) :slv_reg1 is status reg
+        input wire [C_S_AXI_DATA_WIDTH-1:0]	slv_reg1_in,
+
+        // NOTE (brandon) : slv_reg2 is target_hash0 (msb)
+        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg2,
+
+        // NOTE (brandon) : slv_reg3 is target_hash1
+        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg3,
+
+        // NOTE (brandon) : slv_reg4 is target_hash2
+        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg4,
+
+        // NOTE (brandon) : slv_reg5 is target_hash3
+        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg5,
+
+        // NOTE (brandon) : slv_reg6 is str_length
+        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg6,
+
+        // NOTE (brandon) : slv_reg7 is number of chars to process
+        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7,
 
 		// User ports ends
 		// Do not modify the ports beyond this line
@@ -104,14 +148,14 @@
 	//-- Signals for user logic register space example
 	//------------------------------------------------
 	//-- Number of Slave Registers 8
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg0;
+	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg0;
 	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg1;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg2;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg3;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg4;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg5;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg6;
-	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7;
+	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg2;
+	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg3;
+	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg4;
+	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg5;
+	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg6;
+	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7;
 	wire	 slv_reg_rden;
 	wire	 slv_reg_wren;
 	reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -234,6 +278,31 @@
 	      slv_reg7 <= 0;
 	    end 
 	  else begin
+        // NOTE (brandon) : Clear the reset and enable bits
+        // if the reset is asserted.
+        // bit 0 - reset bit
+        // Reset row/col offsets and counts
+        if (slv_reg0[0]) begin
+            // reset bit set
+            slv_reg1 <= 0;
+	        slv_reg2 <= 0;
+	        slv_reg3 <= 0;
+	        slv_reg4 <= 0;
+	        slv_reg5 <= 0;
+	        slv_reg6 <= 0;
+	        slv_reg7 <= 0;
+        end
+
+        // NOTE (brandon) : Always clear all the bits in the control registers
+        // bit0 - reset core (auto clear)
+        // bit1 - Start processing chars (auto clear)
+        // bit2 - Start test command (auto clear)
+        slv_reg0 <= 0;            // reset control reg
+
+        // NOTE (brandon) : write to the status registers
+        slv_reg1 <= slv_reg1_in;
+
+
 	    if (slv_reg_wren)
 	      begin
 	        case ( axi_awaddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] )
