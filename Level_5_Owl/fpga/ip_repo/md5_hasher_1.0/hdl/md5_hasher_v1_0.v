@@ -57,16 +57,7 @@
 		input wire [C_S_CHAR_AXIS_TDATA_WIDTH-1 : 0] s_char_axis_tdata,
 		// XXX input wire [(C_S_CHAR_AXIS_TDATA_WIDTH/8)-1 : 0] s_char_axis_tstrb,
 		input wire  s_char_axis_tlast,
-		input wire  s_char_axis_tvalid,
-
-		// Ports of Axi Master Bus Interface M_OUT_AXIS
-		input wire  m_out_axis_aclk,
-		input wire  m_out_axis_aresetn,
-		output wire  m_out_axis_tvalid,
-		output wire [C_M_OUT_AXIS_TDATA_WIDTH-1 : 0] m_out_axis_tdata,
-		// XXX output wire [(C_M_OUT_AXIS_TDATA_WIDTH/8)-1 : 0] m_out_axis_tstrb,
-		output wire  m_out_axis_tlast,
-		input wire  m_out_axis_tready
+		input wire  s_char_axis_tvalid
 	);
 
 /*
@@ -82,8 +73,7 @@ wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg3;       // Hash 1
 wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg4;       // Hash 2
 wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg5;       // Hash 3
 wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg6;       // String Length
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg7;       // Number of bytes to process
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg8_in;    // Byte match position
+wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg7_in;    // Byte match position
 
 wire reset;
 
@@ -132,7 +122,7 @@ assign slv_reg1_in =  {29'h0, proc_match, proc_done, proc_busy};
         .slv_reg4(slv_reg4),            // Target Hash 2 Reg
         .slv_reg5(slv_reg5),            // Target Hash 3 Reg (lsb)
         .slv_reg6(slv_reg6),            // String Length
-        .slv_reg7(slv_reg7),            // Extra
+        .slv_reg7(slv_reg7_in),         // Byte match position
         // End Control registers
 
 		.S_AXI_ACLK(s_ctrl_axi_lite_aclk),
@@ -158,36 +148,6 @@ assign slv_reg1_in =  {29'h0, proc_match, proc_done, proc_busy};
 		.S_AXI_RREADY(s_ctrl_axi_lite_rready)
 	);
 
-// Instantiation of Axi Bus Interface S_CHAR_AXIS
-/*
-	md5_hasher_v1_0_S_CHAR_AXIS # ( 
-		.C_S_AXIS_TDATA_WIDTH(C_S_CHAR_AXIS_TDATA_WIDTH)
-	) md5_hasher_v1_0_S_CHAR_AXIS_inst (
-		.S_AXIS_ACLK(s_char_axis_aclk),
-		.S_AXIS_ARESETN(s_char_axis_aresetn),
-		.S_AXIS_TREADY(s_char_axis_tready),
-		.S_AXIS_TDATA(s_char_axis_tdata),
-		.S_AXIS_TSTRB(s_char_axis_tstrb),
-		.S_AXIS_TLAST(s_char_axis_tlast),
-		.S_AXIS_TVALID(s_char_axis_tvalid)
-	);
-*/
-
-// Instantiation of Axi Bus Interface M_OUT_AXIS
-/*
-	md5_hasher_v1_0_M_OUT_AXIS # ( 
-		.C_M_AXIS_TDATA_WIDTH(C_M_OUT_AXIS_TDATA_WIDTH),
-		.C_M_START_COUNT(C_M_OUT_AXIS_START_COUNT)
-	) md5_hasher_v1_0_M_OUT_AXIS_inst (
-		.M_AXIS_ACLK(m_out_axis_aclk),
-		.M_AXIS_ARESETN(m_out_axis_aresetn),
-		.M_AXIS_TVALID(m_out_axis_tvalid),
-		.M_AXIS_TDATA(m_out_axis_tdata),
-		.M_AXIS_TSTRB(m_out_axis_tstrb),
-		.M_AXIS_TLAST(m_out_axis_tlast),
-		.M_AXIS_TREADY(m_out_axis_tready)
-	);
-*/
 
 
 string_process_match string_process_match_inst
@@ -197,19 +157,20 @@ string_process_match string_process_match_inst
 
     // cmd_parser
     .proc_start(slv_reg0[1]),   // start processing chars
-    .proc_num_bytes(slv_reg7),  // number of char to process
     .proc_data(s_char_axis_tdata),  // 8-bit char data
     .proc_data_valid(s_char_axis_tvalid),
+    .proc_ready(s_char_axis_tready),
+    .proc_last(s_char_axis_tlast),
+    // XXX .proc_num_bytes(slv_reg7),  // NOT USED
 
-    .proc_match_char_next(m_out_axis_tready),
+    .proc_match_char_next(1'b0),    // NOT USED
     .proc_target_hash({slv_reg3, slv_reg4, slv_reg5, slv_reg6}),
-    .proc_str_len(slv_reg7[15:0]),     // len in bits, big endian
+    .proc_str_len(slv_reg6[15:0]),     // len in bits, big endian
     .proc_done(proc_done),
     .proc_match(proc_match),
     .proc_byte_pos(slv_reg8_in),
-    output wire [7:0] proc_match_char,
+    // XXX .proc_match_char(),      // NOT USED
     .proc_busy(proc_busy),
-    .proc_ready(s_char_axis_tready),
 
     // MD5 core
     .a_ret(a_ret),

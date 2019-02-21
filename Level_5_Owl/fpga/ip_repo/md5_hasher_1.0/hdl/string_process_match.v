@@ -28,12 +28,14 @@ module string_process_match
 
     // cmd_parser
     input wire proc_start,
-    input wire [31:0] proc_num_bytes,
+    // XXX input wire [31:0] proc_num_bytes,
     input wire [7:0] proc_data,
     input wire proc_data_valid,
     input wire proc_match_char_next,
     input wire [127:0] proc_target_hash,
     input wire [15:0] proc_str_len,     // len in bits, big endian
+    input wire proc_last;
+
     output wire proc_done,
     output wire proc_match,
     output wire [31:0] proc_byte_pos,
@@ -115,7 +117,7 @@ end
 // Check md5core return values for a match to target.
 // Count the number of returned hashes.
 reg [31:0] byte_count;
-reg [31:0] num_bytes;
+// XXX reg [31:0] num_bytes;
 reg match;
 reg [31:0] match_byte_count;
 reg [511:0] match_msg;
@@ -123,7 +125,7 @@ reg match_check_done;
 always @(posedge clk)
 begin
     if (reset) begin
-        num_bytes <= 0;
+        // XXX num_bytes <= 0;
         byte_count <= 0;
         match <= 0;
         match_byte_count <= 0;
@@ -149,14 +151,16 @@ begin
         end
         // Check if we have processed the specified
         // number of bytes.
-        if (byte_count == num_bytes) begin
+        // XXX if (byte_count == num_bytes) begin
+        // Check if this is a last bytes of the stream.
+        if (proc_last == 1) begin
             match_check_done <= 1;
             proc_busy <= 0;
         end
         // Starting a new batch of strings.
         if (proc_start) begin
             proc_busy <= 1;
-            num_bytes <= proc_num_bytes;
+            // XXX num_bytes <= proc_num_bytes;
             byte_count <= 0;
             match <= 0;
             match_byte_count <= 0;

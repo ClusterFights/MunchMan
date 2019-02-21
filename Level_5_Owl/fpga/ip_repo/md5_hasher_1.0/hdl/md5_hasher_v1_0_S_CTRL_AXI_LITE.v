@@ -57,8 +57,8 @@
         // NOTE (brandon) : slv_reg6 is str_length
         output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg6,
 
-        // NOTE (brandon) : slv_reg7 is number of chars to process
-        output reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7,
+        // NOTE (brandon) : slv_reg7_in is the byte match position.
+        input wire [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7_in,
 
 		// User ports ends
 		// Do not modify the ports beyond this line
@@ -155,7 +155,7 @@
 	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg4;
 	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg5;
 	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg6;
-	// XXX reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7;
+	reg [C_S_AXI_DATA_WIDTH-1:0]	slv_reg7;
 	wire	 slv_reg_rden;
 	wire	 slv_reg_wren;
 	reg [C_S_AXI_DATA_WIDTH-1:0]	 reg_data_out;
@@ -300,7 +300,9 @@
         slv_reg0 <= 0;            // reset control reg
 
         // NOTE (brandon) : write to the status registers
+        // write to byte match position register.
         slv_reg1 <= slv_reg1_in;
+        slv_reg7 <= slv_reg7_in;
 
 
 	    if (slv_reg_wren)
@@ -364,13 +366,13 @@
 	              end  
 	          default : begin
 	                      slv_reg0 <= slv_reg0;
-	                      slv_reg1 <= slv_reg1;
+	                      slv_reg1 <= slv_reg1_in;
 	                      slv_reg2 <= slv_reg2;
 	                      slv_reg3 <= slv_reg3;
 	                      slv_reg4 <= slv_reg4;
 	                      slv_reg5 <= slv_reg5;
 	                      slv_reg6 <= slv_reg6;
-	                      slv_reg7 <= slv_reg7;
+	                      slv_reg7 <= slv_reg7_in;
 	                    end
 	        endcase
 	      end
