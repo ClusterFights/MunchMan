@@ -1,5 +1,19 @@
-
+/*
+*****************************
+* MODULE : md5_hasher_v1_0.v
+*
+* MD5 Hasher for Cluster Fighting with an AXI interface.
+*
+* Author : Brandon Blodget
+*
+* Created: 02/21/2019
+*
+*****************************
+*/
 `timescale 1 ns / 1 ps
+
+// Force error when implicit net has no type.
+`default_nettype none
 
 	module md5_hasher_v1_0 #
 	(
@@ -54,7 +68,10 @@
 		input wire [C_S_CHAR_AXIS_TDATA_WIDTH-1 : 0] s_char_axis_tdata,
 		// XXX input wire [(C_S_CHAR_AXIS_TDATA_WIDTH/8)-1 : 0] s_char_axis_tstrb,
 		input wire  s_char_axis_tlast,
-		input wire  s_char_axis_tvalid
+		input wire  s_char_axis_tvalid,
+		
+		// Match Interrupt
+		output reg match_interrupt
 	);
 
 /*
@@ -87,6 +104,11 @@ wire md5_msg_valid;
 
 wire proc_busy;
 
+wire proc_match;
+wire proc_done;
+
+wire clear_match_interrupt;
+
 /*
 ************************
 * Assignment
@@ -97,6 +119,8 @@ assign reset = (~s_ctrl_axi_lite_aresetn) | slv_reg0[0];
 
 // assign status reg
 assign slv_reg1_in =  {29'h0, proc_match, proc_done, proc_busy};
+
+assign clear_match_interrupt = slv_reg0[2];
 
 /*
 ************************
@@ -202,6 +226,25 @@ md5core md5core_inst
 
 	// Add user logic here
 
+// Handle latching the match_interrupt on the rising edge
+// of proc_match.
+// Clear when clear_match_interrupt asserted.
+reg prev_proc_match;
+always @ (posedge clk)
+begin
+    if (reset) begin
+        match_interrupt <= 0;
+        prev_proc_match <= 0;
+    end else begin
+        prev_proc_match <= proc_match;
+        if (proc_match && !prev_proc_match) begin
+            match_interrupt <= 1;
+        end
+        if (clear_match_interrupt) begin
+            match_interrupt <= 0;
+        end 
+    end
+end
 	// User logic ends
 
 	endmodule

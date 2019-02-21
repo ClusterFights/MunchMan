@@ -303,6 +303,28 @@
         </spirit:parameter>
       </spirit:parameters>
     </spirit:busInterface>
+    <spirit:busInterface>
+      <spirit:name>match_interrupt</spirit:name>
+      <spirit:busType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt" spirit:version="1.0"/>
+      <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="signal" spirit:name="interrupt_rtl" spirit:version="1.0"/>
+      <spirit:master/>
+      <spirit:portMaps>
+        <spirit:portMap>
+          <spirit:logicalPort>
+            <spirit:name>INTERRUPT</spirit:name>
+          </spirit:logicalPort>
+          <spirit:physicalPort>
+            <spirit:name>match_interrupt</spirit:name>
+          </spirit:physicalPort>
+        </spirit:portMap>
+      </spirit:portMaps>
+      <spirit:parameters>
+        <spirit:parameter>
+          <spirit:name>SENSITIVITY</spirit:name>
+          <spirit:value spirit:id="BUSIFPARAM_VALUE.MATCH_INTERRUPT.SENSITIVITY" spirit:choiceRef="choice_list_9ca20931">LEVEL_HIGH</spirit:value>
+        </spirit:parameter>
+      </spirit:parameters>
+    </spirit:busInterface>
   </spirit:busInterfaces>
   <spirit:memoryMaps>
     <spirit:memoryMap>
@@ -330,7 +352,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>43a40bb2</spirit:value>
+            <spirit:value>9ce0e931</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -346,7 +368,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>viewChecksum</spirit:name>
-            <spirit:value>43a40bb2</spirit:value>
+            <spirit:value>9ce0e931</spirit:value>
           </spirit:parameter>
         </spirit:parameters>
       </spirit:view>
@@ -796,6 +818,19 @@
           </spirit:wireTypeDefs>
         </spirit:wire>
       </spirit:port>
+      <spirit:port>
+        <spirit:name>match_interrupt</spirit:name>
+        <spirit:wire>
+          <spirit:direction>out</spirit:direction>
+          <spirit:wireTypeDefs>
+            <spirit:wireTypeDef>
+              <spirit:typeName>wire</spirit:typeName>
+              <spirit:viewNameRef>xilinx_anylanguagesynthesis</spirit:viewNameRef>
+              <spirit:viewNameRef>xilinx_anylanguagebehavioralsimulation</spirit:viewNameRef>
+            </spirit:wireTypeDef>
+          </spirit:wireTypeDefs>
+        </spirit:wire>
+      </spirit:port>
     </spirit:ports>
     <spirit:modelParameters>
       <spirit:modelParameter xsi:type="spirit:nameValueTypeType" spirit:dataType="integer">
@@ -816,6 +851,13 @@
     </spirit:modelParameters>
   </spirit:model>
   <spirit:choices>
+    <spirit:choice>
+      <spirit:name>choice_list_9ca20931</spirit:name>
+      <spirit:enumeration>LEVEL_HIGH</spirit:enumeration>
+      <spirit:enumeration>LEVEL_LOW</spirit:enumeration>
+      <spirit:enumeration>EDGE_RISING</spirit:enumeration>
+      <spirit:enumeration>EDGE_FALLING</spirit:enumeration>
+    </spirit:choice>
     <spirit:choice>
       <spirit:name>choice_list_9d8b0d81</spirit:name>
       <spirit:enumeration>ACTIVE_HIGH</spirit:enumeration>
@@ -848,7 +890,7 @@
       <spirit:file>
         <spirit:name>src/md5_hasher_v1_0.v</spirit:name>
         <spirit:fileType>verilogSource</spirit:fileType>
-        <spirit:userFileType>CHECKSUM_25445dd2</spirit:userFileType>
+        <spirit:userFileType>CHECKSUM_c82d371c</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
       </spirit:file>
     </spirit:fileSet>
@@ -928,11 +970,11 @@
       </xilinx:taxonomies>
       <xilinx:displayName>md5_hasher_v1_0</xilinx:displayName>
       <xilinx:definitionSource>package_project</xilinx:definitionSource>
-      <xilinx:coreRevision>1</xilinx:coreRevision>
+      <xilinx:coreRevision>2</xilinx:coreRevision>
       <xilinx:upgrades>
         <xilinx:canUpgradeFrom>user.org:user:md5_hasher_v1_0:1.0</xilinx:canUpgradeFrom>
       </xilinx:upgrades>
-      <xilinx:coreCreationDateTime>2019-02-21T19:47:23Z</xilinx:coreCreationDateTime>
+      <xilinx:coreCreationDateTime>2019-02-21T20:14:13Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@9b6b2c4_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@3e4b7fa4_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
@@ -951,14 +993,28 @@
         <xilinx:tag xilinx:name="ui.data.coregen.dd@7090e716_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@318a6f36_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
         <xilinx:tag xilinx:name="ui.data.coregen.dd@425b66f9_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@39a8f33b_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@1a3f2646_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@2ae9f923_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@6f52ab73_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@e91aa52_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@44a9e86_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@554b68db_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@49071eaa_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@fae39e4_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@3a37bdc4_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@46d1b3cb_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@50a977d1_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@417a2acb_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
+        <xilinx:tag xilinx:name="ui.data.coregen.dd@219e2f00_ARCHIVE_LOCATION">/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/fpga/ip_repo/md5_hasher</xilinx:tag>
       </xilinx:tags>
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2018.3</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="15206489"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="6da14afb"/>
       <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="8fe8f8f3"/>
-      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="e613c95a"/>
-      <xilinx:checksum xilinx:scope="ports" xilinx:value="6595443a"/>
+      <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="74bd3e74"/>
+      <xilinx:checksum xilinx:scope="ports" xilinx:value="3084688f"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="c848ba16"/>
       <xilinx:checksum xilinx:scope="parameters" xilinx:value="a156d03e"/>
     </xilinx:packagingInfo>
