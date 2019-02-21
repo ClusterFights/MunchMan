@@ -80,14 +80,14 @@
 ************************
 */
 
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg0;       // CMD
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg1_in;    // Status
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg2;       // Hash 0 (msb)
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg3;       // Hash 1
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg4;       // Hash 2
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg5;       // Hash 3
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg6;       // String Length
-wire [C_S_CTRL_AXI_LITE_ADDR_WIDTH-1:0] slv_reg7_in;    // Byte match position
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg0;       // CMD
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg1_in;    // Status
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg2;       // Hash 0 (msb)
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg3;       // Hash 1
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg4;       // Hash 2
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg5;       // Hash 3
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg6;       // String Length
+wire [C_S_CTRL_AXI_LITE_DATA_WIDTH-1:0] slv_reg7_in;    // Byte match position
 
 wire reset;
 
@@ -143,7 +143,7 @@ assign clear_match_interrupt = slv_reg0[2];
         .slv_reg4(slv_reg4),            // Target Hash 2 Reg
         .slv_reg5(slv_reg5),            // Target Hash 3 Reg (lsb)
         .slv_reg6(slv_reg6),            // String Length
-        .slv_reg7(slv_reg7_in),         // Byte match position
+        .slv_reg7_in(slv_reg7_in),         // Byte match position
         // End Control registers
 
 		.S_AXI_ACLK(s_ctrl_axi_lite_aclk),
@@ -185,11 +185,11 @@ string_process_match string_process_match_inst
     // XXX .proc_num_bytes(slv_reg7),  // NOT USED
 
     .proc_match_char_next(1'b0),    // NOT USED
-    .proc_target_hash({slv_reg3, slv_reg4, slv_reg5, slv_reg6}),
+    .proc_target_hash({slv_reg2, slv_reg3, slv_reg4, slv_reg5}),
     .proc_str_len(slv_reg6[15:0]),     // len in bits, big endian
     .proc_done(proc_done),
     .proc_match(proc_match),
-    .proc_byte_pos(slv_reg8_in),
+    .proc_byte_pos(slv_reg7_in),
     // XXX .proc_match_char(),      // NOT USED
     .proc_busy(proc_busy),
 
@@ -197,7 +197,7 @@ string_process_match string_process_match_inst
     .a_ret(a_ret),
     .b_ret(b_ret),
     .c_ret(c_ret),
-    .d_ret(rd_ret),
+    .d_ret(d_ret),
     .md5_msg_ret(md5_msg_ret),
     .md5_msg_ret_valid(md5_msg_ret_valid),
     .md5_msg(md5_msg),
@@ -230,7 +230,7 @@ md5core md5core_inst
 // of proc_match.
 // Clear when clear_match_interrupt asserted.
 reg prev_proc_match;
-always @ (posedge clk)
+always @ (posedge s_ctrl_axi_lite_aclk)
 begin
     if (reset) begin
         match_interrupt <= 0;
