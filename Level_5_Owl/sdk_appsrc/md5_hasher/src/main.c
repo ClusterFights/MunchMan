@@ -23,6 +23,7 @@
 #include "xaxidma.h"
 #include "find_lib.h"
 #include "xgpio.h"
+#include "xtime_l.h"
 
 
 #define DMA_DEV_ID      XPAR_AXIDMA_0_DEVICE_ID
@@ -87,6 +88,9 @@ int main()
 
     XGpio Gpio; /* The Instance of the GPIO Driver */
 
+    XTime tStart, tEnd;
+    double total_time, hashes_per_sec;
+
     init_platform();
 
     // Init the md5_hasher and DMA engine
@@ -94,15 +98,15 @@ int main()
     dma_init(DMA_DEV_ID);
 
     /* Initialize the GPIO driver */
-	ret = XGpio_Initialize(&Gpio, GPIO_DEV_ID);
-	if (ret != XST_SUCCESS) {
-		xil_printf("Gpio Initialization Failed\r\n");
-	}
-	/* Set the direction as output for all */
-	XGpio_SetDataDirection(&Gpio, RGB_CHANNEL, 0);  // channel 1, 0=all outputs
-	XGpio_SetDataDirection(&Gpio, LED_CHANNEL, 0);  // channel 2, 0=all outputs
-	XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_OFF);
-	XGpio_DiscreteWrite(&Gpio, LED_CHANNEL, 0x00);
+    ret = XGpio_Initialize(&Gpio, GPIO_DEV_ID);
+    if (ret != XST_SUCCESS) {
+        xil_printf("Gpio Initialization Failed\r\n");
+    }
+    /* Set the direction as output for all */
+    XGpio_SetDataDirection(&Gpio, RGB_CHANNEL, 0);  // channel 1, 0=all outputs
+    XGpio_SetDataDirection(&Gpio, LED_CHANNEL, 0);  // channel 2, 0=all outputs
+    XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_OFF);
+    XGpio_DiscreteWrite(&Gpio, LED_CHANNEL, 0x00);
 
     while(!done)
     {
@@ -193,28 +197,35 @@ int main()
             case '4' :
                 xil_printf("Go Run the hasher \n\r");
                 XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_BLUE);
+                XTime_GetTime(&tStart);
                 cmd_enable(MD5_BASEADDR);
                 status = cmd_send_text(MD5_BASEADDR, DMA_DEV_ID, test_str, sizeof(test_str));
-                if (status == XST_SUCCESS)
+                if (status == XST_FAILURE)
                 {
-                    xil_printf("Simple DMA returned with XST_SUCCESS\n\r");
+                    xil_printf("ERROR: cmd_send_text returned XST_FAILURE.\n\r");
                 }
                 while (!isDone(MD5_BASEADDR))
                 {
                     // wait
                 }
+                XTime_GetTime(&tEnd);
+                total_time = elapsed_time(tStart, tEnd);
                 xil_printf("MD5 hasher completed!!\n\r");
                 status = cmd_read_match(MD5_BASEADDR, &match, test_str, str_len);
                 if (status == XST_SUCCESS)
                 {
                     xil_printf("match.pos: %d \n\r",match.pos);
                     xil_printf("match.str: %s \n\r",match.str);
+                    hashes_per_sec = (match.pos+1) / total_time;
                     XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_GREEN);
                 } else
                 {
-                	xil_printf("!!! NO MATCH !!! \n\r");
-                	XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_RED);
+                    xil_printf("!!! NO MATCH !!! \n\r");
+                    hashes_per_sec = (match.pos+1) / sizeof(test_str);
+                    XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_RED);
                 }
+                printf ("Total time = %f seconds\n", total_time);
+                printf("hashes_per_sec: %f\n",hashes_per_sec);
                 cmd_clear_interrupt(MD5_BASEADDR);
                 break;
             case 'Q' :

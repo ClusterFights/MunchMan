@@ -22,6 +22,7 @@ extern "C" {
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
+#include "xtime_l.h"
 
 
 /*
@@ -60,7 +61,7 @@ struct manifest_info
 
 // XXX int parse_manifest(char *mfile, struct manifest_info *minfo);
 int convert_hash(char *md5_hash, unsigned char *target_hash);
-// XXX double elapsed_time(struct timeval *tv1, struct timeval *tv2);
+double elapsed_time(XTime tStart, XTime tEnd);
 // XXX unsigned char* load_books(struct manifest_info *minfo);
 
 #ifdef __cplusplus
