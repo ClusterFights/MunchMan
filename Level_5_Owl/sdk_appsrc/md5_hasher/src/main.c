@@ -22,10 +22,21 @@
 #include <stdlib.h>
 #include "xaxidma.h"
 #include "find_lib.h"
+#include "xgpio.h"
 
 
 #define DMA_DEV_ID      XPAR_AXIDMA_0_DEVICE_ID
 #define MD5_BASEADDR    XPAR_MD5_HASHER_0_BASEADDR
+#define GPIO_DEV_ID  	XPAR_GPIO_0_DEVICE_ID
+
+#define RGB_CHANNEL 1
+// blue =1, green =2, red =4
+#define RGB_OFF		0
+#define RGB_BLUE	1
+#define RGB_GREEN	2
+#define RGB_RED		3
+
+#define LED_CHANNEL 2
 
 
 // target md5 hash for "The quick brown fox"
@@ -74,11 +85,24 @@ int main()
     int str_len = 0;
     int in_str_len = 0;
 
+    XGpio Gpio; /* The Instance of the GPIO Driver */
+
     init_platform();
 
     // Init the md5_hasher and DMA engine
     cmd_reset(MD5_BASEADDR);
     dma_init(DMA_DEV_ID);
+
+    /* Initialize the GPIO driver */
+	ret = XGpio_Initialize(&Gpio, GPIO_DEV_ID);
+	if (ret != XST_SUCCESS) {
+		xil_printf("Gpio Initialization Failed\r\n");
+	}
+	/* Set the direction as output for all */
+	XGpio_SetDataDirection(&Gpio, RGB_CHANNEL, 0);  // channel 1, 0=all outputs
+	XGpio_SetDataDirection(&Gpio, LED_CHANNEL, 0);  // channel 2, 0=all outputs
+	XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_OFF);
+	XGpio_DiscreteWrite(&Gpio, LED_CHANNEL, 0x00);
 
     while(!done)
     {
@@ -105,6 +129,7 @@ int main()
                         in_target_hash[i] = 0;
                     }
                 }
+                XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_OFF);
                 break;
             case 'H' :
             case 'h' :
@@ -136,6 +161,7 @@ int main()
                 {
                     xil_printf("ERROR: convert_hash() failed.\n\r");
                 }
+                XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_OFF);
                 break;
             case 'L' :
             case 'l' :
@@ -149,6 +175,7 @@ int main()
                 }
                 str_len = in_str_len;
                 cmd_str_len(MD5_BASEADDR, str_len);
+                XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_OFF);
                 break;
             case 'S' :
             case 's' :
@@ -159,11 +186,13 @@ int main()
                 u32 byte_pos = match_pos - 18;
                 xil_printf("status {match,done,busy}: %x \n\r",status);
                 xil_printf("byte_pos: %d \n\r",byte_pos);
+                XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_OFF);
                 break;
             case 'G' :
             case 'g' :
             case '4' :
                 xil_printf("Go Run the hasher \n\r");
+                XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_BLUE);
                 cmd_enable(MD5_BASEADDR);
                 status = cmd_send_text(MD5_BASEADDR, DMA_DEV_ID, test_str, sizeof(test_str));
                 if (status == XST_SUCCESS)
@@ -180,6 +209,11 @@ int main()
                 {
                     xil_printf("match.pos: %d \n\r",match.pos);
                     xil_printf("match.str: %s \n\r",match.str);
+                    XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_GREEN);
+                } else
+                {
+                	xil_printf("!!! NO MATCH !!! \n\r");
+                	XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_RED);
                 }
                 cmd_clear_interrupt(MD5_BASEADDR);
                 break;
