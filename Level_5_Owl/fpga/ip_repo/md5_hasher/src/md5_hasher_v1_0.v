@@ -182,14 +182,14 @@ string_process_match string_process_match_inst
     .proc_data_valid(s_char_axis_tvalid),
     .proc_ready(s_char_axis_tready),
     .proc_last(s_char_axis_tlast),
-    // XXX .proc_num_bytes(slv_reg7),  // NOT USED
+    // XXX .proc_num_bytes(),  // NOT USED
 
     .proc_match_char_next(1'b0),    // NOT USED
     .proc_target_hash({slv_reg2, slv_reg3, slv_reg4, slv_reg5}),
     .proc_str_len(slv_reg6[15:0]),     // len in bits, big endian
     .proc_done(proc_done),
     .proc_match(proc_match),
-    .proc_byte_pos(slv_reg7_in),
+    .proc_byte_pos(slv_reg7_in),  // match_pos
     // XXX .proc_match_char(),      // NOT USED
     .proc_busy(proc_busy),
 
