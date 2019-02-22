@@ -52,6 +52,12 @@
 #include "md5_hasher.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "xaxidma.h"
+
+
+#define DMA_DEV_ID		XPAR_AXIDMA_0_DEVICE_ID
+
+static XAxiDma AxiDma;
 
 // target md5 hash for "The quick brown fox"
 static u32 target_hash[] = {
@@ -63,6 +69,92 @@ static u32 target_hash[] = {
 
 static unsigned char test_str[] = "Hello. The quick brown fox jumps over the lazy dog.";
 
+/*****************************************************************************/
+/**
+* The example to do the simple transfer through polling. The constant
+* NUMBER_OF_TRANSFERS defines how many times a simple transfer is repeated.
+*
+* @param	DeviceId is the Device Id of the XAxiDma instance
+*
+* @return
+*		- XST_SUCCESS if example finishes successfully
+*		- XST_FAILURE if error occurs
+*
+* @note		None
+*
+*
+******************************************************************************/
+int XAxiDma_SimplePollExample(u16 DeviceId, u8* TxBufferPtr, int buffer_size)
+{
+	XAxiDma_Config *CfgPtr;
+	int Status;
+
+	xil_printf("buffer_size: %d \n\r",buffer_size);
+
+
+	/* Initialize the XAxiDma device.
+	 */
+	CfgPtr = XAxiDma_LookupConfig(DeviceId);
+	if (!CfgPtr) {
+		xil_printf("No config found for %d\r\n", DeviceId);
+		return XST_FAILURE;
+	} else
+	{
+		xil_printf("Config found for %d\r\n", DeviceId);
+	}
+
+	Status = XAxiDma_CfgInitialize(&AxiDma, CfgPtr);
+	if (Status != XST_SUCCESS) {
+		xil_printf("Initialization failed %d\r\n", Status);
+		return XST_FAILURE;
+	} else
+	{
+		xil_printf("Initialization passed %d\r\n", Status);
+	}
+
+	if(XAxiDma_HasSg(&AxiDma)){
+		xil_printf("Device configured as SG mode \r\n");
+		return XST_FAILURE;
+	} else
+	{
+		xil_printf("Device configured as Simple mode \r\n");
+	}
+
+	/* Disable interrupts, we use polling mode
+	 */
+	xil_printf("Disable interrupts \r\n");
+	XAxiDma_IntrDisable(&AxiDma, XAXIDMA_IRQ_ALL_MASK,
+						XAXIDMA_DEVICE_TO_DMA);
+
+
+
+	/* Flush the SrcBuffer before the DMA transfer, in case the Data Cache
+	 * is enabled
+	 */
+	xil_printf("Flush the Data Cache \r\n");
+	Xil_DCacheFlushRange((UINTPTR)TxBufferPtr, buffer_size);
+
+
+	/* Start the transfer */
+	xil_printf("Start the transfer \r\n");
+	Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) TxBufferPtr,
+			buffer_size, XAXIDMA_DMA_TO_DEVICE);
+
+	if (Status != XST_SUCCESS) {
+		return XST_FAILURE;
+	}
+
+	xil_printf("Wait for Dma to finish. \r\n");
+	while (XAxiDma_Busy(&AxiDma,XAXIDMA_DMA_TO_DEVICE)) {
+			/* Wait */
+	}
+
+
+	/* Test finishes successfully
+	 */
+	return XST_SUCCESS;
+}
+
 /*
  * cmd_str_len : Sets up the str_len in the md5_hasher core
  * returns: 1 for success, 0 for fail.
@@ -71,7 +163,6 @@ u8 cmd_str_len(u8 num_chars)
 {
     u32 num_bits;
     u32 ret;
-    u8 num_bits_arry[2];
 
     // Check the num_chars are in range
     if (num_chars <2 || num_chars > 55)
@@ -109,12 +200,9 @@ int main()
 {
     char c;
     int done=0;
-    char* buffer;
+    int status;
 
     init_platform();
-
-    buffer = malloc(4*sizeof(char));
-
 
 
     while(!done)
@@ -128,6 +216,9 @@ int main()
     		case 'H' :
     		case 'h' :
 			case '1' :
+				xil_printf("Reset core\n\r");
+				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG0_CTRL, 0x01);
+
 				xil_printf("Loading target hash\n\r");
 				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG2_HASH0, target_hash[0]);
 				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG3_HASH1, target_hash[1]);
@@ -159,13 +250,22 @@ int main()
 				xil_printf("Status information \n\r");
 				u32 status = MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG1_STATUS);
 				u32 match_pos = MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG7_MATCH_POS);
+				u32 byte_pos = match_pos - 18;
 				xil_printf("status {match,done,busy}: %x \n\r",status);
-				xil_printf("match_pos: %d \n\r",match_pos);
+				xil_printf("byte_pos: %d \n\r",byte_pos);
 				break;
 			case 'R' :
 			case 'r' :
 			case '4' :
 				xil_printf("Run the hasher \n\r");
+				xil_printf("Toggle the start bit reg0[1] \n\r");
+				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG0_CTRL, 0x02);
+				xil_printf("Start DMA \n\r");
+				status = XAxiDma_SimplePollExample(DMA_DEV_ID, test_str, sizeof(test_str));
+				if (status == XST_SUCCESS)
+				{
+					xil_printf("Simple DMA finished with XST_SUCCESS");
+				}
 				break;
 			case 'Q' :
 			case 'q' :
