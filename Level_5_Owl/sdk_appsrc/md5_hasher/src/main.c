@@ -79,8 +79,6 @@ int main()
     // Init the md5_hasher and DMA engine
     cmd_reset(MD5_BASEADDR);
     dma_init(DMA_DEV_ID);
-    cmd_enable(MD5_BASEADDR);
-
 
     while(!done)
     {
@@ -95,7 +93,6 @@ int main()
             case '0' :
                 xil_printf("Reset MD5 hasher core.\n\r");
                 cmd_reset(MD5_BASEADDR);
-                cmd_enable(MD5_BASEADDR);
                 str_len = 0;
                 in_str_len = 0;
                 for (int i=0; i<32; i++)
@@ -167,6 +164,7 @@ int main()
             case 'g' :
             case '4' :
                 xil_printf("Go Run the hasher \n\r");
+                cmd_enable(MD5_BASEADDR);
                 status = cmd_send_text(MD5_BASEADDR, DMA_DEV_ID, test_str, sizeof(test_str));
                 if (status == XST_SUCCESS)
                 {
@@ -184,7 +182,6 @@ int main()
                     xil_printf("match.str: %s \n\r",match.str);
                 }
                 cmd_clear_interrupt(MD5_BASEADDR);
-                cmd_enable(MD5_BASEADDR);
                 break;
             case 'Q' :
             case 'q' :
