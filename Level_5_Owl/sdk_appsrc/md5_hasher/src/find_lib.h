@@ -58,11 +58,10 @@ struct manifest_info
 ***************************
 */
 
-int parse_manifest(char *mfile, struct manifest_info *minfo);
+// XXX int parse_manifest(char *mfile, struct manifest_info *minfo);
 int convert_hash(char *md5_hash, unsigned char *target_hash);
-double elapsed_time(struct timeval *tv1, struct timeval *tv2);
-// XXX int load_books(struct manifest_info *minfo, unsigned char *block_text);
-unsigned char* load_books(struct manifest_info *minfo);
+// XXX double elapsed_time(struct timeval *tv1, struct timeval *tv2);
+// XXX unsigned char* load_books(struct manifest_info *minfo);
 
 #ifdef __cplusplus
 }

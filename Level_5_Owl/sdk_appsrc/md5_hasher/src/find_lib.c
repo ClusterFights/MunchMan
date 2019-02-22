@@ -25,6 +25,7 @@
  * Remember to free(minfo->book).
  *
  */
+/*
 int parse_manifest(char *mfile, struct manifest_info *minfo)
 {
     FILE *fp;
@@ -85,6 +86,7 @@ int parse_manifest(char *mfile, struct manifest_info *minfo)
 
     return 1;
 }
+*/
 
 /*
  * Convert a 32 char ascii hex string (md5_hash) into
@@ -124,11 +126,13 @@ int convert_hash(char *md5_hash, unsigned char *target_hash)
 /*
  * Compute elapsed time in seconds.
  */
+/*
 double elapsed_time(struct timeval *tv1, struct timeval *tv2)
 {
     return (double) (tv2->tv_usec - tv1->tv_usec) / 1000000 +
          (double) (tv2->tv_sec - tv1->tv_sec);
 }
+*/
 
 /*
  * Loads books into ram.
@@ -136,6 +140,7 @@ double elapsed_time(struct timeval *tv1, struct timeval *tv2)
  *
  * Don't forget to free block_text
  */
+/*
 unsigned char* load_books(struct manifest_info *minfo)
 {
     FILE *fp;
@@ -189,5 +194,6 @@ unsigned char* load_books(struct manifest_info *minfo)
     }
     return block_text;
 }
+*/
 
 

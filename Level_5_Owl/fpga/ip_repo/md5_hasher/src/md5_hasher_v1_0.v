@@ -118,7 +118,7 @@ wire clear_match_interrupt;
 assign reset = (~s_ctrl_axi_lite_aresetn) | slv_reg0[0];
 
 // assign status reg
-assign slv_reg1_in =  {29'h0, proc_match, proc_done, proc_busy};
+assign slv_reg1_in =  {29'h0, match_interrupt, proc_done, proc_busy};
 
 assign clear_match_interrupt = slv_reg0[2];
 
