@@ -62,17 +62,3 @@ Select the following two projects
 
 Leave all the other options unchecked and click Finish.
 
-
-## Top level Block Design
-
-The file artyZ7/src/bd/top.tcl is a tcl script that generates
-the top level block design.  If you modify the block design
-you need to export the block design and write over the 
-existing top.tcl. When you export do **not** check to box
-to automatically create top design.
-
-The tcl script vivado_prj/build.tcl that generates the project
-has been modified by hand to use the block design generation
-script top.tcl.
-
-
