@@ -57,7 +57,6 @@
 
 #define DMA_DEV_ID		XPAR_AXIDMA_0_DEVICE_ID
 
-static XAxiDma AxiDma;
 
 // target md5 hash for "The quick brown fox"
 static u32 target_hash[] = {
@@ -67,130 +66,13 @@ static u32 target_hash[] = {
     0xa0fc9ee5
 };
 
-static unsigned char test_str[] = "Hello. The quick brown fox jumps over the lazy dog.";
+static unsigned char test_str[] = "HHello. The quick brown fox jumps over the lazy dog.";
 
-/*****************************************************************************/
-/**
-* The example to do the simple transfer through polling. The constant
-* NUMBER_OF_TRANSFERS defines how many times a simple transfer is repeated.
-*
-* @param	DeviceId is the Device Id of the XAxiDma instance
-*
-* @return
-*		- XST_SUCCESS if example finishes successfully
-*		- XST_FAILURE if error occurs
-*
-* @note		None
-*
-*
-******************************************************************************/
-int XAxiDma_SimplePollExample(u16 DeviceId, u8* TxBufferPtr, int buffer_size)
-{
-	XAxiDma_Config *CfgPtr;
-	int Status;
-
-	xil_printf("buffer_size: %d \n\r",buffer_size);
-
-
-	/* Initialize the XAxiDma device.
-	 */
-	CfgPtr = XAxiDma_LookupConfig(DeviceId);
-	if (!CfgPtr) {
-		xil_printf("No config found for %d\r\n", DeviceId);
-		return XST_FAILURE;
-	} else
-	{
-		xil_printf("Config found for %d\r\n", DeviceId);
-	}
-
-	Status = XAxiDma_CfgInitialize(&AxiDma, CfgPtr);
-	if (Status != XST_SUCCESS) {
-		xil_printf("Initialization failed %d\r\n", Status);
-		return XST_FAILURE;
-	} else
-	{
-		xil_printf("Initialization passed %d\r\n", Status);
-	}
-
-	if(XAxiDma_HasSg(&AxiDma)){
-		xil_printf("Device configured as SG mode \r\n");
-		return XST_FAILURE;
-	} else
-	{
-		xil_printf("Device configured as Simple mode \r\n");
-	}
-
-	/* Disable interrupts, we use polling mode
-	 */
-	xil_printf("Disable interrupts \r\n");
-	XAxiDma_IntrDisable(&AxiDma, XAXIDMA_IRQ_ALL_MASK,
-						XAXIDMA_DEVICE_TO_DMA);
-
-
-
-	/* Flush the SrcBuffer before the DMA transfer, in case the Data Cache
-	 * is enabled
-	 */
-	xil_printf("Flush the Data Cache \r\n");
-	Xil_DCacheFlushRange((UINTPTR)TxBufferPtr, buffer_size);
-
-
-	/* Start the transfer */
-	xil_printf("Start the transfer \r\n");
-	Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) TxBufferPtr,
-			buffer_size, XAXIDMA_DMA_TO_DEVICE);
-
-	if (Status != XST_SUCCESS) {
-		return XST_FAILURE;
-	}
-
-	xil_printf("Wait for Dma to finish. \r\n");
-	while (XAxiDma_Busy(&AxiDma,XAXIDMA_DMA_TO_DEVICE)) {
-			/* Wait */
-	}
-
-
-	/* Test finishes successfully
-	 */
-	return XST_SUCCESS;
-}
-
-/*
- * cmd_str_len : Sets up the str_len in the md5_hasher core
- * returns: 1 for success, 0 for fail.
- */
-u8 cmd_str_len(u8 num_chars)
-{
-    u32 num_bits;
-    u32 ret;
-
-    // Check the num_chars are in range
-    if (num_chars <2 || num_chars > 55)
-    {
-        xil_printf("ERROR cmd_str_len num_chars out of range: %d\n\r",num_chars);
-        return 0;
-    }
-
-    // compute number of bits and write to array in big endian
-    num_bits = num_chars*8;
-    xil_printf("num_bits: %x \n\r",num_bits);
-
-    // Write to the core
-    MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG6_STR_LEN, num_bits);
-
-    // Read num_bits back
-    ret = MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG6_STR_LEN);
-    xil_printf("num_bits ret: %x \n\r",ret);
-
-    return 1;
-
-}
-
-void menu()
+void menu(char* md5_hash, int str_len)
 {
 	xil_printf("\n\r\n\rMenu\n\r");
-	xil_printf("1 : (H)ash \n\r");
-	xil_printf("2 : (L)ength str \n\r");
+	xil_printf("1 : (H)ash: %s \n\r",md5_hash);
+	xil_printf("2 : (L)ength: %d  \n\r",str_len);
 	xil_printf("3 : (S)tatus \n\r");
 	xil_printf("4 : (R)un hasher \n\r");
 	xil_printf("5 : (Q)uit\n\r");
@@ -200,14 +82,26 @@ int main()
 {
     char c;
     int done=0;
-    int status;
+    struct match_result match;
+    char md5_hash[33] = {
+        48,48,48,48,48,48,48,48,
+        48,48,48,48,48,48,48,48,
+        48,48,48,48,48,48,48,48,
+        48,48,48,48,48,48,48,48,0
+    };
+    int str_len = 19;
 
     init_platform();
+
+    // Init the md5_hasher and DMA engine
+    cmd_reset(XPAR_MD5_HASHER_0_BASEADDR);
+    dma_init(DMA_DEV_ID);
+    cmd_enable(XPAR_MD5_HASHER_0_BASEADDR);
 
 
     while(!done)
     {
-    	menu();
+    	menu(md5_hash, str_len);
     	c=inbyte();
 		printf("\n\rOption Selected : %c \n\r",c);
 
@@ -216,9 +110,6 @@ int main()
     		case 'H' :
     		case 'h' :
 			case '1' :
-				xil_printf("Reset core\n\r");
-				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG0_CTRL, 0x01);
-
 				xil_printf("Loading target hash\n\r");
 				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG2_HASH0, target_hash[0]);
 				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG3_HASH1, target_hash[1]);
@@ -242,7 +133,7 @@ int main()
 			case 'l' :
 			case '2' :
 				xil_printf("Load the string length \n\r");
-				cmd_str_len(19);
+				cmd_str_len(XPAR_MD5_HASHER_0_BASEADDR, 19);
 				break;
 			case 'S' :
 			case 's' :
@@ -258,14 +149,22 @@ int main()
 			case 'r' :
 			case '4' :
 				xil_printf("Run the hasher \n\r");
-				xil_printf("Toggle the start bit reg0[1] \n\r");
-				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG0_CTRL, 0x02);
-				xil_printf("Start DMA \n\r");
-				status = XAxiDma_SimplePollExample(DMA_DEV_ID, test_str, sizeof(test_str));
+                status = cmd_send_text(XPAR_MD5_HASHER_0_BASEADDR, DMA_DEV_ID, test_str, sizeof(test_str));
 				if (status == XST_SUCCESS)
 				{
-					xil_printf("Simple DMA finished with XST_SUCCESS");
+					xil_printf("Simple DMA returned with XST_SUCCESS");
 				}
+                while (!isDone(XPAR_MD5_HASHER_0_BASEADDR))
+                {
+                    // wait
+                }
+                xil_printf("MD5 hasher completed!!");
+                status = cmd_read_match(XPAR_MD5_HASHER_0_BASEADDR, &match, test_str, str_len);
+                if (status == XST_SUCCESS)
+                {
+                    xil_printf("match.pos: %d \n\r",match.pos);
+                    xil_printf("match.str: %s \n\r",match.str);
+                }
 				break;
 			case 'Q' :
 			case 'q' :
