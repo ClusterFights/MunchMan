@@ -53,9 +53,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "xaxidma.h"
+#include "find_lib.h"
 
 
-#define DMA_DEV_ID		XPAR_AXIDMA_0_DEVICE_ID
+#define DMA_DEV_ID      XPAR_AXIDMA_0_DEVICE_ID
+#define MD5_BASEADDR    XPAR_MD5_HASHER_0_BASEADDR
 
 
 // target md5 hash for "The quick brown fox"
@@ -94,9 +96,9 @@ int main()
     init_platform();
 
     // Init the md5_hasher and DMA engine
-    cmd_reset(XPAR_MD5_HASHER_0_BASEADDR);
+    cmd_reset(MD5_BASEADDR);
     dma_init(DMA_DEV_ID);
-    cmd_enable(XPAR_MD5_HASHER_0_BASEADDR);
+    cmd_enable(MD5_BASEADDR);
 
 
     while(!done)
@@ -111,17 +113,17 @@ int main()
     		case 'h' :
 			case '1' :
 				xil_printf("Loading target hash\n\r");
-				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG2_HASH0, target_hash[0]);
-				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG3_HASH1, target_hash[1]);
-				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG4_HASH2, target_hash[2]);
-				MD5_HASHER_mWriteReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG5_HASH3, target_hash[3]);
+				MD5_HASHER_mWriteReg(MD5_BASEADDR, MD5_HASHER_REG2_HASH0, target_hash[0]);
+				MD5_HASHER_mWriteReg(MD5_BASEADDR, MD5_HASHER_REG3_HASH1, target_hash[1]);
+				MD5_HASHER_mWriteReg(MD5_BASEADDR, MD5_HASHER_REG4_HASH2, target_hash[2]);
+				MD5_HASHER_mWriteReg(MD5_BASEADDR, MD5_HASHER_REG5_HASH3, target_hash[3]);
 
 				xil_printf("Reading back the has values:\n\r");
 				u32 th[4];
-				th[0] =  MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG2_HASH0);
-				th[1] =  MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG3_HASH1);
-				th[2] =  MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG4_HASH2);
-				th[3] =  MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG5_HASH3);
+				th[0] =  MD5_HASHER_mReadReg(MD5_BASEADDR, MD5_HASHER_REG2_HASH0);
+				th[1] =  MD5_HASHER_mReadReg(MD5_BASEADDR, MD5_HASHER_REG3_HASH1);
+				th[2] =  MD5_HASHER_mReadReg(MD5_BASEADDR, MD5_HASHER_REG4_HASH2);
+				th[3] =  MD5_HASHER_mReadReg(MD5_BASEADDR, MD5_HASHER_REG5_HASH3);
 
 				xil_printf("th0 : %x \n\r",th[0]);
 				xil_printf("th1 : %x \n\r",th[1]);
@@ -133,14 +135,14 @@ int main()
 			case 'l' :
 			case '2' :
 				xil_printf("Load the string length \n\r");
-				cmd_str_len(XPAR_MD5_HASHER_0_BASEADDR, 19);
+				cmd_str_len(MD5_BASEADDR, 19);
 				break;
 			case 'S' :
 			case 's' :
 			case '3' :
 				xil_printf("Status information \n\r");
-				u32 status = MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG1_STATUS);
-				u32 match_pos = MD5_HASHER_mReadReg(XPAR_MD5_HASHER_0_BASEADDR, MD5_HASHER_REG7_MATCH_POS);
+				u32 status = MD5_HASHER_mReadReg(MD5_BASEADDR, MD5_HASHER_REG1_STATUS);
+				u32 match_pos = MD5_HASHER_mReadReg(MD5_BASEADDR, MD5_HASHER_REG7_MATCH_POS);
 				u32 byte_pos = match_pos - 18;
 				xil_printf("status {match,done,busy}: %x \n\r",status);
 				xil_printf("byte_pos: %d \n\r",byte_pos);
@@ -149,17 +151,17 @@ int main()
 			case 'r' :
 			case '4' :
 				xil_printf("Run the hasher \n\r");
-                status = cmd_send_text(XPAR_MD5_HASHER_0_BASEADDR, DMA_DEV_ID, test_str, sizeof(test_str));
+                status = cmd_send_text(MD5_BASEADDR, DMA_DEV_ID, test_str, sizeof(test_str));
 				if (status == XST_SUCCESS)
 				{
 					xil_printf("Simple DMA returned with XST_SUCCESS");
 				}
-                while (!isDone(XPAR_MD5_HASHER_0_BASEADDR))
+                while (!isDone(MD5_BASEADDR))
                 {
                     // wait
                 }
                 xil_printf("MD5 hasher completed!!");
-                status = cmd_read_match(XPAR_MD5_HASHER_0_BASEADDR, &match, test_str, str_len);
+                status = cmd_read_match(MD5_BASEADDR, &match, test_str, str_len);
                 if (status == XST_SUCCESS)
                 {
                     xil_printf("match.pos: %d \n\r",match.pos);
