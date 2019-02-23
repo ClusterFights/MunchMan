@@ -1,0 +1,7 @@
+//arch = zynq; split = false; format = BIN
+the_ROM_image:
+{
+	[bootloader]/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/sdk_appsrc/my_fsbl/Debug/my_fsbl.elf
+	/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/sdk_appsrc/design_1_wrapper_hw_platform_1/design_1_wrapper.bit
+	/home/brandonb/Projects/ClusterFights/MunchMan/Level_5_Owl/sdk_appsrc/md5_hasher4/Debug/md5_hasher4.elf
+}
