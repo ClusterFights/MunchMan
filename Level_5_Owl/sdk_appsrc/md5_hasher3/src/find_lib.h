@@ -36,8 +36,11 @@ extern "C" {
 */
 
 // size of data.txt
-#define DATA_TXT_SIZE   15140710
-// #define DATA_TXT_SIZE   16000
+// data_small.txt
+// #define DATA_TXT_SIZE   15140710
+
+// data.txt
+#define DATA_TXT_SIZE   426153544
 
 
 /*

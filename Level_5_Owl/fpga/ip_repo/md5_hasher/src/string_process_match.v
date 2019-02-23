@@ -116,34 +116,42 @@ end
 
 // Check md5core return values for a match to target.
 // Count the number of returned hashes.
-reg [31:0] byte_count;
+reg [31:0] byte_count_out;
+reg [31:0] byte_count_in;
 // XXX reg [31:0] num_bytes;
 reg match;
 reg [31:0] match_byte_count;
 reg [511:0] match_msg;
 reg match_check_done;
+reg dma_done;
 always @(posedge clk)
 begin
     if (reset) begin
         // XXX num_bytes <= 0;
-        byte_count <= 0;
+        byte_count_out <= 0;
+        byte_count_in <= 0;
         match <= 0;
         match_byte_count <= 0;
         match_msg <= 0;
         match_check_done <= 0;
         proc_busy <= 0;
+        dma_done <= 0;
     end else begin
         // Check return hashes for match with target.
         if (md5_msg_ret_valid) begin
-            byte_count <= byte_count + 1;
+            byte_count_out <= byte_count_out + 1;
             if (  (a_ret == a_target) &&
                   (b_ret == b_target) &&
                   (c_ret == c_target) &&
                   (d_ret == d_target) ) begin
                 match <= 1;
-                match_byte_count <= byte_count;
+                match_byte_count <= byte_count_out;
                 match_msg <= md5_msg_ret;
             end
+        end
+        // Track the number of byte coming in
+        if (proc_data_valid) begin
+            byte_count_in <= byte_count_in + 1;
         end
         // Shift the matched string out
         if (proc_match_char_next) begin
@@ -151,9 +159,12 @@ begin
         end
         // Check if we have processed the specified
         // number of bytes.
-        // XXX if (byte_count == num_bytes) begin
+        // XXX if (byte_count_out == num_bytes) begin
         // Check if this is a last bytes of the stream.
         if (proc_last == 1) begin
+            dma_done <= 1;
+        end
+        if ( (dma_done==1) && (byte_count_in == byte_count_out)) begin
             match_check_done <= 1;
             proc_busy <= 0;
         end
@@ -161,7 +172,9 @@ begin
         if (proc_start) begin
             proc_busy <= 1;
             // XXX num_bytes <= proc_num_bytes;
-            byte_count <= 0;
+            dma_done <= 0;
+            byte_count_out <= 0;
+            byte_count_in <= 0;
             match <= 0;
             match_byte_count <= 0;
             match_msg <= 0;
