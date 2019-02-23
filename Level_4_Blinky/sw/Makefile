@@ -1,7 +1,7 @@
 CC=gcc
 GPIO_BASE=-DGPIO_BASE=0x3f200000
 
-all: test_toggle data_test md5_tb md5_tb16 find md5_test ifind
+all: test_toggle data_test md5_tb md5_tb16 find md5_test ifind sdcard
 
 test_toggle: test_toggle.c
 	$(CC) $(GPIO_BASE) -Wall -O3 -o $@ $^
@@ -36,3 +36,5 @@ ifind: ifind.c find_lib.c kbinput.c munchman16.c md5.c
 md5_test: md5_test.c md5.c
 	$(CC) -Wall -O3 -o $@ $^
 
+sdcard: sdcard.c find_lib.c
+	$(CC) -Wall -O3 -o $@ $^
