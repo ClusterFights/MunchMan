@@ -24,6 +24,10 @@ extern "C" {
 #include <string.h>
 #include "xtime_l.h"
 
+#include "xsdps.h"		/* SD device driver */
+#include "ff.h"
+#include "ffconf.h"
+
 
 /*
 ***************************
@@ -63,6 +67,10 @@ struct manifest_info
 int convert_hash(char *md5_hash, unsigned char *target_hash);
 double elapsed_time(XTime tStart, XTime tEnd);
 // XXX unsigned char* load_books(struct manifest_info *minfo);
+//
+// XXX unsigned char* load_book(char* filename);
+
+// XXX int sdcard_test(void);
 
 #ifdef __cplusplus
 }

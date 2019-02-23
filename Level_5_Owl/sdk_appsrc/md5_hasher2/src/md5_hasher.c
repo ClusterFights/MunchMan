@@ -10,6 +10,8 @@
 #include "md5_hasher.h"
 #include "xaxidma.h"
 
+#define MD5_BASEADDR    XPAR_MD5_HASHER_0_BASEADDR
+
 static XAxiDma AxiDma;
 
 /*
@@ -17,17 +19,13 @@ static XAxiDma AxiDma;
  * PARAMS:
  *   baseaddr_p : BASE address of the md5_hasher core.
  *
- * RETURNS: 1 if match, or searched whole block and not found. 0 if still processing.
+ * RETURNS: 0 if still processing, 1 done with dma, 2 match.
  */
 u8 isDone(void * baseaddr_p)
 {
     u32 status = MD5_HASHER_mReadReg(baseaddr_p, MD5_HASHER_REG1_STATUS);
     // status bits {match, done, busy}
-    if (status >1) {
-        return 1;
-    } else {
-        return 0;
-    }
+    return (u8)(status>>1);
 }
 
 /*
@@ -118,9 +116,11 @@ XStatus dma_init(u16 dma_device_id)
  * RETURNS: XST_SUCCESS or XST_FAILURE
  */
 XStatus cmd_send_text(void * baseaddr_p, u16 dma_device_id, 
-            u8* text_str, int text_str_len)
+            u8* text_str, int text_str_len, int *byte_offset)
 {
     XStatus Status;
+    u8 ret;
+    u8* text_str_ptr = text_str;
 
     /* Flush before the DMA transfer, in case the Data Cache
      * is enabled
@@ -131,10 +131,38 @@ XStatus cmd_send_text(void * baseaddr_p, u16 dma_device_id,
 
     /* Start the transfer */
     // XXX xil_printf("Start the transfer \r\n");
-    Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) text_str,
-            text_str_len, XAXIDMA_DMA_TO_DEVICE);
+    int num_loops = text_str_len / DMA_SIZE;
+    int remainder = text_str_len % DMA_SIZE;
+
+    *byte_offset=0;
+    for (int i=0; i<num_loops; i++)
+    {
+        Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) text_str_ptr,
+                DMA_SIZE, XAXIDMA_DMA_TO_DEVICE);
+
+        if (Status != XST_SUCCESS) {
+            xil_printf("ERROR: during XAxiDma_SimpleTransfer() \n\r");
+            return XST_FAILURE;
+        }
+        while (!(ret = isDone(MD5_BASEADDR)))
+        {
+            // wait
+        }
+        if (ret == 2)
+        {
+            // match
+            break;
+        }
+        text_str_ptr += DMA_SIZE;
+        *byte_offset += DMA_SIZE;
+    }
+
+    // Process remainder.
+    Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) text_str_ptr,
+            remainder, XAXIDMA_DMA_TO_DEVICE);
 
     if (Status != XST_SUCCESS) {
+        xil_printf("ERROR: during XAxiDma_SimpleTransfer() \n\r");
         return XST_FAILURE;
     }
 

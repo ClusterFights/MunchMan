@@ -72,6 +72,7 @@ int main()
     char c;
     int done=0;
     int ret;
+    u8 status_bits;
     struct match_result match;
     u8* mem_text = NULL;
 
@@ -94,6 +95,8 @@ int main()
     double total_time, hashes_per_sec;
 
     u8* match_str[56];
+
+    int byte_offset=0;
 
     init_platform();
 
@@ -203,12 +206,12 @@ int main()
                 XGpio_DiscreteWrite(&Gpio, RGB_CHANNEL, RGB_BLUE);
                 XTime_GetTime(&tStart);
                 cmd_enable(MD5_BASEADDR);
-                status = cmd_send_text(MD5_BASEADDR, DMA_DEV_ID, mem_text, DATA_TXT_SIZE);
+                status = cmd_send_text(MD5_BASEADDR, DMA_DEV_ID, mem_text, DATA_TXT_SIZE, &byte_offset);
                 if (status == XST_FAILURE)
                 {
                     xil_printf("ERROR: cmd_send_text returned XST_FAILURE.\n\r");
                 }
-                while (!isDone(MD5_BASEADDR))
+                while (!(status_bits=isDone(MD5_BASEADDR)))
                 {
                     // wait
                 }
@@ -216,7 +219,7 @@ int main()
                 total_time = elapsed_time(tStart, tEnd);
                 xil_printf("MD5 hasher completed!!\n\r");
                 status = cmd_read_match(MD5_BASEADDR, &match, mem_text, str_len);
-                if (status == XST_SUCCESS)
+                if (status_bits >1) // match occured
                 {
                     to_byte_str(match.str, match_str, str_len);
                     xil_printf("match.pos: %d \n\r",match.pos);

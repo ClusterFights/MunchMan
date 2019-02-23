@@ -26,6 +26,8 @@
 #define MD5_HASHER_REG6_STR_LEN 	24
 #define MD5_HASHER_REG7_MATCH_POS	28
 
+// XXX #define DMA_SIZE   16000
+#define DMA_SIZE   67000000
 
 /**************************** Type Definitions *****************************/
 /**
@@ -90,7 +92,7 @@ XStatus dma_init(u16 dma_device_id);
 
 XStatus cmd_set_hash(void* baseaddr_p, unsigned char *target_hash);
 XStatus cmd_send_text(void* baseaddr_p, u16 dma_device_id,
-            unsigned char* text_str, int text_str_len);
+            unsigned char* text_str, int text_str_len, int *byte_offset);
 XStatus cmd_read_match(void* baseaddr_p, struct match_result *result,
         u8* text_str, int str_len);
 XStatus cmd_str_len(void* baseaddr_p, unsigned char num_chars);
